@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  console.log("SignInPage");
+  console.log("SignIn");
   return (
     <div>
       <SignInViewPage />;
