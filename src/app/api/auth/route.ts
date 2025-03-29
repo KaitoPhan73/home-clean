@@ -2,7 +2,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const accessToken = body.accessToken as string;
   const user = JSON.stringify(body) as string;
-
+ console.log(body);
   if (!accessToken) {
     return new Response(
       JSON.stringify({ message: "Không nhận được session token" }),

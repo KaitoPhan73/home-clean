@@ -2,26 +2,12 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { THouseResponse } from "@/schema/house.schema"; // Đảm bảo đường dẫn schema đúng
-import Image from "next/image";
 import { CellAction } from "./cell-action";
 
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle } from "lucide-react";
 
 export const columns: ColumnDef<THouseResponse>[] = [
-  {
-    accessorKey: "imageUrl", // Nếu có trường ảnh trong schema của bạn
-    header: "Hình ảnh",
-    cell: ({ row }) => {
-      const imgSrc = row.getValue("imageUrl") as string;
-      return imgSrc ? (
-        <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
-          <Image src={imgSrc} alt="House Image" fill className="object-cover" />
-        </div>
-      ) : (
-        <span className="text-gray-400 text-sm">Không có ảnh</span>
-      );
-    },
-  },
   {
     accessorKey: "no", // Cập nhật theo mã căn hộ
     header: "Mã căn hộ",
@@ -32,32 +18,26 @@ export const columns: ColumnDef<THouseResponse>[] = [
     ),
   },
   {
-    accessorKey: "status", // Trạng thái căn hộ
-    header: "Trạng thái",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-sm px-2 py-1">
-        {row.getValue("status")}
-      </Badge>
-    ),
+    accessorKey: "status",
+    header: "Trạng Thái",
+    cell: ({ row }) => {
+      const status = row.getValue<string>("status"); // Ép kiểu tránh lỗi unknown
+      return (
+        <div className="flex items-center gap-2">
+          {status === "Active" ? (
+            <CheckCircle className="text-green-500" size={20} />
+          ) : (
+            <XCircle className="text-red-500" size={20} />
+          )}
+          <span>{status === "Active" ? "Hoạt động" : "Không hoạt động"}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "code", // Mã căn hộ
     header: "Mã căn hộ",
     cell: ({ row }) => <span className="text-sm">{row.getValue("code")}</span>,
-  },
-  {
-    accessorKey: "bedroomCount", // Số phòng ngủ
-    header: "Số phòng ngủ",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.getValue("bedroomCount")}</span>
-    ),
-  },
-  {
-    accessorKey: "bathroomCount", // Số phòng tắm
-    header: "Số phòng tắm",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.getValue("bathroomCount")}</span>
-    ),
   },
   {
     accessorKey: "hasBalcony", // Có ban công không
@@ -66,20 +46,6 @@ export const columns: ColumnDef<THouseResponse>[] = [
       <span className="text-sm">
         {row.getValue("hasBalcony") ? "Có" : "Không"}
       </span>
-    ),
-  },
-  {
-    accessorKey: "squareMeters", // Diện tích
-    header: "Diện tích (m²)",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.getValue("squareMeters")}</span>
-    ),
-  },
-  {
-    accessorKey: "orientation", // Hướng nhà
-    header: "Hướng căn hộ",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.getValue("orientation")}</span>
     ),
   },
   {

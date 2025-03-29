@@ -1,35 +1,29 @@
 import PageContainer from "@/components/layout/page-container";
 import React, { Suspense } from "react";
-import ServiceTable from "./service-table";
 
 import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
 import { Heading } from "@/components/ui/headling";
 import { Separator } from "@/components/ui/separator";
-import StoreTableAction from "./service-tables/service-table-action";
-
-const ServiceIndex = () => {
+import { CredenzaCreateService } from "@/app/(dashboard)/admin/services/_components/credenza-create-service";
+import ServiceTable from "@/app/(dashboard)/admin/services/_components/service-table";
+type Props = {
+  keyProps: string;
+};
+const ServiceIndex = ({ keyProps }: Props) => {
   return (
     <PageContainer>
       {/* <div className="space-y-2">
-        <StoreTable storeResponse={storeResponse} />
+        <AreaTable storeResponse={storeResponse} />
       </div> */}
       <div className="space-y-4">
         <div className="flex items-start justify-between">
-          <Heading
-            title="Cửa hàng"
-            description="Quản lý cửa hàng (Chức năng bảng phía máy chủ.)"
-          />
-          {/* <Link
-            href="/dashboard/product/new"
-            className={cn(buttonVariants(), "text-xs md:text-sm")}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add New
-          </Link> */}
+          <Heading title="Dịch Vụ" description="Quản lý dịch vụ" />
+          <CredenzaCreateService />
         </div>
         <Separator />
-        <StoreTableAction />
+
         <Suspense
-          // key={key}
+          key={keyProps}
           fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}
         >
           <ServiceTable />

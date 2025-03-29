@@ -5,12 +5,13 @@ import { redirect } from "next/navigation";
 import NextFetchRequestConfig from "next/types";
 import envConfig from "@/schema/config";
 import { normalizePath } from "./utils";
+import { TAuthResponse } from "@/schema/auth.schema";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface CustomOptions
   extends Omit<RequestInit, "method">,
-    NextFetchRequestConfig {
+  NextFetchRequestConfig {
   baseUrl?: string;
   params?: Record<string, string>;
 }
@@ -77,8 +78,10 @@ const createHttpClient = (defaultBaseUrl: string) => {
 
     if (isClient()) {
       const token = localStorage.getItem("accessToken");
+      console.log("Token được sử dụng:", token); // Log token
       if (token) headers["Authorization"] = `Bearer ${token}`;
     }
+
 
     const config: RequestInit & NextFetchRequestConfig = {
       ...options,
@@ -141,14 +144,14 @@ const createHttpClient = (defaultBaseUrl: string) => {
 
   const handleAuthResponse = (url: string, data: any) => {
     if (isClient()) {
-      console.log("Normalized URL:", normalizePath(url));
 
       if (
         ["api/auth", "/register"].some((item) => item === normalizePath(url))
       ) {
-        localStorage.setItem("accessToken", data.token);
         const parseData = data.user;
-        console.log("parseData", JSON.stringify(parseData));
+
+        localStorage.setItem("accessToken", data.accessToken);
+        // console.log("parseData", data);
         localStorage.setItem("user", JSON.stringify(parseData));
       } else if (url === "/auth/logout") {
         localStorage.removeItem("accessToken");
@@ -172,16 +175,18 @@ const createHttpClient = (defaultBaseUrl: string) => {
 };
 
 const httpLocal = createHttpClient(envConfig.NEXT_PUBLIC_URL);
+const httpBag = createHttpClient(envConfig.NEXT_PUBLIC_BAG_API_ENDPOINT);
 const httpMock = createHttpClient(envConfig.NEXT_PUBLIC_MOCK_API_ENDPOINT);
 const httpHomePlus = createHttpClient(
   envConfig.NEXT_PUBLIC_HOMEPLUS_API_ENDPOINT
 );
 const httpVinWallet = createHttpClient(
-  envConfig.NEXT_PUBLIC_HOMEPLUS_API_ENDPOINT
+  envConfig.NEXT_PUBLIC_VINWALLET_API_ENDPOINT
 );
 
 export {
   httpLocal,
+  httpBag,
   httpMock,
   httpHomePlus,
   httpVinWallet,

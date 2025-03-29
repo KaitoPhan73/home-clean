@@ -2,8 +2,8 @@
 
 "use server";
 
-import { httpHomePlus } from "@/lib/http";
-import { TAuthResponse, TLoginRequest } from "@/schema/auth.schema";
+import { httpHomePlus, httpVinWallet } from "@/lib/http";
+import { TAuthResponse, TLoginAdminRequest, TLoginRequest } from "@/schema/auth.schema";
 
 export const checkLoginManager = async (data: TLoginRequest) => {
   const response = await httpHomePlus.post<TAuthResponse>(
@@ -14,9 +14,9 @@ export const checkLoginManager = async (data: TLoginRequest) => {
   return response;
 };
 
-export const checkLoginAdmin = async (data: TLoginRequest) => {
-  const response = await httpHomePlus.post<TAuthResponse>(
-    `/auth/login-admin`,
+export const checkLoginAdmin = async (data: TLoginAdminRequest) => {
+  const response = await httpVinWallet.post<TAuthResponse>(
+    `/auth/admin/login`,
     data
   );
   console.log("login Response:", response);

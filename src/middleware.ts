@@ -8,25 +8,36 @@ export function middleware(request: NextRequest) {
   const userRaw = request.cookies.get("user")?.value ?? " ";
   let user;
 
-  // Try parsing the user cookie
   try {
     user = JSON.parse(userRaw);
   } catch (error) {
     console.error("Error parsing user cookie:", error);
     user = null;
   }
+  console.log("eeeeeeeeeee:", user);
 
-  // Allow access to `/` and `/logout` without checks
+  const requestHeaders = new Headers(request.headers);
+
+  if (user?.groupId) {
+    requestHeaders.set('x-group-id', user.groupId);
+  }
+
+  if (pathname === "/" || pathname === "/logout") {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
   if (pathname === "/" || pathname === "/logout") {
     return NextResponse.next();
   }
 
-  // Require accessToken for all other paths
   if (!userRaw) {
     return NextResponse.redirect(new URL("/logout", request.url));
   }
 
-  // Role-based path checks
   if (user?.role === "Admin") {
     if (!pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/logout", request.url));
@@ -40,12 +51,14 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/logout", request.url));
     }
   } else {
-    // Redirect to /logout if the role is unknown or invalid
     return NextResponse.redirect(new URL("/logout", request.url));
   }
 
-  return NextResponse.next();
-}
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });}
 
 export const config = {
   matcher: [

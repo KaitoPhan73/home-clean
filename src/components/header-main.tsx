@@ -2,7 +2,7 @@ import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
-import NotificationBell from "./NotificationBell"; // Import component NotificationBell
+import NotificationBell from "@/components/NotificationBell";
 
 interface HeaderMainProps {
   className?: string;
@@ -21,7 +21,7 @@ const HeaderMain = ({ className }: HeaderMainProps) => {
         {/* <DynamicBreadcrumb className="flex items-center gap-2" /> */}
       </div>
       <div className="flex items-center gap-4 ml-auto">
-        <NotificationBell /> {/* Thêm chuông thông báo */}
+        <NotificationBell />
         <ModeToggle />
       </div>
     </header>

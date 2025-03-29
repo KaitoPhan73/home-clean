@@ -35,7 +35,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("sessionToken");
+  const accessToken = cookieStore.get("accessToken");
   return (
     <html lang="en">
       <body
@@ -51,7 +51,7 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <AppProvider initialSessionToken={sessionToken?.value}>
+              <AppProvider initialSessionToken={accessToken?.value}>
                 {children}
               </AppProvider>{" "}
             </ThemeProvider>

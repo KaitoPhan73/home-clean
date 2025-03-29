@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { CellAction } from "./cell-action";
 import { format } from "date-fns";
+import { CheckCircle, XCircle } from "lucide-react";
 
 export const columns: ColumnDef<TClusterResponse>[] = [
   {
@@ -40,12 +41,20 @@ export const columns: ColumnDef<TClusterResponse>[] = [
   },
   {
     accessorKey: "status",
-    header: "Trạng thái",
-    cell: ({ row }) => (
-      <Badge variant="secondary" className="text-sm px-2 py-1">
-        {row.getValue("status")}
-      </Badge>
-    ),
+    header: "Trạng Thái",
+    cell: ({ row }) => {
+      const status = row.getValue<string>("status"); // Ép kiểu tránh lỗi unknown
+      return (
+        <div className="flex items-center gap-2">
+          {status === "Active" ? (
+            <CheckCircle className="text-green-500" size={20} />
+          ) : (
+            <XCircle className="text-red-500" size={20} />
+          )}
+          <span>{status === "Active" ? "Hoạt động" : "Không hoạt động"}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "createdAt",
@@ -65,15 +74,15 @@ export const columns: ColumnDef<TClusterResponse>[] = [
       </span>
     ),
   },
-  {
-    accessorKey: "areaId",
-    header: "Mã khu vực",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="text-sm font-mono px-2 py-1">
-        {row.getValue("areaId")}
-      </Badge>
-    ),
-  },
+  // {
+  //   accessorKey: "areaId",
+  //   header: "Mã khu vực",
+  //   cell: ({ row }) => (
+  //     <Badge variant="outline" className="text-sm font-mono px-2 py-1">
+  //       {row.getValue("areaId")}
+  //     </Badge>
+  //   ),
+  // },
   {
     id: "actions",
     cell: ({ row }) => <CellAction data={row.original} />,

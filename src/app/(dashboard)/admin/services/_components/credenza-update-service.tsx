@@ -16,15 +16,18 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ServiceSchema, TUpdateServiceRequest } from "@/schema/service.schema";
+import { Switch } from "@/components/ui/switch";
 type Props = {
   className?: string;
   initialData: TUpdateServiceRequest; // Data passed to update form
@@ -267,15 +270,19 @@ export function CredenzaUpdateService({ className, initialData }: Props) {
                     control={form.control}
                     name="isFeatured"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Dịch Vụ Nổi Bật</FormLabel>
+                          <FormDescription>
+                            Chọn nếu dịch vụ này là nổi bật
+                          </FormDescription>
+                        </div>
                         <FormControl>
-                          <Checkbox
+                          <Switch 
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            ref={field.ref}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -291,15 +298,19 @@ export function CredenzaUpdateService({ className, initialData }: Props) {
                     control={form.control}
                     name="isAvailable"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Trạng Thái Sẵn Có</FormLabel>
+                          <FormDescription>
+                            Bật nếu sản phẩm này có sẵn để đặt hàng
+                          </FormDescription>
+                        </div>
                         <FormControl>
-                          <Checkbox
+                          <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            ref={field.ref}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />

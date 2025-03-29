@@ -4,11 +4,11 @@ export const headerPaths = [
       label: "TRANG CHỦ",
     },
     // {
-    //   link: "/blogs",
-    //   label: "BLOG",
+    //   link: "/laundry",
+    //   label: "LAUNDRY",
     // },
     // {
-    //   link: "/services",
+    //   link: "/clean",
     //   label: "DỊCH VỤ",
     // },
     // {

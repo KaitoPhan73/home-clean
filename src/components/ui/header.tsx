@@ -13,6 +13,7 @@ import { headerPaths } from "@/constants/router";
 import Image from "next/image";
 import { ModeToggle } from "./mode-toggle";
 import UserHeader from "./user-header";
+import AIChatBox from "@/components/AIChatBox";
 
 export default function Header() {
   return (
@@ -85,6 +86,7 @@ export default function Header() {
           <div id="avatar">
             <UserHeader />
           </div>
+          <AIChatBox />
         </div>
       </header>
     </div>

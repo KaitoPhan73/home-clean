@@ -1,26 +1,26 @@
 import { DataTable } from "@/components/table/data-table";
-import { TServiceResponse } from "@/schema/service.schema";
-import { TTableResponse } from "@/types/Table";
-import React from "react";
 import { columns } from "./service-tables/columns";
+    import { searchParamsCache } from "@/lib/searchparams";
 import { getAllServices } from "@/apis/service";
 
-const ServiceTable = async () => {
-  const serviceResponse = await getAllServices();
-  console.log(serviceResponse);
-  const parsedServiceResponse: TTableResponse<TServiceResponse> = {
-    size: 0,
-    page: 0,
-    total: 0,
-    totalPages: 0,
-    items: serviceResponse.payload.items,
+const ServiceTable  = async () => {
+  const page = searchParamsCache.get("page");
+  const search = searchParamsCache.get("search");
+  const size = searchParamsCache.get("size");
+
+  const filters = {
+    page,
+    size: size,
+    ...(search && { search }),
   };
+  const storeResponse = await getAllServices(filters);
+  const storePayload = storeResponse.payload;
   return (
     <div>
       <DataTable
-        data={parsedServiceResponse.items}
+        data={storePayload.items}
         columns={columns}
-        totalItems={parsedServiceResponse.totalPages}
+        totalItems={storePayload.totalPages}
       />
     </div>
   );

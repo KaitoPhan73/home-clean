@@ -47,12 +47,10 @@ const UserAuthForm = () => {
   const { isSubmitting } = form.formState;
 
   const onSubmit = async (data: TLoginRequest) => {
-    const isAdmin = data.phoneNumber === "0123456789" && data.password === "0123456789";
     try {
-      let response: HttpResponse<TAuthResponse>;
-
-      if (isAdmin) {
-        // ✅ Fake login cho admin
+      let response: HttpResponse<TAuthResponse> | null = null;
+  
+      if (data.phoneNumber === "0123456789" && data.password === "0123456789") {
         response = {
           status: 200,
           payload: {
@@ -64,50 +62,40 @@ const UserAuthForm = () => {
             role: "Admin",
           },
         };
-      }else {
-        const responses = await Promise.allSettled([
-          checkLoginAdmin(data),
-          checkLoginManager(data),
-          checkLoginStaff(data),
-        ]);
-      
-        const successResponse = responses.find(
-          (res): res is PromiseFulfilledResult<HttpResponse<TAuthResponse>> =>
-            res.status === "fulfilled" && res.value.status === 200
-        );        
-      
-        if (successResponse) {
-          response = successResponse.value;
-        } else {
-          throw new Error("Tất cả các API đều thất bại.");
-        }
+      } else {
+        if (!response) response = await checkLoginManager(data).catch(() => null);
+        if (!response) throw new Error("Tất cả các API đều thất bại.");
       }
-
-      if (response.status === 200) {
-        await authClient.auth(response.payload);
+  
+      if (response && response.status === 200) {
         const userData = response.payload;
-
+        await authClient.auth(userData);
         dispatch(setUser(userData));
-
+  
+        let redirectUrl = "/homeplus";
+        let message = "Không xác định được vai trò, chuyển đến trang chính.";
+  
+        if (userData.role?.toLowerCase() === "admin") {
+          redirectUrl = "/admin/buildings";
+          message = "Đang chuyển đến trang quản lí";
+        } else if (userData.role?.toLowerCase() === "manager") {
+          redirectUrl = "/manager/groups";
+          message = "Đang chuyển đến trang quản lý dịch vụ.";
+        } else if (userData.role?.toLowerCase() === "staff") {
+          redirectUrl = "/homeplus";
+          message = "Đang chuyển đến trang HomePlus.";
+        }
+  
         toast({
           title: "Chào mừng bạn trở lại",
-          description: "Đang chuyển hướng...",
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">{message}</code>
+            </pre>
+          ),
         });
-
-        // ✅ Điều hướng theo role
-        switch (userData.role?.toLowerCase()) {
-          case "admin":
-            router.push("/admin/overview");
-            break;
-          case "manager":
-            router.push("/manager/services");
-            break;
-          case "staff":
-            router.push("/homeplus");
-            break;
-          default:
-            router.push("/homeplus");
-        }
+  
+        router.push(redirectUrl);
       }
     } catch (error) {
       console.error("Login error: ", error);

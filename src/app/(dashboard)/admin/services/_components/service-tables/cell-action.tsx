@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Edit, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ interface CellActionProps {
   data: any;
 }
 
-export const CellAction: React.FC<CellActionProps> = () => {
+export const CellAction: React.FC<CellActionProps> = ({data}) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -44,14 +44,12 @@ export const CellAction: React.FC<CellActionProps> = () => {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
           <DropdownMenuItem
-            // onClick={() => router.push(`/dashboard/product/${data.id}`)}
-            onClick={() => router.push(`/dashboard/product/1`)}
-
+            onClick={() => router.push(`/admin/services/${data.id}`)}
           >
-            <Edit className="mr-2 h-4 w-4" /> Update
+            <Edit className="mr-2 h-4 w-4" /> Xem chi tiết
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" /> Delete
+            {/* <Trash className="mr-2 h-4 w-4" /> Xóa */}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

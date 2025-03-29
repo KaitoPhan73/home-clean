@@ -10,7 +10,6 @@ export const getOptionById = async (id: string) => {
   return response;
 };
 
-
 export const createOption = async (data: Partial<TOptionResponse>) => {
   const response = await httpHomePlus.post<TOptionResponse>(`/options`, data);
   // console.log("create Services Response:", response);

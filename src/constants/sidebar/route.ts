@@ -71,45 +71,57 @@ export const data = {
 // **Navigation cho Admin**
 export const adminNavItems: TNavItem[] = [
   {
-    title: "Tổng quan",
-    url: PATHS.admin.overview,
-    icon: "dashboard",
-    shortcut: ["d", "d"],
-    isActive: false,
-    items: [],
-  },
-  // {
-  //   title: "Quản lý cửa hàng",
-  //   url: PATHS.admin.stores,
-  //   icon: "store",
-  //   shortcut: ["s", "t"],
-  //   isActive: false,
-  //   items: [],
-  // },
-  {
-    title: "Quản lý quản lý",
-    url: PATHS.admin.managers,
-    icon: "truck",
+    title: "Quản lý nhóm",
+    url: PATHS.admin.groups,
+    icon: "users",
     shortcut: ["s", "h"],
     isActive: false,
     items: [],
   },
+
+  {
+    title: "Quản Lí Tài Khoản",
+    url: "#",
+    icon: "list",
+    isActive: false,
+    items: [
+      {
+        title: "Điều Phối Viên",
+        url: PATHS.admin.managers,
+        icon: "userPlus",
+        shortcut: ["a", "m"],
+      },
+      {
+        title: "Nhân Viên",
+        url: PATHS.admin.staffs,
+        icon: "employee",
+        shortcut: ["a", "s"],
+      },
+      {
+        title: "Người Dùng",
+        url: PATHS.admin.users,
+        icon: "users",
+        shortcut: ["a", "u"],
+      },
+    ],
+  },
+
   {
     title: "Khu vực",
     url: "#",
-    icon: "building",
+    icon: "dashboard",
     isActive: false,
     items: [
       {
         title: "Quản lí khu vực",
         url: PATHS.admin.areas,
-        icon: "building",
+        icon: "filter",
         shortcut: ["r", "a"],
       },
       {
         title: "Quản lí cụm khu vực",
         url: PATHS.admin.clusters,
-        icon: "building",
+        icon: "kanban",
         shortcut: ["r", "s"],
       },
       {
@@ -127,83 +139,63 @@ export const adminNavItems: TNavItem[] = [
       {
         title: "Quản lí phòng",
         url: PATHS.admin.rooms,
-        icon: "home",
+        icon: "post",
         shortcut: ["r", "p"],
       },
     ],
   },
-
   {
-    title: "Dịch vụ",
-    url: PATHS.admin.services,
-    icon: "package",
+    title: "Dịch Vụ",
+    url: "#",
+    icon: "product",
     isActive: false,
-    items: [],
+    items: [
+      {
+        title: "Phân Loại Dịch Vụ",
+        url: PATHS.admin.serviceCategories,
+        icon: "page",
+        shortcut: ["r", "a"],
+      },
+      {
+        title: "Loại Dịch Vụ",
+        url: PATHS.admin.services,
+        icon: "post",
+        shortcut: ["r", "s"],
+      },
+    ],
   },
   {
-    title: "Doanh thu",
+    title: "Doanh Thu & Báo Cáo",
     url: "#",
     icon: "chart",
     isActive: false,
     items: [
       {
-        title: "Doanh thu cửa hàng",
-        url: PATHS.admin.revenue.stores,
-        icon: "storeChart",
-        shortcut: ["r", "s"],
+        title: "Doanh Thu Tổng",
+        url: PATHS.admin.revenues,
+        icon: "page",
+        shortcut: ["r", "a"],
       },
       {
-        title: "Doanh thu nền tảng",
-        url: PATHS.admin.revenue.platform,
-        icon: "platformChart",
-        shortcut: ["r", "p"],
+        title: "Các Giao Dịch",
+        url: PATHS.admin.transactions,
+        icon: "post",
+        shortcut: ["r", "s"],
       },
     ],
   },
-  {
-    title: "Cài đặt",
-    url: PATHS.admin.settings,
-    icon: "settings",
-    shortcut: ["s", "e"],
-    isActive: false,
-    items: [],
-  },
 ];
 
-// **Navigation cho Manager**
+
 export const managerNavItems: TNavItem[] = [
   {
-    title: "Phân Loại Dịch Vụ",
-    url: PATHS.manager.serviceCategories,
-    icon: "boxes",
-    shortcut: ["t", "s"],
+    title: "Quản Lí Nhóm",
+    url: PATHS.manager.groups,
+    icon: "staff",
     isActive: false,
     items: [],
   },
-  {
-    title: "Loại Dịch Vụ",
-    url: PATHS.manager.services,
-    icon: "package",
-    shortcut: ["t", "s"],
-    isActive: false,
-    items: [],
-  },
-  // {
-  //   title: "Hoạt Động Của Dịch Vụ",
-  //   url: PATHS.manager.serviceActivities,
-  //   icon: "building",
-  //   shortcut: ["r", "s"],
-  //   isActive: false,
-  //   items: [],
-  // },
-  // {
-  //   title: "Hoạt Động Của Dịch Vụ Phụ",
-  //   url: PATHS.manager.serviceSubActivities,
-  //   icon: "building",
-  //   shortcut: ["r", "s"],
-  //   isActive: false,
-  //   items: [],
-  // },
+  
   {
     title: "Ca Làm Việc",
     url: PATHS.manager.timeSlots,
@@ -212,15 +204,14 @@ export const managerNavItems: TNavItem[] = [
     items: [],
   },
   {
-    title: "Doanh thu",
-    url: PATHS.manager.revenue,
-    icon: "chart",
+    title: "Trạng Thái Đơn Hàng",
+    url: PATHS.manager.orderAssignment,
+    icon: "tasks",
     isActive: false,
     items: [],
   },
 ];
 
-// **Navigation cho Staff**
 export const staffNavItems: TNavItem[] = [
   {
     title: "Nhiệm vụ của tôi",

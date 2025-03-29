@@ -15,15 +15,11 @@ type Props = {
 const AreaDetailIndex = ({ slug, keyProps }: Props) => {
   return (
     <PageContainer>
-      <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 p-4">
+      <div>
         <Card className="p-4 col-span-6 md:col-span-3 lg:col-span-6">
           <Suspense fallback={<Skeleton className=" w-full h-full" />}>
             <AreaDetailAsync slug={slug} />
           </Suspense>
-        </Card>
-
-        <Card className="bg-gray-400 p-4 rounded-lg col-span-6">
-          <p>Content 3</p>
         </Card>
         <div className="col-span-12 md:col-span-3 lg:col-span-12">
           <Separator />

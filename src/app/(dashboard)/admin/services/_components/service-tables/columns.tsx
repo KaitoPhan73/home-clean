@@ -1,27 +1,11 @@
 "use client";
 
 import { formatPriceVND } from "@/lib/formatter";
-
 import { ColumnDef } from "@tanstack/react-table";
-import { TServiceResponse } from "@/schema/service.schema"; // Thay TStoreResponse thành TServiceResponse
-import Image from "next/image";
+import { TServiceResponse } from "@/schema/service.schema";
 import { CellAction } from "./cell-action";
 
 export const columns: ColumnDef<TServiceResponse>[] = [
-  {
-    accessorKey: "imageUrl",
-    header: "Hình ảnh",
-    cell: ({ row }) => {
-      const imgSrc = row.getValue("imageUrl") as string;
-      return imgSrc ? (
-        <div className="relative aspect-square">
-          <Image src={imgSrc} alt="Product Image" fill className="rounded-lg" />
-        </div>
-      ) : (
-        "No Image"
-      );
-    },
-  },
   {
     accessorKey: "name",
     header: "Tên Dịch Vụ",
@@ -29,48 +13,58 @@ export const columns: ColumnDef<TServiceResponse>[] = [
       <div
         className="w-36 truncate cursor-pointer"
         title={row.getValue("name")}
-        onClick={() => alert(row.getValue("name"))} // Hiển thị tên dịch vụ khi nhấn
+        onClick={() => alert(row.getValue("name"))}
       >
         {row.getValue("name")}
       </div>
     ),
   },
-
+  // {
+  //   accessorKey: "description",
+  //   header: "Mô Tả",
+  //   cell: ({ row }) => <div>{row.getValue("description")}</div>,
+  // },
   {
-    accessorKey: "serviceCode",
-    header: "Mã Dịch Vụ",
-    cell: ({ row }) => <div className="">{row.getValue("serviceCode")}</div>,
+    accessorKey: "status",
+    header: "Trạng Thái",
+    cell: ({ row }) => <div>{row.getValue("status")}</div>,
   },
-  {
-    accessorKey: "description",
-    header: "Mô Tả",
-    cell: ({ row }) => <div className="">{row.getValue("description")}</div>,
-  },
+  // {
+  //   accessorKey: "prorityLevel",
+  //   header: "Mức Độ Ưu Tiên",
+  //   cell: ({ row }) => <div>{row.getValue("prorityLevel")}</div>,
+  // },
   {
     accessorKey: "price",
     header: "Giá",
-    cell: ({ row }) => <div className="">{formatPriceVND(row.getValue("price"))}</div>,
+    cell: ({ row }) => <div>{formatPriceVND(row.getValue("price"))}</div>,
   },
-  {
-    accessorKey: "discount",
-    header: "Giảm Giá",
-    cell: ({ row }) => <div className="">{row.getValue("discount")}%</div>,
-  },
+  // {
+  //   accessorKey: "discount",
+  //   header: "Giảm Giá",
+  //   cell: ({ row }) => <div>{row.getValue("discount")}%</div>,
+  // },
   {
     accessorKey: "duration",
-    header: "Thời Gian",
-    cell: ({ row }) => <div className="">{row.getValue("duration")} giờ</div>,
+    header: "Thời Gian (Giờ)",
+    cell: ({ row }) => <div>{row.getValue("duration")}</div>,
   },
   {
     accessorKey: "maxCapacity",
     header: "Sức Chứa",
-    cell: ({ row }) => <div className="">{row.getValue("maxCapacity")}</div>,
+    cell: ({ row }) => <div>{row.getValue("maxCapacity")}</div>,
   },
   {
-    accessorKey: "status",
-    header: "Trạng Thái",
-    cell: ({ row }) => <div className="">{row.getValue("status")}</div>,
+    accessorKey: "serviceCode",
+    header: "Mã Dịch Vụ",
+    cell: ({ row }) => <div>{row.getValue("serviceCode")}</div>,
   },
+  {
+    accessorKey: "code",
+    header: "Mã Code",
+    cell: ({ row }) => <div>{row.getValue("code")}</div>,
+  },
+
   {
     id: "actions",
     cell: ({ row }) => <CellAction data={row.original} />,
