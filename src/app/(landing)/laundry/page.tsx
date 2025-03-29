@@ -123,7 +123,7 @@ export default function HomeCleaningLanding() {
             />
           </div>
           
-          <div className="container mx-auto px-4 text-center text-white">
+          <div className="container mx-auto px-5 text-center text-white">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
