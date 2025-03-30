@@ -15,7 +15,3 @@ export const getAllHubs = async (params?: any) => {
 
   return response;
 };
-
-// export const getStoreById = async (id: string) => {
-//   return await httpMock.get<TStoreResponse>(`/products/${id}`, {});
-// };
