@@ -10,7 +10,7 @@ export interface OrderType {
   updatedAt: string;
   code: string;
   id: string;
-  note: string | null;
+  note: string | null; 
   price: number | null;
   address: string;
   bookingDate: string | null;
