@@ -11,7 +11,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface CustomOptions
   extends Omit<RequestInit, "method">,
-  NextFetchRequestConfig {
+    NextFetchRequestConfig {
   baseUrl?: string;
   params?: Record<string, string>;
 }
@@ -82,7 +82,6 @@ const createHttpClient = (defaultBaseUrl: string) => {
       if (token) headers["Authorization"] = `Bearer ${token}`;
     }
 
-
     const config: RequestInit & NextFetchRequestConfig = {
       ...options,
       method,
@@ -144,7 +143,6 @@ const createHttpClient = (defaultBaseUrl: string) => {
 
   const handleAuthResponse = (url: string, data: any) => {
     if (isClient()) {
-
       if (
         ["api/auth", "/register"].some((item) => item === normalizePath(url))
       ) {
@@ -175,8 +173,6 @@ const createHttpClient = (defaultBaseUrl: string) => {
 };
 
 const httpLocal = createHttpClient(envConfig.NEXT_PUBLIC_URL);
-const httpBag = createHttpClient(envConfig.NEXT_PUBLIC_BAG_API_ENDPOINT);
-const httpMock = createHttpClient(envConfig.NEXT_PUBLIC_MOCK_API_ENDPOINT);
 const httpHomePlus = createHttpClient(
   envConfig.NEXT_PUBLIC_HOMEPLUS_API_ENDPOINT
 );
@@ -184,12 +180,4 @@ const httpVinWallet = createHttpClient(
   envConfig.NEXT_PUBLIC_VINWALLET_API_ENDPOINT
 );
 
-export {
-  httpLocal,
-  httpBag,
-  httpMock,
-  httpHomePlus,
-  httpVinWallet,
-  HttpError,
-  EntityError,
-};
+export { httpLocal, httpHomePlus, httpVinWallet, HttpError, EntityError };
