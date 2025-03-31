@@ -7,7 +7,6 @@ import IndexProvider from "@/providers/index-provider";
 // import HeaderMain from "@/components/header-main";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as ToasterSonner } from "@/components/ui/sonner";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import NextTopLoader from "nextjs-toploader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cookies } from "next/headers";
@@ -44,18 +43,16 @@ export default async function RootLayout({
         <NextTopLoader showSpinner={false} />
 
         <IndexProvider>
-          <SidebarProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <AppProvider initialSessionToken={accessToken?.value}>
-                {children}
-              </AppProvider>{" "}
-            </ThemeProvider>
-          </SidebarProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AppProvider initialSessionToken={accessToken?.value}>
+              {children}
+            </AppProvider>
+          </ThemeProvider>
 
           <Toaster />
           <ToasterSonner />
