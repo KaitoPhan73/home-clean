@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -204,7 +205,7 @@ const pieChartOptions: ChartOptions<"pie"> = {
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      position: "bottom" as const,
+      position: "right" as const,
       labels: {
         boxWidth: 12,
         padding: 15,
@@ -316,16 +317,13 @@ export default function RevenuePage() {
   const [selectedServiceId, setSelectedServiceId] = useState<string>("all");
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
 
-  // Format date as YYYY-MM-DD for API
   const formatDateForApi = (date: Date): string => {
     return date.toISOString().split("T")[0];
   };
 
-  // Default date range from API example
   const defaultFromDate = new Date("2025-04-01");
   const defaultToDate = new Date("2025-04-03");
 
-  // Date range state
   const [dateFrom, setDateFrom] = useState<Date>(defaultFromDate);
   const [dateTo, setDateTo] = useState<Date>(defaultToDate);
 
@@ -346,7 +344,6 @@ export default function RevenuePage() {
     fetchGroups();
   }, []);
 
-  // Function to fetch data
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -383,7 +380,7 @@ export default function RevenuePage() {
   // Fetch data on mount
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [dateFrom, dateTo, selectedGroupId]);
 
   // Prepare line chart data from API response
   const dailyData: ChartData<"line", number[], string> = {
@@ -489,105 +486,121 @@ export default function RevenuePage() {
 
   // Prepare status breakdown data for selected service
   // Prepare status breakdown data for selected service
-const getStatusBreakdownData = () => {
-  if (!serviceSummaryData || !serviceSummaryData.serviceSummaries) return null;
+  const getStatusBreakdownData = () => {
+    if (!serviceSummaryData || !serviceSummaryData.serviceSummaries)
+      return null;
 
-  // Nếu là "all", kết hợp tất cả các status breakdown từ tất cả các dịch vụ
-  if (selectedServiceId === "all") {
-    // Tạo một map để tổng hợp dữ liệu
-    const statusMap = new Map<string, { count: number, revenue: number }>();
-    
-    serviceSummaryData.serviceSummaries.forEach(service => {
-      if (service.statusBreakdown) {
-        service.statusBreakdown.forEach(status => {
-          if (statusMap.has(status.status)) {
-            const current = statusMap.get(status.status)!;
-            statusMap.set(status.status, {
-              count: current.count + status.count,
-              revenue: current.revenue + status.revenue
-            });
-          } else {
-            statusMap.set(status.status, {
-              count: status.count,
-              revenue: status.revenue
-            });
-          }
-        });
-      }
-    });
+    // Nếu là "all", kết hợp tất cả các status breakdown từ tất cả các dịch vụ
+    if (selectedServiceId === "all") {
+      // Tạo một map để tổng hợp dữ liệu
+      const statusMap = new Map<string, { count: number; revenue: number }>();
 
-    // Chuyển map thành mảng
-    const combinedStatusBreakdown = Array.from(statusMap.entries()).map(([status, data]) => ({
-      status,
-      count: data.count,
-      revenue: data.revenue
-    }));
+      serviceSummaryData.serviceSummaries.forEach((service) => {
+        if (service.statusBreakdown) {
+          service.statusBreakdown.forEach((status) => {
+            if (statusMap.has(status.status)) {
+              const current = statusMap.get(status.status)!;
+              statusMap.set(status.status, {
+                count: current.count + status.count,
+                revenue: current.revenue + status.revenue,
+              });
+            } else {
+              statusMap.set(status.status, {
+                count: status.count,
+                revenue: status.revenue,
+              });
+            }
+          });
+        }
+      });
 
-    // Nếu không có dữ liệu, trả về null
-    if (combinedStatusBreakdown.length === 0) return null;
+      // Chuyển map thành mảng
+      const combinedStatusBreakdown = Array.from(statusMap.entries()).map(
+        ([status, data]) => ({
+          status,
+          count: data.count,
+          revenue: data.revenue,
+        })
+      );
+
+      // Nếu không có dữ liệu, trả về null
+      if (combinedStatusBreakdown.length === 0) return null;
+
+      return {
+        statusRevenueData: {
+          labels: combinedStatusBreakdown.map((item) => item.status),
+          datasets: [
+            {
+              label: "Doanh thu",
+              data: combinedStatusBreakdown.map((item) => item.revenue),
+              backgroundColor: combinedStatusBreakdown.map(
+                (item, index) => chartColors[index % chartColors.length]
+              ),
+              borderWidth: 1,
+              borderColor: "#fff",
+            },
+          ],
+        },
+        statusCountData: {
+          labels: combinedStatusBreakdown.map((item) => item.status),
+          datasets: [
+            {
+              label: "Số đơn",
+              data: combinedStatusBreakdown.map((item) => item.count),
+              backgroundColor: combinedStatusBreakdown.map(
+                (item, index) => chartColors[index % chartColors.length]
+              ),
+              borderWidth: 1,
+              borderColor: "#fff",
+            },
+          ],
+        },
+      };
+    }
+
+    // Ngược lại, lấy dữ liệu của service được chọn
+    const selectedService = serviceSummaryData.serviceSummaries.find(
+      (service) => service.serviceId === selectedServiceId
+    );
+
+    if (
+      !selectedService ||
+      !selectedService.statusBreakdown ||
+      selectedService.statusBreakdown.length === 0
+    )
+      return null;
 
     return {
       statusRevenueData: {
-        labels: combinedStatusBreakdown.map(item => item.status),
+        labels: selectedService.statusBreakdown.map((item) => item.status),
         datasets: [
           {
             label: "Doanh thu",
-            data: combinedStatusBreakdown.map(item => item.revenue),
-            backgroundColor: combinedStatusBreakdown.map((item, index) => chartColors[index % chartColors.length]),
+            data: selectedService.statusBreakdown.map((item) => item.revenue),
+            backgroundColor: selectedService.statusBreakdown.map(
+              (item, index) => chartColors[index % chartColors.length]
+            ),
             borderWidth: 1,
             borderColor: "#fff",
           },
         ],
       },
       statusCountData: {
-        labels: combinedStatusBreakdown.map(item => item.status),
+        labels: selectedService.statusBreakdown.map((item) => item.status),
         datasets: [
           {
             label: "Số đơn",
-            data: combinedStatusBreakdown.map(item => item.count),
-            backgroundColor: combinedStatusBreakdown.map((item, index) => chartColors[index % chartColors.length]),
+            data: selectedService.statusBreakdown.map((item) => item.count),
+            backgroundColor: selectedService.statusBreakdown.map(
+              (item, index) => chartColors[index % chartColors.length]
+            ),
             borderWidth: 1,
             borderColor: "#fff",
           },
         ],
-      }
+      },
     };
-  } 
-  
-  // Ngược lại, lấy dữ liệu của service được chọn
-  const selectedService = serviceSummaryData.serviceSummaries.find(
-    service => service.serviceId === selectedServiceId
-  );
-  
-  if (!selectedService || !selectedService.statusBreakdown || selectedService.statusBreakdown.length === 0) return null;
-
-  return {
-    statusRevenueData: {
-      labels: selectedService.statusBreakdown.map(item => item.status),
-      datasets: [
-        {
-          label: "Doanh thu",
-          data: selectedService.statusBreakdown.map(item => item.revenue),
-          backgroundColor: selectedService.statusBreakdown.map((item, index) => chartColors[index % chartColors.length]),
-          borderWidth: 1,
-          borderColor: "#fff",
-        },
-      ],
-    },
-    statusCountData: {
-      labels: selectedService.statusBreakdown.map(item => item.status),
-      datasets: [
-        {
-          label: "Số đơn",
-          data: selectedService.statusBreakdown.map(item => item.count),
-          backgroundColor: selectedService.statusBreakdown.map((item, index) => chartColors[index % chartColors.length]),
-          borderWidth: 1,
-          borderColor: "#fff",
-        },
-      ],
-    }
   };
-};
 
   const statusBreakdownData = getStatusBreakdownData();
 
@@ -620,32 +633,21 @@ const getStatusBreakdownData = () => {
   }
 
   return (
-    // Thêm class "overflow-auto" để có thể cuộn khi nội dung dài
     <div className="h-screen flex flex-col">
-      {/* Header cố định */}
-      <div className="bg-white py-4 border-b">
-        <h1 className="text-3xl font-bold text-gray-800 text-center">
-          Trang Doanh Thu
-        </h1>
-      </div>
-
-      {/* Nội dung có thể cuộn */}
       <div className="flex-1 overflow-auto p-4 bottom-60">
         <div className="container mx-auto max-w-5xl">
-          {/* Filter Section - Sticky để luôn hiện ở đầu khi cuộn */}
-          <div className="sticky top-0 z-10 flex flex-col sm:flex-row gap-4 mb-6 bg-gray-50 p-4 rounded-lg shadow">
-            {/* Date From */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
+          <div className="sticky top-0 z-10 flex flex-row items-center gap-2 mb-3 bg-gray-50 p-2 rounded-lg shadow-sm">
+            <div className="w-36">
+              <label className="text-xs font-medium text-gray-700">
                 Từ ngày
               </label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full h-8 text-xs justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-1 h-3 w-3" />
                     {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Chọn ngày"}
                   </Button>
                 </PopoverTrigger>
@@ -661,18 +663,17 @@ const getStatusBreakdownData = () => {
               </Popover>
             </div>
 
-            {/* Date To */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
+            <div className="w-36">
+              <label className="text-xs font-medium text-gray-700">
                 Đến ngày
               </label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full h-8 text-xs justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-1 h-3 w-3" />
                     {dateTo ? format(dateTo, "dd/MM/yyyy") : "Chọn ngày"}
                   </Button>
                 </PopoverTrigger>
@@ -688,16 +689,13 @@ const getStatusBreakdownData = () => {
               </Popover>
             </div>
 
-            {/* Group Select */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                Chọn nhóm
-              </label>
+            <div className="w-72">
+              <label className="text-xs font-medium text-gray-700">Nhóm</label>
               <Select
                 value={selectedGroupId}
                 onValueChange={setSelectedGroupId}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full h-8 text-xs">
                   <SelectValue placeholder="Tất cả các nhóm" />
                 </SelectTrigger>
                 <SelectContent>
@@ -709,17 +707,6 @@ const getStatusBreakdownData = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Apply Button */}
-            <div className="flex items-end">
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={fetchData}
-                disabled={isLoading}
-              >
-                {isLoading ? "Đang tải..." : "Áp dụng"}
-              </Button>
             </div>
           </div>
 
@@ -887,7 +874,7 @@ const getStatusBreakdownData = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <div className="h-[250px] w-full">
+                    <div className="h-[300px] w-full">
                       {serviceSummaryData &&
                       serviceSummaryData.serviceComparison &&
                       serviceSummaryData.serviceComparison.length > 0 ? (
@@ -922,7 +909,7 @@ const getStatusBreakdownData = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <div className="h-[250px] w-full">
+                    <div className="h-[300px] w-full">
                       {serviceSummaryData &&
                       serviceSummaryData.serviceComparison &&
                       serviceSummaryData.serviceComparison.length > 0 ? (
@@ -950,7 +937,6 @@ const getStatusBreakdownData = () => {
                 </Card>
               </div>
 
-              {/* Status Breakdown Charts */}
               {statusBreakdownData && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Status Revenue Pie Chart */}
@@ -973,7 +959,7 @@ const getStatusBreakdownData = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="h-[250px] w-full">
+                      <div className="h-[300px] w-full">
                         {statusBreakdownData.statusRevenueData.datasets[0].data
                           .length > 0 ? (
                           <Pie
@@ -1019,7 +1005,7 @@ const getStatusBreakdownData = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="h-[250px] w-full">
+                      <div className="h-[300px] w-full">
                         {statusBreakdownData.statusCountData.datasets[0].data
                           .length > 0 ? (
                           <Pie
