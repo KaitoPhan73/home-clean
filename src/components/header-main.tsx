@@ -11,7 +11,7 @@ interface HeaderMainProps {
 const HeaderMain = ({ className }: HeaderMainProps) => {
   return (
     <header
-      className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 ${
+      className={`flex h-12 shrink-0 items-center gap-2 border-b px-4 ${
         className || ""
       }`}
     >

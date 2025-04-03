@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Calendar, ArrowRightCircle, Search } from "lucide-react";
+import { RefreshCw, Calendar, ArrowRightCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -22,68 +22,68 @@ const DateFilter = ({
   handleToDateChange,
   handleRefresh,
 }: any) => (
-  <Tabs
-    value={filterMode}
-    onValueChange={(value) => setFilterMode(value as "single" | "range")}
-    className="w-full"
-  >
-    <TabsList className="grid grid-cols-2 mb-4 w-64">
-      <TabsTrigger value="single">Một ngày</TabsTrigger>
-      <TabsTrigger value="range">Khoảng ngày</TabsTrigger>
-    </TabsList>
-    <TabsContent value="single" className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <div className="flex items-center">
-          <Calendar className="mr-2 h-4 w-4 text-gray-600" />
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-            className="w-30 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <Button
-          onClick={handleRefresh}
-          variant="outline"
-          className="flex items-center"
-        >
-          <Search className="mr-2 h-4 w-4" /> Tìm Kiếm
-        </Button>
-      </div>
-    </TabsContent>
-    <TabsContent value="range" className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <div className="flex items-center">
-          <Label htmlFor="fromDate" className="mr-2">Từ:</Label>
-          <Input
-            id="fromDate"
-            type="date"
-            value={fromDate}
-            onChange={handleFromDateChange}
-            className="border-gray-300 rounded-md"
-          />
-        </div>
-        <ArrowRightCircle className="h-4 w-4 text-gray-400" />
-        <div className="flex items-center">
-          <Label htmlFor="toDate" className="mr-2">Đến:</Label>
-          <Input
-            id="toDate"
-            type="date"
-            value={toDate}
-            onChange={handleToDateChange}
-            className="border-gray-300 rounded-md"
-          />
-        </div>
-        <Button
-          onClick={handleRefresh}
-          variant="outline"
-          className="flex items-center"
-        >
-          <Search className="mr-2 h-4 w-4" /> Tìm Kiếm
-        </Button>
-      </div>
-    </TabsContent>
-  </Tabs>
+  <div className="flex flex-col gap-2">
+    <div className="flex items-center gap-2">
+      <Tabs
+        value={filterMode}
+        onValueChange={(value) => setFilterMode(value as "single" | "range")}
+        className="flex items-center"
+      >
+        <TabsList className="flex h-10 mb-0">
+          <TabsTrigger value="single" className="px-3 py-1 text-sm">Một ngày</TabsTrigger>
+          <TabsTrigger value="range" className="px-3 py-1 text-sm">Khoảng ngày</TabsTrigger>
+        </TabsList>
+        <TabsContent value="single" className="m-0">
+          <div className="flex items-center ml-2">
+            <Calendar className="mr-2 h-4 w-4 text-gray-600" />
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                handleDateChange(e);
+                handleRefresh();
+              }}
+              className="w-40 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="range" className="m-0">
+          <div className="flex items-center ml-2 gap-2">
+            <div className="flex items-center">
+              <Label htmlFor="fromDate" className="mr-1 text-sm">Từ:</Label>
+              <Input
+                id="fromDate"
+                type="date"
+                value={fromDate}
+                onChange={(e) => {
+                  handleFromDateChange(e);
+                  handleRefresh();
+                }}
+                className="w-36 border-gray-300 rounded-md"
+              />
+            </div>
+            <ArrowRightCircle className="h-4 w-4 text-gray-400" />
+            <div className="flex items-center">
+              <Label htmlFor="toDate" className="mr-1 text-sm">Đến:</Label>
+              <Input
+                id="toDate"
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  handleToDateChange(e);
+                  handleRefresh();
+                }}
+                className="w-36 border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+      <Button onClick={handleRefresh} variant="outline" className="ml-2 flex items-center px-2 py-1 text-sm">
+        <RefreshCw className="mr-1 h-4 w-4" /> Làm mới
+      </Button>
+    </div>
+  </div>
 );
 
 const StaffAssignBoard = () => {
@@ -137,30 +137,24 @@ const StaffAssignBoard = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Quản lý đơn hàng</h1>
-        <Button onClick={handleRefresh} variant="outline" className="flex items-center">
-          <RefreshCw className="mr-2 h-4 w-4" /> Làm mới
-        </Button>
-      </div>
-
-      <DateFilter
-        filterMode={filterMode}
-        setFilterMode={setFilterMode}
-        selectedDate={selectedDate}
-        fromDate={fromDate}
-        toDate={toDate}
-        handleDateChange={handleDateChange}
-        handleFromDateChange={handleFromDateChange}
-        handleToDateChange={handleToDateChange}
-        handleRefresh={handleRefresh}
-      />
-
-      <div className="flex justify-between items-center">
-        <span className="text-gray-600 font-medium">
-          {filterMode === "single" ? `Đơn hàng ngày: ${dateDisplayText}` : `Đơn hàng từ ${dateDisplayText}`}
-        </span>
-        <span className="text-gray-600">Hiển thị {filteredOrders.length} đơn hàng</span>
+      <div className="flex flex-col items-start gap-2">
+        <DateFilter
+          filterMode={filterMode}
+          setFilterMode={setFilterMode}
+          selectedDate={selectedDate}
+          fromDate={fromDate}
+          toDate={toDate}
+          handleDateChange={handleDateChange}
+          handleFromDateChange={handleFromDateChange}
+          handleToDateChange={handleToDateChange}
+          handleRefresh={handleRefresh}
+        />
+        <div className="flex justify-between w-full items-center">
+          <span className="text-gray-600 font-medium text-sm">
+            {filterMode === "single" ? `Đơn hàng ngày: ${dateDisplayText}` : `Đơn hàng từ ${dateDisplayText}`}
+          </span>
+          <span className="text-gray-600 text-sm">Hiển thị {filteredOrders.length} đơn hàng</span>
+        </div>
       </div>
 
       <TaskBoard
