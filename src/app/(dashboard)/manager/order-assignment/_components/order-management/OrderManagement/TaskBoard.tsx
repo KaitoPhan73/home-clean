@@ -10,6 +10,24 @@ import { TaskCard } from "@/app/(dashboard)/manager/order-assignment/_components
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 
+const columnGroups = [
+  {
+    id: "group1",
+    title: "Đơn mới & Đã hủy",
+    statuses: ["Draft", "Cancelled"],
+  },
+  {
+    id: "group2",
+    title: "Chờ xử lý",
+    statuses: ["Pending"],
+  },
+  {
+    id: "group3",
+    title: "Đang thực hiện & Hoàn thành",
+    statuses: ["Accepted", "Completed"],
+  },
+];
+
 const statusConfig: Record<
   BoardStatus,
   { label: string; bgColor: string; textColor: string; headerBg: string }
@@ -26,6 +44,20 @@ interface ColumnProps {
   orders: OrderType[];
   moveOrder: (order: OrderType, newStatus: BoardStatus) => void;
   config: { label: string; bgColor: string; textColor: string; headerBg: string };
+  onRefresh: () => void;
+  groupId?: string;
+  isCollapsed: boolean;
+  toggleCollapse: () => void;
+}
+
+interface ColumnGroupProps {
+  group: {
+    id: string;
+    title: string;
+    statuses: string[];
+  };
+  boardData: Record<BoardStatus, OrderType[]>;
+  moveOrder: (order: OrderType, newStatus: BoardStatus) => void;
   onRefresh: () => void;
   groupId?: string;
   isCollapsed: boolean;
@@ -58,8 +90,8 @@ const Column = ({ status, orders, moveOrder, config, onRefresh, groupId, isColla
     <div
       ref={ref}
       className={`${config.bgColor} border border-gray-200 rounded-lg shadow-sm overflow-hidden transition-all duration-200 ${
-        isCollapsed ? "w-16" : "flex-1 min-w-[200px]"
-      } ${orders.length === 0 && !isCollapsed ? "h-auto" : "h-[calc(100vh-8rem)]"} flex flex-col ${
+        isCollapsed ? "w-16" : "w-full"
+      } h-full flex flex-col ${
         isOver && !isCollapsed ? "ring-2 ring-blue-300" : ""
       }`}
     >
@@ -88,7 +120,7 @@ const Column = ({ status, orders, moveOrder, config, onRefresh, groupId, isColla
         <>
           <div className="p-4 flex-1 overflow-y-auto space-y-3">
             {displayOrders.length === 0 ? (
-              <div className="p-4 border border-dashed border-gray-300 rounded-lg text-gray-400 text-center text-sm">
+              <div className="p-4 border border-dashed border-gray-300 rounded-lg text-gray-400 text-center text-sm min-h-[80px] flex items-center justify-center">
                 Không có đơn hàng
               </div>
             ) : (
@@ -129,37 +161,75 @@ const Column = ({ status, orders, moveOrder, config, onRefresh, groupId, isColla
   );
 };
 
+const ColumnGroup = ({ group, boardData, moveOrder, onRefresh, groupId, isCollapsed, toggleCollapse }: ColumnGroupProps) => {
+  const [visibleStatuses, setVisibleStatuses] = useState<string[]>(group.statuses);
+
+  return (
+    <div className="flex-1 flex flex-col gap-4 min-w-0 max-w-[33%]">
+      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+        <h3 className="font-semibold text-gray-700 flex justify-between items-center">
+          <span>{group.title}</span>
+          <Button variant="ghost" size="icon" onClick={toggleCollapse}>
+            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </Button>
+        </h3>
+      </div>
+      
+      {!isCollapsed && (
+        <div className="flex flex-col gap-4 flex-1">
+          {group.statuses.map((status) => (
+            <Column
+              key={status}
+              status={status as BoardStatus}
+              orders={boardData[status as BoardStatus] || []}
+              moveOrder={moveOrder}
+              config={statusConfig[status as BoardStatus]}
+              onRefresh={onRefresh}
+              groupId={groupId}
+              isCollapsed={false}
+              toggleCollapse={() => {
+                if (visibleStatuses.includes(status)) {
+                  setVisibleStatuses(visibleStatuses.filter((s) => s !== status));
+                } else {
+                  setVisibleStatuses([...visibleStatuses, status]);
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
   const { boardData, moveOrder, refreshData } = useTaskBoard(orders);
-  const [collapsedColumns, setCollapsedColumns] = useState<Record<BoardStatus, boolean>>({
-    Draft: false,
-    Pending: false,
-    Accepted: false,
-    Completed: false,
-    Cancelled: false,
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
+    group1: false,
+    group2: false,
+    group3: false,
   });
 
-  const toggleCollapseColumn = (status: BoardStatus) => {
-    setCollapsedColumns((prev) => ({
+  const toggleCollapseGroup = (groupId: string) => {
+    setCollapsedGroups((prev) => ({
       ...prev,
-      [status]: !prev[status],
+      [groupId]: !prev[groupId],
     }));
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex gap-4 p-4 bg-gray-50 rounded-lg h-[calc(100vh-4rem)]">
-        {Object.entries(boardData).map(([status, columnOrders]) => (
-          <Column
-            key={status}
-            status={status as BoardStatus}
-            orders={columnOrders}
+      <div className="flex gap-4 p-4 bg-gray-50 rounded-lg h-[calc(100vh-12rem)] overflow-hidden">
+        {columnGroups.map((group) => (
+          <ColumnGroup
+            key={group.id}
+            group={group}
+            boardData={boardData}
             moveOrder={moveOrder}
-            config={statusConfig[status as BoardStatus]}
             onRefresh={refreshData}
             groupId={groupId}
-            isCollapsed={collapsedColumns[status as BoardStatus]}
-            toggleCollapse={() => toggleCollapseColumn(status as BoardStatus)}
+            isCollapsed={collapsedGroups[group.id]}
+            toggleCollapse={() => toggleCollapseGroup(group.id)}
           />
         ))}
       </div>

@@ -1,8 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// hooks/useStaffAssignBoard.ts
-import { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useCallback } from "react";
 import { getAllOrdersByGroupId } from "@/apis/group";
 import { getCookie } from "cookies-next";
 import {
@@ -24,12 +22,12 @@ export interface OrderItem {
   address: string;
   bookingDate: string | null;
   employeeId: string | null;
-  employeeRating: number | null; // Đảm bảo không undefined
-  customerFeedback: string | null; // Thêm thuộc tính bắt buộc
+  employeeRating: number | null;
+  customerFeedback: string | null;
   cleaningToolsRequired: boolean | null;
   cleaningToolsProvided: boolean | null;
-  serviceType: string; // Thêm thuộc tính bắt buộc
-  distanceToCustomer: number; // Thêm thuộc tính bắt buộc
+  serviceType: string;
+  distanceToCustomer: number;
   priorityLevel: string;
   notes: string | null;
   discountCode: string | null;
@@ -77,67 +75,70 @@ export const useStaffAssignBoard = () => {
   const [toDate, setToDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  useEffect(() => {
-    try {
-      const userRaw = getCookie("user");
-      if (userRaw) {
-        const user = JSON.parse(userRaw as string);
-        if (user?.groupId) {
-          setGroupId(user.groupId);
-        } else {
-          setError("Không tìm thấy thông tin nhóm của bạn");
-        }
-      } else {
-        setError("Không tìm thấy thông tin người dùng");
-      }
-    } catch (error) {
-      setError("Lỗi khi đọc thông tin người dùng");
+  const filterOrders = useCallback(() => {
+    if (!ordersData.items.length) {
+      console.log("Không có order để lọc");
+      setFilteredOrders([]);
+      return;
     }
-  }, []);
-
-  useEffect(() => {
-    if (groupId) {
-      loadData();
-    }
-  }, [groupId]);
-
-  const filterOrders = () => {
-    if (!ordersData.items.length) return;
 
     let filtered: OrderItem[] = [];
-    if (filterMode === "single") {
-      const selected = parseISO(selectedDate);
-      if (!isValid(selected)) return;
-      filtered = ordersData.items.filter((order) =>
-        isSameDay(parseISO(order.createdAt), selected)
-      );
-    } else {
-      const from = parseISO(fromDate);
-      const to = parseISO(toDate);
-      if (!isValid(from) || !isValid(to)) return;
-      filtered = ordersData.items.filter((order) => {
-        const orderDate = parseISO(order.createdAt);
-        return (
-          isValid(orderDate) &&
-          (isSameDay(orderDate, from) || isAfter(orderDate, from)) &&
-          (isSameDay(orderDate, to) || isBefore(orderDate, to))
-        );
-      });
+    try {
+      if (filterMode === "single") {
+        const selected = parseISO(selectedDate);
+        if (!isValid(selected)) {
+          console.log("Ngày chọn không hợp lệ:", selectedDate);
+          setFilteredOrders([]);
+          return;
+        }
+        filtered = ordersData.items.filter((order) => {
+          if (!order.createdAt) return false;
+          return isSameDay(parseISO(order.createdAt), selected);
+        });
+      } else {
+        const from = parseISO(fromDate);
+        const to = parseISO(toDate);
+        if (!isValid(from) || !isValid(to)) {
+          console.log("Khoảng ngày không hợp lệ:", fromDate, toDate);
+          setFilteredOrders([]);
+          return;
+        }
+        filtered = ordersData.items.filter((order) => {
+          if (!order.createdAt) return false;
+          const orderDate = parseISO(order.createdAt);
+          return (
+            isValid(orderDate) &&
+            (isSameDay(orderDate, from) || isAfter(orderDate, from)) &&
+            (isSameDay(orderDate, to) || isBefore(orderDate, to))
+          );
+        });
+      }
+      console.log("Đã lọc được", filtered.length, "order");
+      setFilteredOrders(filtered);
+    } catch (error) {
+      console.error("Lỗi khi lọc order:", error);
+      setFilteredOrders([]);
     }
-    setFilteredOrders(filtered);
-  };
+  }, [filterMode, selectedDate, fromDate, toDate, ordersData.items]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!groupId) {
+      console.log("Không có groupId để tải dữ liệu");
       setError("Không tìm thấy thông tin nhóm để tải dữ liệu");
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    setError(null);
+
     try {
+      console.log("Bắt đầu tải dữ liệu cho groupId:", groupId);
       const orderResponse = await getAllOrdersByGroupId(groupId);
+      console.log("Dữ liệu từ API:", orderResponse);
+
       const orderPayload = orderResponse?.payload || {
         items: [],
         totalPages: 0,
@@ -158,10 +159,10 @@ export const useStaffAssignBoard = () => {
         address: item.address ?? "Unknown Address",
         bookingDate: item.bookingDate ?? null,
         employeeId: item.employeeId ?? null,
-        employeeRating: item.employeeRating ?? null, // Đảm bảo không undefined
-        customerFeedback: item.customerFeedback ?? null, // Thêm giá trị mặc định
-        serviceType: item.serviceType ?? "General", // Thêm giá trị mặc định
-        distanceToCustomer: item.distanceToCustomer ?? 0, // Thêm giá trị mặc định
+        employeeRating: item.employeeRating ?? null,
+        customerFeedback: item.customerFeedback ?? null,
+        serviceType: item.serviceType ?? "General",
+        distanceToCustomer: item.distanceToCustomer ?? 0,
         priorityLevel: item.priorityLevel ?? "Normal",
         notes: item.notes ?? null,
         discountCode: item.discountCode ?? null,
@@ -195,23 +196,73 @@ export const useStaffAssignBoard = () => {
             : null,
       }));
 
-      setOrdersData({ items: enhancedItems, totalPages: orderPayload.totalPages });
-      setError(null);
-      filterOrders();
+      console.log("Đã xử lý", enhancedItems.length, "order");
+      setOrdersData({
+        items: enhancedItems,
+        totalPages: orderPayload.totalPages,
+      });
+      setDataLoaded(true);
     } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
       setError("Đã xảy ra lỗi khi tải dữ liệu đơn hàng");
     } finally {
       setIsLoading(false);
     }
+  }, [groupId]);
+
+  // Tải dữ liệu ngay khi vào trang
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      console.log("Trang vừa load, bắt đầu lấy dữ liệu...");
+      setIsLoading(true);
+      try {
+        const userRaw = getCookie("user");
+        console.log("Cookie user:", userRaw);
+        if (!userRaw) {
+          setError("Không tìm thấy thông tin người dùng trong cookie");
+          setIsLoading(false);
+          return;
+        }
+
+        const user = JSON.parse(userRaw as string);
+        console.log("Dữ liệu user từ cookie:", user);
+        if (!user?.groupId) {
+          setError("Không tìm thấy groupId trong cookie");
+          setIsLoading(false);
+          return;
+        }
+
+        setGroupId(user.groupId);
+        await loadData(); // Tải dữ liệu ngay khi có groupId
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu ban đầu:", error);
+        setError("Lỗi khi tải dữ liệu ban đầu");
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, [loadData]);
+
+  // Lọc lại dữ liệu khi ordersData thay đổi
+  useEffect(() => {
+    console.log("OrdersData thay đổi, lọc lại danh sách...");
+    filterOrders();
+  }, [filterOrders, ordersData]);
+
+  const handleRefresh = () => {
+    console.log("Nhấn nút làm mới, cập nhật lại dữ liệu...");
+    loadData(); // Nút này chỉ dùng để cập nhật khi có thay đổi
   };
 
-  const handleRefresh = () => loadData();
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Ngày chọn thay đổi:", e.target.value);
     setSelectedDate(e.target.value);
+  };
 
   const handleFromDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
+    console.log("Từ ngày thay đổi:", newDate);
     setFromDate(newDate);
     const from = parseISO(newDate);
     const to = parseISO(toDate);
@@ -220,6 +271,7 @@ export const useStaffAssignBoard = () => {
 
   const handleToDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
+    console.log("Đến ngày thay đổi:", newDate);
     setToDate(newDate);
     const from = parseISO(fromDate);
     const to = parseISO(newDate);

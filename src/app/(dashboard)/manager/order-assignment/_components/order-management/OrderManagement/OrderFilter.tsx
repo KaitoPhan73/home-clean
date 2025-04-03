@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/StaffAssignBoard.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -177,8 +176,8 @@ const StaffAssignBoard = () => {
           address: order.address,
           bookingDate: order.bookingDate,
           employeeId: order.employeeId,
-          employeeRating: order.employeeRating ?? null, // Đảm bảo không undefined
-          customerFeedback: order.customerFeedback ?? null, // Thêm giá trị mặc định
+          employeeRating: order.employeeRating ?? null,
+          customerFeedback: order.customerFeedback ?? null,
           cleaningToolsRequired: order.cleaningToolsRequired,
           cleaningToolsProvided: order.cleaningToolsProvided,
           serviceType: order.serviceType,

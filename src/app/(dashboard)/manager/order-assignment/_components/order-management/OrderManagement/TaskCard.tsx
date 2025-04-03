@@ -1,4 +1,3 @@
-// components/TaskCard.tsx
 "use client";
 
 import { useRef, useState } from "react";
@@ -18,7 +17,7 @@ const getStatusColor = (status: string): string => {
 };
 
 const getPriorityColor = (priority: string): string => {
-  switch (priority.toLowerCase()) {
+  switch (priority?.toLowerCase()) {
     case "high": return "text-red-600 bg-red-50";
     case "medium": return "text-orange-600 bg-orange-50";
     case "low": return "text-green-600 bg-green-50";

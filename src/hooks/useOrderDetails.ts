@@ -12,7 +12,7 @@ import { OrderSchema } from "@/schema/order.schema";
 type OrderType = z.infer<typeof OrderSchema>;
 
 interface Staff {
-  staffId: string;
+  staffId: string; // Keep as staffId for internal app consistency
   status: string;
   lastUpdated: string;
   fullName?: string;
@@ -57,14 +57,18 @@ export const useOrderDetails = (
     try {
       const staffData = await getAllStaffStatusReady(groupId);
       const staffArray = Array.isArray(staffData) ? staffData : [staffData];
+      
+      // Map API response with 'id' to our internal structure with 'staffId'
       const staffsWithNames = staffArray.map((staff: any) => ({
-        staffId: staff.staffId,
+        staffId: staff.id, // Map API's 'id' to our internal 'staffId'
         status: staff.status,
         lastUpdated: staff.lastUpdated,
-        fullName: staff.fullName || `Staff ${staff.staffId.substring(0, 8)}`,
+        fullName: staff.fullName || `Staff ${staff.id.substring(0, 8)}`,
       }));
       setAvailableStaffs(staffsWithNames);
-      const assignments = staffArray.map((staff: any) => ({
+      
+      // Create assignments using the same staffId
+      const assignments = staffsWithNames.map((staff) => ({
         orderId: order?.id || "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         staffId: staff.staffId,
       }));
