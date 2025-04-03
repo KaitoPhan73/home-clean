@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useRef, useState } from "react";
@@ -96,21 +94,21 @@ const Column = ({ status, orders, moveOrder, config, onRefresh, groupId, isColla
       }`}
     >
       <div
-        className={`${config.headerBg} ${config.textColor} p-3 font-semibold flex ${
+        className={`${config.headerBg} ${config.textColor} p-2 font-medium text-sm flex ${
           isCollapsed ? "justify-center" : "justify-between"
         } items-center shadow-sm`}
       >
         {isCollapsed ? (
-          <Button variant="ghost" size="icon" onClick={toggleCollapse}>
-            <ChevronRight size={16} />
+          <Button variant="ghost" size="sm" onClick={toggleCollapse}>
+            <ChevronRight size={14} />
           </Button>
         ) : (
           <>
-            <span>{config.label}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-white px-2 py-1 rounded-full shadow-inner">{orders.length}</span>
-              <Button variant="ghost" size="icon" onClick={toggleCollapse}>
-                <ChevronLeft size={16} />
+            <span className="text-ellipsis text-base max-w-[120px] overflow-hidden whitespace-nowrap">{config.label}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs bg-white px-1 py-0.5 rounded-full shadow-inner">{orders.length}</span>
+              <Button variant="ghost" size="sm" onClick={toggleCollapse}>
+                <ChevronLeft size={14} />
               </Button>
             </div>
           </>
@@ -166,11 +164,11 @@ const ColumnGroup = ({ group, boardData, moveOrder, onRefresh, groupId, isCollap
 
   return (
     <div className="flex-1 flex flex-col gap-4 min-w-0 max-w-[33%]">
-      <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="font-semibold text-gray-700 flex justify-between items-center">
-          <span>{group.title}</span>
-          <Button variant="ghost" size="icon" onClick={toggleCollapse}>
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      <div className="bg-white p-1 rounded-md shadow-sm border border-gray-400">
+        <h3 className="font-medium text-gray-700 text-sm flex justify-between items-center">
+          <span className="ml-3">{group.title}</span>
+          <Button variant="ghost" size="sm" onClick={toggleCollapse}>
+            {isCollapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </Button>
         </h3>
       </div>
@@ -219,7 +217,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex gap-4 p-4 bg-gray-50 rounded-lg h-[calc(100vh-12rem)] overflow-hidden">
+      <div className="flex gap-4 p-0 bg-gray-50 rounded-lg h-[calc(100vh-0rem)] overflow-hidden">
         {columnGroups.map((group) => (
           <ColumnGroup
             key={group.id}
