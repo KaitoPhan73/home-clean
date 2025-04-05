@@ -44,7 +44,7 @@ export default function OrderHeader({ order }: OrderHeaderProps) {
             </Link>
             <div>
               <h1 className="text-xl font-semibold text-purple-800">
-                Đơn giặt ủi #{order.orderCode}
+                Đơn giặt ủi mã #{order.orderCode}
               </h1>
               <p className="text-sm text-gray-500 mt-1">ID: {order.id.substring(0, 8)}</p>
             </div>
