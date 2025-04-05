@@ -204,8 +204,16 @@ export const managerNavItems: TNavItem[] = [
     items: [],
   },
   {
-    title: "Trạng Thái Đơn Hàng",
+    title: "Đơn Hàng & Phân Công",
     url: PATHS.manager.orderAssignment,
+    icon: "tasks",
+    isActive: false,
+    items: [],
+  },
+
+  {
+    title: "Giặt Ủi",
+    url: PATHS.manager.laundry,
     icon: "tasks",
     isActive: false,
     items: [],
