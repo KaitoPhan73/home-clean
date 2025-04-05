@@ -29,7 +29,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
       <CardHeader className="bg-gradient-to-r from-purple-50 to-white pb-4">
         <CardTitle className="text-lg font-semibold flex items-center text-purple-800">
           <Receipt className="h-5 w-5 mr-2 text-purple-600" />
-          Tổng kết đơn hàng
+          Tổng kết đơn hàng giặt ủi
         </CardTitle>
       </CardHeader>
       
