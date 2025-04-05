@@ -10,20 +10,20 @@ const GroupTable = async () => {
   // Get the user cookie which contains the groupId
   const cookieStore = await cookies();
   const userCookie = cookieStore.get("user");
-  
+
   let groupData: any[] = [];
   let totalItems = 0;
-  
+
   if (userCookie) {
     try {
       // Parse the user data from cookie
       const userData = JSON.parse(userCookie.value);
       const groupId = userData.groupId;
-      
+
       if (groupId) {
         // Fetch the specific group by ID
         const groupResponse = await getGroupById(groupId);
-        
+
         if (groupResponse?.payload) {
           // Format data for the table
           groupData = [groupResponse.payload];
@@ -45,12 +45,9 @@ const GroupTable = async () => {
 
   return (
     <div>
-    <h2 className="text-xl font-bold mb-4">Thông tin nhóm</h2>
-    <GroupDetailsView 
-      data={finalData}
-
-    />
-  </div>
+      <h2 className="text-xl font-bold mb-4">Thông tin nhóm</h2>
+      <GroupDetailsView data={finalData} />
+    </div>
   );
 };
 

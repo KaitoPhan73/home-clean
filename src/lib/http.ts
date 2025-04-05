@@ -180,4 +180,8 @@ const httpVinWallet = createHttpClient(
   envConfig.NEXT_PUBLIC_VINWALLET_API_ENDPOINT
 );
 
-export { httpLocal, httpHomePlus, httpVinWallet, HttpError, EntityError };
+const httpVinLaundry = createHttpClient(
+  envConfig.NEXT_PUBLIC_VINLAUNDRY_API_ENDPOINT
+);
+
+export { httpLocal, httpHomePlus, httpVinWallet, HttpError, httpVinLaundry, EntityError };

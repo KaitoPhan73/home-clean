@@ -5,6 +5,7 @@ const configSchema = z.object({
   NEXT_PUBLIC_URL_PRODUCTION: z.string(),
   NEXT_PUBLIC_HOMEPLUS_API_ENDPOINT: z.string(),
   NEXT_PUBLIC_VINWALLET_API_ENDPOINT: z.string(),
+  NEXT_PUBLIC_VINLAUNDRY_API_ENDPOINT: z.string(),
 });
 
 const isDev = process.env.NODE_ENV === "development";
@@ -18,6 +19,8 @@ const configProject = configSchema.safeParse({
     process.env.NEXT_PUBLIC_HOMEPLUS_API_ENDPOINT,
   NEXT_PUBLIC_VINWALLET_API_ENDPOINT:
     process.env.NEXT_PUBLIC_VINWALLET_API_ENDPOINT,
+  NEXT_PUBLIC_VINLAUNDRY_API_ENDPOINT:
+    process.env.NEXT_PUBLIC_VINLAUNDRY_API_ENDPOINT,
 });
 
 if (!configProject.success) {
