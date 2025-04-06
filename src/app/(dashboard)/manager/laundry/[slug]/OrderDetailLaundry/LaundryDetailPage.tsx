@@ -172,7 +172,7 @@ export default function LaundryDetailPage() {
   if (!order) return <NotFoundMessage />;
 
   return (
-    <div className="container mx-auto py-4 px-4 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
+    <div className="container mx-auto py-1 px-1 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
       <OrderHeader order={order} />
       
       <div className="mb-6 overflow-hidden rounded-lg">

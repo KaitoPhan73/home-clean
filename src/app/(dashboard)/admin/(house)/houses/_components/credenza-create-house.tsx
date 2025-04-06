@@ -98,13 +98,10 @@ export function CredenzaCreateHouse({ className }: Props) {
   const fields = [
     { name: "no", label: "Số thứ tự" },
     { name: "numberOfRoom", label: "Số phòng" },
-    // { name: "status", label: "Trạng thái" },
     { name: "code", label: "Mã nhà" },
-    // { name: "furnishingStatus", label: "Tình trạng nội thất" },
     { name: "squareMeters", label: "Diện tích (m²)" },
     { name: "orientation", label: "Hướng nhà" },
     { name: "contactTerms", label: "Điều khoản hợp đồng" },
-    // { name: "occupacy", label: "Tình trạng cư trú" },
   ];
 
   const { isSubmitting } = form.formState;
@@ -116,7 +113,9 @@ export function CredenzaCreateHouse({ className }: Props) {
           Tạo Căn Hộ
         </Button>
       </CredenzaTrigger>
-      <CredenzaContent className="max-w-4xl">
+      <CredenzaContent
+        className="max-w-4xl max-h-[80vh] overflow-y-auto"
+      >
         <CredenzaHeader>
           <CredenzaTitle>Tạo Nhà</CredenzaTitle>
           <CredenzaDescription>Nhập thông tin nhà</CredenzaDescription>
@@ -131,7 +130,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                 <AccordionTrigger>Thông tin cơ bản</AccordionTrigger>
                 <AccordionContent>
                   <div className="grid grid-cols-6 gap-4 py-4">
-                    {fields.slice(0, 4).map(({ name, label }) => (
+                    {fields.slice(0, 3).map(({ name, label }) => (
                       <FormField
                         key={name}
                         control={form.control}
@@ -196,7 +195,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                 <AccordionTrigger>Thông số kỹ thuật</AccordionTrigger>
                 <AccordionContent>
                   <div className="grid grid-cols-6 gap-4 py-4">
-                    {fields.slice(4).map(({ name, label }) => (
+                    {fields.slice(3).map(({ name, label }) => (
                       <FormField
                         key={name}
                         control={form.control}
@@ -288,9 +287,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                       name="status"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
-                          <Label htmlFor="furnishingStatus">
-                            Tình Trạng Nhà
-                          </Label>
+                          <Label htmlFor="status">Tình Trạng Nhà</Label>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
@@ -314,9 +311,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                       name="occupacy"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
-                          <Label htmlFor="furnishingStatus">
-                            Tình trạng cư trú
-                          </Label>
+                          <Label htmlFor="occupacy">Tình trạng cư trú</Label>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}

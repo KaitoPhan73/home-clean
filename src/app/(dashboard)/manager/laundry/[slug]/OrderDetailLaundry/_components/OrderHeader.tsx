@@ -33,8 +33,8 @@ const getStatusBadge = (status: string) => {
 
 export default function OrderHeader({ order }: OrderHeaderProps) {
   return (
-    <Card className="mb-6 shadow-sm border-gray-200 overflow-hidden bg-white">
-      <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 to-white">
+    <Card className="mb-1 shadow-sm border-gray-200 overflow-hidden bg-white">
+      <CardHeader className="pb-2 bg-gradient-to-r from-purple-10 to-white">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link href="/manager/laundry">
