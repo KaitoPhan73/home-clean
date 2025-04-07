@@ -194,7 +194,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         setShowPaymentNotification(true);
 
         toast({
-          variant: "destructive",
+          variant: "pendingPayment",
           title: "Chờ thanh toán",
           description:
             "Đã cập nhật trạng thái đơn hàng. Vui lòng thanh toán để tiếp tục bước tiếp theo.",

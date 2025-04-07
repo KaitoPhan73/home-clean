@@ -140,7 +140,6 @@ const NoOrders = () => {
   );
 };
 
-// Lấy màu biểu thị trạng thái đơn hàng
 const getStatusColor = (status: string | null) => {
   if (!status) return "bg-gray-500";
   switch (status.toLowerCase()) {

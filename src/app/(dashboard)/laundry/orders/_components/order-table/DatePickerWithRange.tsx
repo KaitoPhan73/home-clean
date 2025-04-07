@@ -36,6 +36,21 @@ export function DatePickerWithRange({
     }
   };
 
+  const presets = [
+    {
+      label: "7 ngày qua",
+      days: 7,
+    },
+    {
+      label: "30 ngày qua",
+      days: 30,
+    },
+    {
+      label: "90 ngày qua",
+      days: 90,
+    }
+  ];
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -45,7 +60,7 @@ export function DatePickerWithRange({
             variant="outline"
             size="sm"
             className={cn(
-              "justify-start text-left font-normal",
+              "justify-start text-left font-normal hover:bg-slate-50",
               !date && "text-muted-foreground"
             )}
           >
@@ -64,43 +79,58 @@ export function DatePickerWithRange({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={handleDateChange}
-            numberOfMonths={2}
-            locale={vi}
-          />
-          <div className="flex justify-between p-3 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const today = new Date();
-                handleDateChange({
-                  from: addDays(today, -7),
-                  to: today,
-                });
-              }}
-            >
-              7 ngày qua
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const today = new Date();
-                handleDateChange({
-                  from: addDays(today, -30),
-                  to: today,
-                });
-              }}
-            >
-              30 ngày qua
-            </Button>
+        <PopoverContent className="w-auto p-0 shadow-lg" align="end">
+          <div className="p-3 border-b border-slate-100">
+            <h3 className="font-medium text-sm">Chọn khoảng thời gian</h3>
+          </div>
+          <div className="grid grid-cols-2">
+            <div className="border-r border-slate-100">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={handleDateChange}
+                numberOfMonths={1}
+                locale={vi}
+                className="p-2"
+              />
+            </div>
+            <div className="p-2 space-y-4">
+              <div className="space-y-2">
+                {presets.map((preset) => (
+                  <Button
+                    key={preset.days}
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-left font-normal"
+                    onClick={() => {
+                      const today = new Date();
+                      handleDateChange({
+                        from: addDays(today, -preset.days),
+                        to: today,
+                      });
+                    }}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+              <div className="border-t border-slate-100 pt-3">
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    if (date) {
+                      handleDateChange(date);
+                      document.body.click(); // Close the popover
+                    }
+                  }}
+                >
+                  Áp dụng
+                </Button>
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>

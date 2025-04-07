@@ -9,7 +9,9 @@ interface TaskProgressProps {
 
 const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
   return (
-    <div className="relative flex items-center justify-between my-8 px-2">
+    <div
+      className="sticky top-0 z-10 flex items-center justify-between my-8 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border border-gray-200 bg-gray-50 transition-all duration-300 ease-in-out hover:shadow-md"
+    >
       {tasks.map((task, index) => (
         <React.Fragment key={task.id}>
           <div className="flex flex-col items-center z-10">

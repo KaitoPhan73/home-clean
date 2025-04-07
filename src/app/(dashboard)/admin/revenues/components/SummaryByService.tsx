@@ -226,7 +226,6 @@ export function ServiceCharts({ serviceSummaryData, selectedServiceId, setSelect
     };
   };
 
-  // Hàm xử lý dữ liệu trạng thái đơn hàng
   const getStatusBreakdownData = () => {
     if (!serviceSummaryData || !serviceSummaryData.serviceSummaries) return null;
 

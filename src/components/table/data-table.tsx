@@ -37,6 +37,7 @@ interface DataTableProps<TData, TValue> {
   totalItems: number;
   onRowClick?: (row: TData) => void;
   pageSizeOptions?: number[];
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({

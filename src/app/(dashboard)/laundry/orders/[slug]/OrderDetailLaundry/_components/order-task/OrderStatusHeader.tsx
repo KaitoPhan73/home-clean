@@ -6,7 +6,9 @@ interface OrderStatusHeaderProps {
   orderStatus: OrderStatusEnum;
 }
 
-const OrderStatusHeader: React.FC<OrderStatusHeaderProps> = ({ orderStatus }) => {
+const OrderStatusHeader: React.FC<OrderStatusHeaderProps> = ({
+  orderStatus,
+}) => {
   const getOrderStatusIcon = () => {
     switch (orderStatus) {
       case OrderStatusEnum.Draft:
@@ -66,24 +68,27 @@ const OrderStatusHeader: React.FC<OrderStatusHeaderProps> = ({ orderStatus }) =>
 
   return (
     <div
-      className={`sticky top-0 z-10 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border transition-all duration-300 ease-in-out hover:shadow-md 
-        ${orderStatus === OrderStatusEnum.Completed 
-          ? 'bg-green-50 border-green-200' 
-          : orderStatus === OrderStatusEnum.Processing
-            ? 'bg-blue-50 border-blue-200'
+      className={`top-0 z-10 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border transition-all duration-300 ease-in-out hover:shadow-md 
+        ${
+          orderStatus === OrderStatusEnum.Completed
+            ? "bg-green-50 border-green-200"
+            : orderStatus === OrderStatusEnum.Processing
+            ? "bg-blue-50 border-blue-200"
             : orderStatus === OrderStatusEnum.PendingPayment
-              ? 'bg-yellow-50 border-yellow-200'
+            ? "bg-yellow-50 border-yellow-200"
             : orderStatus === OrderStatusEnum.Paid
-              ? 'bg-emerald-50 border-emerald-200'
-              : orderStatus === OrderStatusEnum.Cancelled
-                ? 'bg-red-50 border-red-200'
-                : 'bg-gray-50 border-gray-200'
+            ? "bg-emerald-50 border-emerald-200"
+            : orderStatus === OrderStatusEnum.Cancelled
+            ? "bg-red-50 border-red-200"
+            : "bg-gray-50 border-gray-200"
         }`}
     >
-      <div className="flex items-center">
+      <div className="flex items-center animate-pulse">
         {getOrderStatusIcon()}
         <div>
-          <p className="text-sm text-gray-600">Trạng thái đơn hàng</p>
+          <p className="text-sm text-gray-600">
+            Trạng thái đơn hàng
+          </p>{" "}
           <p className="font-medium">
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOrderStatusColor()}`}

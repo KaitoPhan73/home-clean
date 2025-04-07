@@ -39,17 +39,3 @@ export const createUser = async (data: Partial<TUserResponse>) => {
   return response;
 };
 
-// export const updateUser = async (id: string, data: TUpdateUserRequest) => {
-//   const response = await httpVinWallet.patch<TUserResponse>(
-//     `/users/${id}`,
-//     data
-//   );
-//   console.log("updateUser Response:", response);
-//   return response;
-// };
-
-// export const deleteUser = async (id: string) => {
-//   const response = await httpVinWallet.delete(`/users/${id}`);
-//   console.log("deleteUser Response:", response);
-//   return response;
-// };
