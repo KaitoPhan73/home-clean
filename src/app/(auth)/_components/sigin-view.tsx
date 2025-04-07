@@ -84,7 +84,7 @@ export default function SignInViewPage() {
           transition={{ duration: 0.5 }}
           className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">          <div className="flex justify-center mb-2">
             <Image
-              src="/image/homeplus-logo.svg"
+              src="/image/homeplus-logo.png"
               alt="Home Plus Logo"
               width={140} // Tăng kích thước logo nhẹ
               height={48}
