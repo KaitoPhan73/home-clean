@@ -210,9 +210,20 @@ export const managerNavItems: TNavItem[] = [
     items: [],
   },
 
+  // {
+  //   title: "Giặt Ủi",
+  //   url: PATHS.manager.laundry,
+  //   icon: "tasks",
+  //   isActive: false,
+  //   items: [],
+  // },
+];
+
+
+export const laundryNavItems: TNavItem[] = [
   {
     title: "Giặt Ủi",
-    url: PATHS.manager.laundry,
+    url: PATHS.laundry.orders,
     icon: "tasks",
     isActive: false,
     items: [],

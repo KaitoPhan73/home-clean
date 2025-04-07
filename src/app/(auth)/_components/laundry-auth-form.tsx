@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -17,41 +17,36 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  LoginSchema,
-  TAuthResponse,
-  TLoginRequest,
-} from "@/schema/auth.schema";
-import { checkLoginManager } from "@/apis/authencation";
+import { checkLoginManagerLaudry } from "@/apis/authencation";
 import { useRouter } from "next/navigation";
 import authClient from "@/apis/clients/auth";
-import { HttpResponse } from "@/lib/http";
 import { setUser } from "@/redux/User/userSlice";
 import { useDispatch } from "react-redux";
+import { LoginLaundrySchema, TLoginLaundryRequest } from "@/schema/VinLaudry/auth-laudry";
 
-const UserAuthForm = () => {
+const LaundryAuthForm = () => {
   const { toast } = useToast();
   const router = useRouter();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  useEffect(() => {
-    const savedPhone = localStorage.getItem("user_phone");
-    const savedPassword = localStorage.getItem("user_password");
-    const savedRememberMe = localStorage.getItem("user_remember") === "true";
+  React.useEffect(() => {
+    const savedPhone = localStorage.getItem("laundry_phone");
+    const savedPassword = localStorage.getItem("laundry_password");
+    const savedRememberMe = localStorage.getItem("laundry_remember") === "true";
     
     if (savedPhone && savedPassword && savedRememberMe) {
-      form.setValue("phoneNumber", savedPhone);
+      form.setValue("phone", savedPhone);
       form.setValue("password", savedPassword);
       setRememberMe(true);
     }
   }, []);
 
-  const form = useForm<TLoginRequest>({
-    resolver: zodResolver(LoginSchema),
+  const form = useForm<TLoginLaundryRequest>({
+    resolver: zodResolver(LoginLaundrySchema),
     defaultValues: {
-      phoneNumber: "",
+      phone: "",
       password: "",
     },
   });
@@ -66,43 +61,42 @@ const UserAuthForm = () => {
     setRememberMe(checked);
   };
 
-  const onSubmit = async (data: TLoginRequest) => {
+  const onSubmit = async (data: TLoginLaundryRequest) => {
     try {
       if (rememberMe) {
-        localStorage.setItem("user_phone", data.phoneNumber);
-        localStorage.setItem("user_password", data.password);
-        localStorage.setItem("user_remember", "true");
+        localStorage.setItem("laundry_phone", data.phone);
+        localStorage.setItem("laundry_password", data.password);
+        localStorage.setItem("laundry_remember", "true");
       } else {
-        localStorage.removeItem("user_phone");
-        localStorage.removeItem("user_password");
-        localStorage.removeItem("user_remember");
+        localStorage.removeItem("laundry_phone");
+        localStorage.removeItem("laundry_password");
+        localStorage.removeItem("laundry_remember");
       }
 
-      let response: HttpResponse<TAuthResponse> | null = null;
-      response = await checkLoginManager(data).catch(() => null);
-      if (!response) throw new Error("Tất cả các API đều thất bại.");
+      const response = await checkLoginManagerLaudry(data).catch(() => null);
+      if (!response) throw new Error("API đăng nhập thất bại.");
 
       if (response && response.status === 200) {
         const userData = response.payload;
         await authClient.auth(userData);
-        dispatch(setUser(userData));
+        const positionUserData = {
+          ...userData,
+          position: "ManageLaundry",
+        }
+        dispatch(setUser(positionUserData));
 
         let redirectUrl = "/homeplus";
         let message = "Không xác định được vai trò, chuyển đến trang chính.";
 
         if (userData.role?.toLowerCase() === "admin") {
-          redirectUrl = "/admin/buildings";
-          message = "Đang chuyển đến trang quản lí";
+          redirectUrl = "/admin/laundry";
+          message = "Đang chuyển đến trang quản lí giặt ủi";
         } else if (userData.role?.toLowerCase() === "manager") {
-          redirectUrl = "/manager/groups";
-          message = "Đang chuyển đến trang quản lý dịch vụ.";
-        } else if (userData.role?.toLowerCase() === "staff") {
-          redirectUrl = "/homeplus";
-          message = "Đang chuyển đến trang HomePlus.";
-        }
-
+          redirectUrl = "/laundry/orders";
+          message = "Đang chuyển đến trang quản lý dịch vụ giặt ủi.";
+        } 
         toast({
-          title: "Chào mừng bạn trở lại",
+          title: "Đăng nhập thành công",
           description: (
             <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
               <code className="text-white">{message}</code>
@@ -113,10 +107,10 @@ const UserAuthForm = () => {
         router.push(redirectUrl);
       }
     } catch (error) {
-      console.error("Login error: ", error);
+      console.error("Login laundry error: ", error);
       toast({
         title: "Đăng nhập thất bại",
-        description: "Vui lòng kiểm tra lại thông tin đăng nhập.",
+        description: "Vui lòng kiểm tra lại thông tin đăng nhập dịch vụ giặt ủi.",
       });
     }
   };
@@ -127,7 +121,7 @@ const UserAuthForm = () => {
         {/* Phone Number */}
         <FormField
           control={form.control}
-          name="phoneNumber"
+          name="phone"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Số điện thoại</FormLabel>
@@ -136,7 +130,7 @@ const UserAuthForm = () => {
                   placeholder="Nhập số điện thoại..."
                   {...field}
                   disabled={isSubmitting}
-                  className="focus-visible:ring-blue-500"
+                  className="focus-visible:ring-indigo-500"
                 />
               </FormControl>
               <FormMessage />
@@ -158,7 +152,7 @@ const UserAuthForm = () => {
                     placeholder="Nhập mật khẩu..."
                     {...field}
                     disabled={isSubmitting}
-                    className="pr-10 focus-visible:ring-blue-500"
+                    className="pr-10 focus-visible:ring-indigo-500"
                   />
                   <button
                     type="button"
@@ -179,21 +173,21 @@ const UserAuthForm = () => {
         <div className="flex justify-between items-center text-xs">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="user-remember-me"
+              id="remember-me"
               checked={rememberMe}
               onCheckedChange={handleRememberMeChange}
-              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
             />
             <label
-              htmlFor="user-remember-me"
+              htmlFor="remember-me"
               className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              Ghi nhớ mật khẩu
+             Ghi nhớ mật khẩu
             </label>
           </div>
           <a
             href="#"
-            className="text-blue-600 hover:text-blue-500 hover:underline transition-colors"
+            className="text-indigo-600 hover:text-indigo-500 hover:underline transition-colors"
           >
             Quên mật khẩu?
           </a>
@@ -202,14 +196,14 @@ const UserAuthForm = () => {
         {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 transition-colors"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập dịch vụ giặt ủi"}
         </Button>
       </form>
     </Form>
   );
 };
 
-export default UserAuthForm;
+export default LaundryAuthForm;

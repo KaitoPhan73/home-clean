@@ -4,18 +4,18 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { httpVinLaundry } from "@/lib/http";
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
-import LoadingSkeleton from "@/app/(dashboard)/manager/laundry/Loading";
-import NotFoundMessage from "@/app/(dashboard)/manager/laundry/NotFound";
-import OrderHeader from "@/app/(dashboard)/manager/laundry/[slug]/OrderDetailLaundry/_components/OrderHeader";
-import OrderInfo from "@/app/(dashboard)/manager/laundry/[slug]/OrderDetailLaundry/_components/OrderInfo";
-import OrderItems from "@/app/(dashboard)/manager/laundry/[slug]/OrderDetailLaundry/_components/OrderItems";
-import OrderSummary from "@/app/(dashboard)/manager/laundry/[slug]/OrderDetailLaundry/_components/OrderSummary";
-import OrderTasks from "@/app/(dashboard)/manager/laundry/[slug]/OrderDetailLaundry/_components/OrderTasks";
+import LoadingSkeleton from "@/app/(dashboard)/laundry/orders/Loading";
+import NotFoundMessage from "@/app/(dashboard)/laundry/orders/NotFound";
+import OrderHeader from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderHeader";
+import OrderInfo from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderInfo";
+import OrderItems from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
+import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderSummary";
+import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
 import { getAllUsers } from "@/apis/vinwallet/user";
 
 // Importable UI components - chỉ dùng tham khảo
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderDetail {
   id: string;

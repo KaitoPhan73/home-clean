@@ -3,6 +3,7 @@
 export const RootPath = {
   admin: "/admin",
   manager: "/manager",
+  manageLaundry: "/laundry",
   staff: "/staff",
 };
 
@@ -27,8 +28,13 @@ export const PATHS = {
     groups: `${RootPath.manager}/groups`,
     timeSlots: `${RootPath.manager}/time-slots`,
     orderAssignment: `${RootPath.manager}/order-assignment`,
-    laundry: `${RootPath.manager}/laundry`,
+    // laundry: `${RootPath.manager}/laundry`,
   },
+
+  laundry: {
+    orders: `${RootPath.manageLaundry}/orders`,
+  },
+
   staff: {
     myTasks: `${RootPath.staff}/my-tasks`,
     schedule: `${RootPath.staff}/schedule`,

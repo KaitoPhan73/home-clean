@@ -1,7 +1,7 @@
 "use server";
 
 import { getAllOrders } from "@/apis/laudry/order";
-import OrderTable from "@/app/(dashboard)/manager/laundry/_components/order-table/order-table";
+import OrderTable from "@/app/(dashboard)/laundry/orders/_components/order-table/order-table";
 import { searchParamsCache } from "@/lib/searchparams";
 
 const OrderServer = async () => {

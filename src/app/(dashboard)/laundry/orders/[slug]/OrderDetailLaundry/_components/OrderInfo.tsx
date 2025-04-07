@@ -1,9 +1,9 @@
 "use client";
 
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Clock, User, Mail, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderInfoProps {
   order: TOrderLaundryResponse;

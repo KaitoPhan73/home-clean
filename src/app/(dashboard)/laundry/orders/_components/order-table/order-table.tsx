@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
 import { DataTable } from "@/components/table/data-table";
 import { columns } from "./columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { FilterIcon, PlusIcon, RefreshCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DatePickerWithRange } from "@/app/(dashboard)/manager/laundry/_components/order-table/DatePickerWithRange";
+import { DatePickerWithRange } from "@/app/(dashboard)/laundry/orders/_components/order-table/DatePickerWithRange";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderTableProps {
   data: TOrderLaundryResponse[];

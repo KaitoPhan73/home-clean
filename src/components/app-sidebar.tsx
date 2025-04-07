@@ -16,6 +16,7 @@ import { RootState } from "@/redux/store";
 import {
   adminNavItems,
   managerNavItems,
+  laundryNavItems,
   data,
 } from "@/constants/sidebar/route";
 import SidebarSkeleton from "./sidebar-sekeleton";
@@ -28,15 +29,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   useEffect(() => {
     if (user) {
-      switch (user.role) {
-        case "Admin":
-          setNavItems(adminNavItems);
-          break;
-        case "Manager":
+      if (user.role === "Admin") {
+        setNavItems(adminNavItems);
+      } else if (user.position === "" || user.role === "Manager") {
+        if (user.role === "Manager" && user.position === "ManageLaundry") {
+          setNavItems(laundryNavItems);
+        } else {
           setNavItems(managerNavItems);
-          break;
-        default:
-          setNavItems([]);
+        }
+      } else {
+        setNavItems([]);
       }
       setIsLoading(false);
     }

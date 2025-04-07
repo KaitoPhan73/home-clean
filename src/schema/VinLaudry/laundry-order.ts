@@ -1,5 +1,5 @@
+import { BaseSchema } from "@/schema/base-schema";
 import { z } from "zod";
-import { BaseSchema } from "./base-schema";
 
 const ItemTypeResponseSchema = z.object({
   id: z.string().uuid(),

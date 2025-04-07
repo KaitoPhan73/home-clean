@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -5,26 +6,17 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import UserAuthForm from "./user-auth-form";
 import AdminAuthForm from "@/app/(auth)/_components/admin-auth-form";
+import LaundryAuthForm from "@/app/(auth)/_components/laundry-auth-form";
 import { ModeToggle } from "@/components/mode-toggle";
 import Image from "next/image";
 import { UserIcon, ShieldIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SignInViewPage() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeRole, setActiveRole] = useState<"user" | "admin">("user");
+  const [activeUserTab, setActiveUserTab] = useState<"cleaning" | "laundry">("cleaning");
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const toggleForm = () => {
-    if (!isAnimating) {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setIsAdmin(!isAdmin);
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 300);
-      }, 300);
-    }
-  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -33,14 +25,42 @@ export default function SignInViewPage() {
     }
   }, []);
 
+  const getTabDescription = () => {
+    if (activeRole === "admin") {
+      return "Đăng nhập tài khoản Admin.";
+    } else {
+      if (activeUserTab === "laundry") {
+        return "Đăng nhập tài khoản quản lí Giặt Đồ của bạn.";
+      } else {
+        return "Đăng nhập tài khoản quản lí Dịch Vụ của bạn.";
+      }
+    }
+  };
+
+  const toggleRole = (role: "user" | "admin") => {
+    if (!isAnimating && role !== activeRole) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setActiveRole(role);
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 300);
+      }, 300);
+    }
+  };
+
+  const handleUserTabChange = (tab: string) => {
+    setActiveUserTab(tab as "cleaning" | "laundry");
+  };
+
   return (
-    <div className="relative h-screen flex flex-col lg:grid lg:grid-cols-12 lg:gap-0">
-      {/* Header for logo - visible on all screens */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+    <div className="relative h-screen flex flex-col lg:grid lg:grid-cols-12 lg:gap-0 overflow-y-auto bg-gray-100">
+      {/* Header for theme toggle */}
+      <div className="absolute top-2 right-2 z-50 flex items-center gap-2">
         <ModeToggle />
       </div>
 
-      {/* Background image section - 6 cols */}
+      {/* Background image section */}
       <div className="relative hidden lg:flex h-full flex-col bg-muted lg:col-span-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/30 z-10" />
         <Image
@@ -51,70 +71,48 @@ export default function SignInViewPage() {
           height={2080}
           priority
         />
-
-        {/* Logo and tagline positioned at top left of image area */}
-        <div className="relative z-20 p-8">
-          <div className="flex flex-col items-start">
-            <Image
-              src="/image/homeplus-logo.svg"
-              alt="Home Plus Logo"
-              width={180}
-              height={60}
-              className="mb-3"
-            />
-            <span className="text-xl font-bold text-white mt-2">
-              DỊCH VỤ CHO MỌI NHU CẦU CỦA BẠN
-            </span>
-          </div>
-        </div>
-
-        {/* Quote at bottom of image area */}
-        <div className="mt-auto relative z-20 p-8">
-          <blockquote className="space-y-2">
-            <p className="text-lg text-white">
-              &ldquo;Chúng tôi mang đến dịch vụ chất lượng, tiện lợi dành cho
-              ngôi nhà của bạn.&rdquo;
-            </p>
-            <footer className="text-sm text-white/70">Homeplus Team</footer>
-          </blockquote>
-        </div>
       </div>
 
-      {/* Form section - 6 cols */}
+      {/* Form section */}
       <div
         ref={containerRef}
-        className="flex h-full items-center justify-center p-4 lg:p-8 lg:col-span-6"
+        className="flex h-full items-center justify-center p-4 lg:p-6 lg:col-span-6"
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
-        >
+          className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">          <div className="flex justify-center mb-2">
+            <Image
+              src="/image/homeplus-logo.svg"
+              alt="Home Plus Logo"
+              width={140} // Tăng kích thước logo nhẹ
+              height={48}
+              className="mb-2"
+            />
+          </div>
+
+          {/* Role selection and title */}
           <div className="flex items-center justify-between">
             <motion.div
-              key={`title-${isAdmin}`}
+              key={`title-${activeRole}`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
               className="flex flex-col space-y-2"
             >
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {isAdmin ? "Đăng nhập Admin" : "Chào mừng bạn quay trở lại"}
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-800">
+                {activeRole === "admin" ? "Đăng nhập Admin" : "Chào mừng đến HomePlus & Vinlaundry"}  
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {isAdmin
-                  ? "Vui lòng đăng nhập vào tài khoản Admin."
-                  : "Vui lòng đăng nhập vào tài khoản của bạn."}
-              </p>
+              <p className="text-sm text-gray-600">{getTabDescription()}</p>
             </motion.div>
 
             {/* Toggle icon */}
             <div
-              onClick={toggleForm}
+              onClick={() => toggleRole(activeRole === "user" ? "admin" : "user")}
               className={`flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition-all duration-300 ${
-                isAdmin
+                activeRole === "admin"
                   ? "bg-red-100 text-red-500"
                   : "bg-blue-100 text-blue-500"
               } hover:shadow-md`}
@@ -123,62 +121,103 @@ export default function SignInViewPage() {
                 animate={{ rotate: isAnimating ? 180 : 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {isAdmin ? <ShieldIcon size={20} /> : <UserIcon size={20} />}
+                {activeRole === "admin" ? (
+                  <ShieldIcon size={24} />
+                ) : (
+                  <UserIcon size={24} />
+                )}
               </motion.div>
             </div>
           </div>
 
-          <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-            <span className="relative z-10 bg-background px-3 text-muted-foreground">
-              Đăng nhập với form
-            </span>
-          </div>
-
+          {/* Forms content */}
           <AnimatePresence mode="wait">
-            <motion.div
-              key={`form-${isAdmin}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {isAdmin ? <AdminAuthForm /> : <UserAuthForm />}
-            </motion.div>
+            {activeRole === "admin" ? (
+              <motion.div
+                key="admin-form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <AdminAuthForm />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="user-tabs-container"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Tabs
+                  value={activeUserTab}
+                  onValueChange={handleUserTabChange}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100 rounded-md p-1">
+                    <TabsTrigger
+                      value="cleaning"
+                      className="text-sm text-gray-700 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                      Dọn dẹp
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="laundry"
+                      className="text-sm text-gray-700 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                      Giặt đồ
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="cleaning" className="mt-0">
+                    <UserAuthForm />
+                  </TabsContent>
+
+                  <TabsContent value="laundry" className="mt-0">
+                    <LaundryAuthForm />
+                  </TabsContent>
+                </Tabs>
+              </motion.div>
+            )}
           </AnimatePresence>
 
-          <div className="mt-6">
-            <div className="flex items-center justify-center space-x-2">
-              <span className="text-sm text-muted-foreground">
-                {isAdmin ? "Không phải Admin?" : "Chưa có tài khoản?"}
+          {/* Bottom links */}
+          <div className="mt-4">
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+              <span>
+                {activeRole === "user" ? "Chưa có tài khoản?" : "Đăng nhập thường?"}
               </span>
               <Link
-                href={isAdmin ? "#" : "/register"}
-                className={`text-sm font-medium ${
-                  isAdmin
+                href={activeRole === "user" ? "/register" : "#"}
+                className={`font-medium ${
+                  activeRole === "user"
                     ? "text-blue-600 hover:text-blue-500"
-                    : "text-primary hover:text-primary/90"
+                    : "text-red-600 hover:text-red-500"
                 }`}
-                onClick={isAdmin ? toggleForm : undefined}
+                onClick={
+                  activeRole === "user" ? undefined : () => toggleRole("user")
+                }
               >
-                {isAdmin ? "Đăng nhập Người dùng" : "Liên hệ với chúng tôi"}
+                {activeRole === "user" ? "Liên hệ" : "Người dùng"}
               </Link>
             </div>
           </div>
 
-          <p className="px-4 text-center text-xs text-muted-foreground">
+          <p className="px-2 text-center text-xs text-gray-500">
             Bằng cách tiếp tục, bạn đồng ý với{" "}
             <Link
               href="/terms"
-              className="underline underline-offset-4 hover:text-primary"
+              className="underline underline-offset-2 hover:text-blue-600"
             >
-              Điều khoản dịch vụ
+              Điều khoản
             </Link>{" "}
             và{" "}
             <Link
               href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
+              className="underline underline-offset-2 hover:text-blue-600"
             >
-              Chính sách bảo mật
+              Bảo mật
             </Link>
             .
           </p>
