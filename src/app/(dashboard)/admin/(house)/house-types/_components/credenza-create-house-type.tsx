@@ -94,8 +94,8 @@ export function CredenzaCreateHouseType({ className }: Props) {
       </CredenzaTrigger>
       <CredenzaContent className="sm:max-w-[425px]">
         <CredenzaHeader>
-          <CredenzaTitle>Tạo Khu Vực</CredenzaTitle>
-          <CredenzaDescription>Nhập thông tin khu vực mới</CredenzaDescription>
+          <CredenzaTitle>Tạo Loại Căn Hộ</CredenzaTitle>
+          <CredenzaDescription>Vui lòng nhập thông tin</CredenzaDescription>
         </CredenzaHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>

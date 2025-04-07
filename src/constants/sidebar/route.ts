@@ -107,37 +107,37 @@ export const adminNavItems: TNavItem[] = [
   },
 
   {
-    title: "Khu vực",
+    title: "Quản lý địa điểm",
     url: "#",
     icon: "dashboard",
     isActive: false,
     items: [
       {
-        title: "Quản lí khu vực",
+        title: "Khu vực",
         url: PATHS.admin.areas,
         icon: "filter",
         shortcut: ["r", "a"],
       },
       {
-        title: "Quản lí cụm khu vực",
+        title: "Cụm khu vực",
         url: PATHS.admin.clusters,
         icon: "kanban",
         shortcut: ["r", "s"],
       },
       {
-        title: "Quản lí tòa nhà",
+        title: "Tòa nhà",
         url: PATHS.admin.buildings,
         icon: "building",
         shortcut: ["r", "p"],
       },
       {
-        title: "Quản lí căn hộ",
+        title: "Căn hộ",
         url: PATHS.admin.houses,
         icon: "home",
         shortcut: ["r", "p"],
       },
       {
-        title: "Quản lí phòng",
+        title: "Phòng",
         url: PATHS.admin.rooms,
         icon: "post",
         shortcut: ["r", "p"],
@@ -145,19 +145,19 @@ export const adminNavItems: TNavItem[] = [
     ],
   },
   {
-    title: "Dịch Vụ",
+    title: "Quản lí dịch Vụ",
     url: "#",
     icon: "product",
     isActive: false,
     items: [
       {
-        title: "Phân Loại Dịch Vụ",
+        title: "Loại dịch vụ",
         url: PATHS.admin.serviceCategories,
         icon: "page",
         shortcut: ["r", "a"],
       },
       {
-        title: "Loại Dịch Vụ",
+        title: "Dịch vụ",
         url: PATHS.admin.services,
         icon: "post",
         shortcut: ["r", "s"],
@@ -186,7 +186,6 @@ export const adminNavItems: TNavItem[] = [
   },
 ];
 
-
 export const managerNavItems: TNavItem[] = [
   {
     title: "Quản Lí Nhóm",
@@ -195,7 +194,7 @@ export const managerNavItems: TNavItem[] = [
     isActive: false,
     items: [],
   },
-  
+
   {
     title: "Ca Làm Việc",
     url: PATHS.manager.timeSlots,
