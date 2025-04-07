@@ -3,7 +3,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, CreditCard, ArrowRight } from "lucide-react";
+import { CheckCircle, Clock, CreditCard, PlayCircle } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
@@ -20,13 +20,11 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
   index,
-  currentUser,
   orderStatus,
   processingTask,
   canCheckoutTask,
   isTaskLocked,
   onCheckout,
-  tasks,
 }) => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
@@ -50,11 +48,20 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
-    if (canCheckoutTask(task, index)) {
+    if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
       return (
         <span className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4" />
           Hoàn thành
+        </span>
+      );
+    }
+
+    if (task.status === TaskStatusEnum.Pending && canCheckoutTask(task, index)) {
+      return (
+        <span className="flex items-center gap-2">
+          <PlayCircle className="h-4 w-4" />
+          Bắt đầu
         </span>
       );
     }
@@ -83,6 +90,26 @@ const TaskCard: React.FC<TaskCardProps> = ({
         Chờ xử lý
       </span>
     );
+  };
+
+  const getButtonColor = (task: Task, index: number) => {
+    if (task.status === TaskStatusEnum.Completed) {
+      return "border-green-300 text-green-600";
+    } 
+    
+    if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
+      return "bg-green-600 hover:bg-green-700";
+    }
+    
+    if (task.status === TaskStatusEnum.Pending && canCheckoutTask(task, index)) {
+      return "bg-blue-600 hover:bg-blue-700";
+    }
+    
+    if (isTaskLocked(index)) {
+      return "bg-gray-300 cursor-not-allowed";
+    }
+    
+    return "bg-gray-400";
   };
 
   return (
@@ -172,15 +199,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               processingTask !== null
             }
             onClick={onCheckout}
-            className={`${
-              task.status === TaskStatusEnum.Completed
-                ? "border-green-300 text-green-600"
-                : canCheckoutTask(task, index)
-                ? "bg-blue-600 hover:bg-blue-700"
-                : isTaskLocked(index)
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-gray-400"
-            } min-w-32 transition-all duration-300`}
+            className={`${getButtonColor(task, index)} min-w-32 transition-all duration-300`}
           >
             {processingTask === task.id ? (
               <span className="flex items-center gap-2">
@@ -191,65 +210,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
               getTaskActionText(task, index)
             )}
           </Button>
-          {isTaskLocked(index) && (
-            <p className="text-xs text-gray-500 mt-2 text-right">
-              {index === 1
-                ? "Hoàn thành bước 1 để mở khóa"
-                : index === 2 && orderStatus === OrderStatusEnum.PendingPayment
-                ? "Cần thanh toán để mở khóa"
-                : "Đang khóa"}
-            </p>
-          )}
         </div>
       </div>
-
-      {task.employeeId && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500">Người xử lý</p>
-          <p className="text-sm font-medium">
-            {task.employeeId === currentUser?.id
-              ? `${currentUser?.fullName || "Bạn"} (Người dùng hiện tại)`
-              : task.employeeId}
-          </p>
-        </div>
-      )}
-
-      {task.status === TaskStatusEnum.Completed && index < tasks.length - 1 && (
-        <div className="mt-4 flex justify-end">
-          <div
-            className={`flex items-center text-sm ${
-              tasks[index + 1].status === TaskStatusEnum.InProgress
-                ? "text-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            <span>Bước tiếp theo</span>
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </div>
-        </div>
-      )}
-
-      {index === 1 &&
-        task.status === TaskStatusEnum.Completed &&
-        tasks.length > 2 && (
-          <div className="mt-4 pt-3 border-t border-yellow-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center text-yellow-600">
-                <CreditCard className="mr-2 h-4 w-4" />
-                <span className="text-sm font-medium">
-                  Cần thanh toán để tiếp tục
-                </span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-              >
-                Thanh toán ngay
-              </Button>
-            </div>
-          </div>
-        )}
     </Card>
   );
 };

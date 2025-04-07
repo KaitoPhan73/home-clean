@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff } from "lucide-react";
 import {
   LoginAdminSchema,
   TAuthResponse,
@@ -31,6 +33,20 @@ const AdminAuthForm = () => {
   const { toast } = useToast();
   const router = useRouter();
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("admin_username");
+    const savedPassword = localStorage.getItem("admin_password");
+    const savedRememberMe = localStorage.getItem("admin_remember") === "true";
+    
+    if (savedUsername && savedPassword && savedRememberMe) {
+      form.setValue("username", savedUsername);
+      form.setValue("password", savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const form = useForm<TLoginAdminRequest>({
     resolver: zodResolver(LoginAdminSchema),
@@ -42,9 +58,26 @@ const AdminAuthForm = () => {
 
   const { isSubmitting } = form.formState;
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleRememberMeChange = (checked: boolean) => {
+    setRememberMe(checked);
+  };
+
   const onSubmit = async (data: TLoginAdminRequest) => {
     try {
-      // Gọi API để xác thực tài khoản Admin
+      if (rememberMe) {
+        localStorage.setItem("admin_username", data.username);
+        localStorage.setItem("admin_password", data.password);
+        localStorage.setItem("admin_remember", "true");
+      } else {
+        localStorage.removeItem("admin_username");
+        localStorage.removeItem("admin_password");
+        localStorage.removeItem("admin_remember");
+      }
+
       const response: HttpResponse<TAuthResponse> = await checkLoginAdmin(data);
 
       if (response && response.status === 200) {
@@ -89,7 +122,7 @@ const AdminAuthForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Phone Number */}
+        {/* Username */}
         <FormField
           control={form.control}
           name="username"
@@ -98,9 +131,10 @@ const AdminAuthForm = () => {
               <FormLabel>Tên Đăng Nhập</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Nhập số điện thoại..."
+                  placeholder="Nhập tên đăng nhập..."
                   {...field}
                   disabled={isSubmitting}
+                  className="focus-visible:ring-red-500"
                 />
               </FormControl>
               <FormMessage />
@@ -108,7 +142,7 @@ const AdminAuthForm = () => {
           )}
         />
 
-        {/* Password */}
+        {/* Password with toggle visibility */}
         <FormField
           control={form.control}
           name="password"
@@ -116,21 +150,60 @@ const AdminAuthForm = () => {
             <FormItem>
               <FormLabel>Mật khẩu</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Nhập mật khẩu..."
-                  {...field}
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Nhập mật khẩu..."
+                    {...field}
+                    disabled={isSubmitting}
+                    className="pr-10 focus-visible:ring-red-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-500"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
+        {/* Remember Me and Forgot Password on the same line */}
+        <div className="flex justify-between items-center text-xs">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="admin-remember-me"
+              checked={rememberMe}
+              onCheckedChange={handleRememberMeChange}
+              className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+            />
+            <label
+              htmlFor="admin-remember-me"
+              className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Ghi nhớ mật khẩu
+            </label>
+          </div>
+          <a
+            href="#"
+            className="text-red-600 hover:text-red-500 hover:underline transition-colors"
+          >
+            Quên mật khẩu?
+          </a>
+        </div>
+
         {/* Submit Button */}
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+        <Button
+          type="submit"
+          className="w-full bg-red-600 hover:bg-red-700 transition-colors"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập Admin"}
         </Button>
       </form>
     </Form>

@@ -1,11 +1,11 @@
 "use client";
 
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
 import { ArrowLeft, Clock } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderHeaderProps {
   order: TOrderLaundryResponse;
