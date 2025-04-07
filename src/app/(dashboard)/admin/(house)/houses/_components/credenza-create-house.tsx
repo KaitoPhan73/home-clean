@@ -113,9 +113,7 @@ export function CredenzaCreateHouse({ className }: Props) {
           Tạo Căn Hộ
         </Button>
       </CredenzaTrigger>
-      <CredenzaContent
-        className="max-w-4xl max-h-[80vh] overflow-y-auto"
-      >
+      <CredenzaContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <CredenzaHeader>
           <CredenzaTitle>Tạo Nhà</CredenzaTitle>
           <CredenzaDescription>Nhập thông tin nhà</CredenzaDescription>
@@ -177,7 +175,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                         name="houseTypeId"
                         render={({ field }) => (
                           <FormItem className="col-span-3">
-                            <Label htmlFor="houseTypeId">Khu vực</Label>
+                            <Label htmlFor="houseTypeId">Loại nhà</Label>
                             <SelectHouseTypeAsync
                               value={field.value}
                               onChange={field.onChange}
