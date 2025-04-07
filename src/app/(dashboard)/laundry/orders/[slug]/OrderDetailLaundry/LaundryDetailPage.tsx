@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -11,23 +10,13 @@ import OrderInfo from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundr
 import OrderItems from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
 import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderSummary";
 import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
-import { getAllUsers } from "@/apis/vinwallet/user";
+import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
 
-// Importable UI components - chỉ dùng tham khảo
+// UI components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
-
-interface OrderDetail {
-  id: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  itemType: {
-    name: string;
-    itemCode: string;
-  };
-}
+import { AlertCircle, ShoppingBag, FileText, ClipboardList, AlertCircleIcon } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface UserDetail {
   id: string;
@@ -43,10 +32,12 @@ export default function LaundryDetailPage() {
   const orderId = params.slug;
 
   const [loading, setLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
   const [order, setOrder] = useState<TOrderLaundryResponse | null>(null);
   const [user, setUser] = useState<UserDetail | null>(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [userError, setUserError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get current user from cookies
@@ -70,15 +61,48 @@ export default function LaundryDetailPage() {
         setOrder(orderResponse.payload);
 
         if (orderResponse?.payload?.userId) {
+          setUserLoading(true);
           try {
-            const userResponse = await getAllUsers({ id: orderResponse.payload.userId });
-            setUser(userResponse.payload.items.find((u) => u.id === orderResponse.payload.userId) || null);
+            // Try to get user by direct ID first for better performance
+            const userResponse = await getUserById(orderResponse.payload.userId);
+            if (userResponse?.payload) {
+              setUser(userResponse.payload);
+              setUserError(null);
+            } else {
+              // Fall back to getAllUsers if direct fetch fails
+              const usersResponse = await getAllUsers({ id: orderResponse.payload.userId });
+              const foundUser = usersResponse?.payload?.items?.find(
+                (u) => u.id === orderResponse.payload.userId
+              );
+              
+              if (foundUser) {
+                setUser(foundUser);
+                setUserError(null);
+              } else {
+                setUserError("Không thể tìm thấy thông tin người dùng");
+              }
+            }
           } catch (error) {
             console.error("Error fetching user details:", error);
+            setUserError("Lỗi khi tải thông tin người dùng");
+            toast({
+              title: "Lỗi",
+              description: "Không thể tải thông tin người dùng",
+              variant: "destructive",
+            });
+          } finally {
+            setUserLoading(false);
           }
+        } else {
+          setUserLoading(false);
         }
       } catch (error) {
         console.error("Error fetching order details:", error);
+        toast({
+          title: "Lỗi",
+          description: "Không thể tải thông tin đơn hàng",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -172,37 +196,49 @@ export default function LaundryDetailPage() {
   if (!order) return <NotFoundMessage />;
 
   return (
-    <div className="container mx-auto py-1 px-1 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
+    <div className="container mx-auto py-4 px-1 sm:px-1 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
       <OrderHeader order={order} />
       
-      <div className="mb-6 overflow-hidden rounded-lg">
+      {userError && (
+        <AlertCircleIcon className="mb-4 border-amber-200 bg-amber-50">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertCircle className="text-amber-800">
+            {userError} (ID người dùng: {order.userId})
+          </AlertCircle>
+        </AlertCircleIcon>
+      )}
+      
+      <div className="mb-6 overflow-hidden rounded-lg shadow-md">
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex w-full h-12 bg-white border border-gray-200 p-1 rounded-t-lg">
+          <TabsList className="flex w-full h-14 bg-white border border-gray-200 p-1 rounded-t-lg">
             <TabsTrigger 
               value="overview" 
-              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md"
+              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md flex items-center justify-center"
             >
+              <ShoppingBag className="h-4 w-4 mr-2" />
               Tổng quan
             </TabsTrigger>
             <TabsTrigger 
               value="details" 
-              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md"
+              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md flex items-center justify-center"
             >
+              <FileText className="h-4 w-4 mr-2" />
               Chi tiết đơn hàng
             </TabsTrigger>
             <TabsTrigger 
               value="tasks" 
-              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md"
+              className="flex-1 h-full data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 data-[state=active]:shadow-sm rounded-md flex items-center justify-center"
             >
+              <ClipboardList className="h-4 w-4 mr-2" />
               Tiến trình xử lý
             </TabsTrigger>
           </TabsList>
           
-          <div className="p-4 bg-white border-x border-b border-gray-200 rounded-b-lg">
-            <TabsContent value="overview" className="mt-0">
+          <div className="p-6 bg-white border-x border-b border-gray-200 rounded-b-lg">
+            <TabsContent value="overview" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <OrderInfo order={order} user={user} />
+                  <OrderInfo order={order} user={user} isLoading={userLoading} />
                 </div>
                 <div className="lg:col-span-1">
                   <OrderSummary totals={totals} order={order} />
@@ -210,7 +246,7 @@ export default function LaundryDetailPage() {
               </div>
             </TabsContent>
             
-            <TabsContent value="details" className="mt-0">
+            <TabsContent value="details" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <OrderItems items={consolidatedItems} additionalServices={order.orderAdditionalServicesResponse} />
@@ -221,7 +257,7 @@ export default function LaundryDetailPage() {
               </div>
             </TabsContent>
             
-            <TabsContent value="tasks" className="mt-0">
+            <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">
               <OrderTasks orderId={order.id} currentUser={currentUser} />
             </TabsContent>
           </div>

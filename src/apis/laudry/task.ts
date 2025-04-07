@@ -19,7 +19,7 @@ export interface ApiTask {
   updatedAt: string;
 }
 
-interface TasksResponse {
+export interface TasksResponse {
   size: number;
   page: number;
   total: number;

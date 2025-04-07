@@ -11,21 +11,25 @@ interface OrderHeaderProps {
   order: TOrderLaundryResponse;
 }
 
-// Utility function to get status badge with proper styling
 const getStatusBadge = (status: string) => {
   const statusMap: Record<string, { color: string; label: string }> = {
-    Draft: { color: "bg-gray-100 text-gray-800", label: "Nháp" },
-    Pending: { color: "bg-yellow-100 text-yellow-800", label: "Chờ xử lý" },
-    Processing: { color: "bg-blue-100 text-blue-800", label: "Đang xử lý" },
-    Completed: { color: "bg-green-100 text-green-800", label: "Hoàn thành" },
-    Cancelled: { color: "bg-red-100 text-red-800", label: "Đã hủy" },
-    Delivered: { color: "bg-purple-100 text-purple-800", label: "Đã giao" },
+    Draft: { color: "bg-slate-100 text-slate-800 border border-slate-200", label: "Nháp" },
+    Pending: { color: "bg-amber-50 text-amber-700 border border-amber-200", label: "Chờ xử lý" },
+    Processing: { color: "bg-sky-50 text-sky-700 border border-sky-200", label: "Đang xử lý" },
+    Completed: { color: "bg-emerald-50 text-emerald-700 border border-emerald-200", label: "Hoàn thành" },
+    Cancelled: { color: "bg-rose-50 text-rose-700 border border-rose-200", label: "Đã hủy" },
+    Delivered: { color: "bg-indigo-50 text-indigo-700 border border-indigo-200", label: "Đã giao" },
   };
 
-  const statusInfo = statusMap[status] || { color: "bg-gray-100 text-gray-800", label: status };
+  const statusInfo = statusMap[status] || {
+    color: "bg-gray-100 text-gray-800 border border-gray-200",
+    label: status,
+  };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}
+    >
       {statusInfo.label}
     </span>
   );
@@ -33,29 +37,30 @@ const getStatusBadge = (status: string) => {
 
 export default function OrderHeader({ order }: OrderHeaderProps) {
   return (
-    <Card className="mb-1 shadow-sm border-gray-200 overflow-hidden bg-white">
-      <CardHeader className="pb-2 bg-gradient-to-r from-purple-10 to-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/manager/laundry">
-              <Button variant="ghost" size="sm" className="text-purple-700 hover:text-purple-800 hover:bg-purple-50 rounded-full h-8 w-8 p-0">
-                <ArrowLeft className="h-5 w-5" />
+    <Card className="mb-6 shadow-sm border-slate-200">
+      <CardHeader className="p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <Link href="/laundry/orders">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100">
+                <ArrowLeft className="h-5 w-5 text-slate-600" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-purple-800">
-                Đơn giặt ủi mã #{order.orderCode}
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">ID: {order.id.substring(0, 8)}</p>
-            </div>
+            <h1 className="text-lg font-semibold text-slate-800">
+              Đơn giặt ủi mã #{" "}
+              <span className="text-indigo-600">{order.orderCode}</span>
+            </h1>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-start md:items-center mt-4 md:mt-0 space-y-2 sm:space-y-0 sm:space-x-4">
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 text-gray-500 mr-1" />
-              <span className="text-sm text-gray-600">{formatDate(order.orderDate)}</span>
-            </div>
-            <div>{getStatusBadge(order.status)}</div>
+
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-slate-500 bg-slate-50 px-2 py-1 rounded">
+              ID: {order.id.substring(0, 8)}
+            </span>
+            <span className="text-sm text-slate-500 flex items-center bg-slate-50 px-2 py-1 rounded">
+              <Clock className="h-4 w-4 mr-1 text-slate-400" />
+              {formatDate(order.orderDate)}
+            </span>
+            {getStatusBadge(order.status)}
           </div>
         </div>
       </CardHeader>
