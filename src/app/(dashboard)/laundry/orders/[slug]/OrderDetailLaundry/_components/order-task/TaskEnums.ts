@@ -26,7 +26,7 @@ export enum OrderStatusEnum {
     completedDate: string | null;
     assignedBy: string | null;
     notes: string | null;
-    status: string;
+    status: TaskStatusEnum;
     createdAt: string;
     updatedAt: string;
   }

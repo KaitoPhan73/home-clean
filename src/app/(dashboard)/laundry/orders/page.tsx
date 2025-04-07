@@ -1,7 +1,7 @@
 import React from "react";
 import { SearchParams } from "nuqs";
 import { searchParamsCache, serialize } from "@/lib/searchparams";
-import OrderIndex from "@/app/(dashboard)/manager/laundry/_components/order-index";
+import OrderIndex from "@/app/(dashboard)/laundry/orders/_components/order-index";
 
 type pageProps = {
   searchParams: Promise<SearchParams>;

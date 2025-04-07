@@ -2,7 +2,7 @@ import PageContainer from "@/components/layout/page-container";
 import React, { Suspense } from "react";
 
 import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
-import OrderServer from "@/app/(dashboard)/manager/laundry/_components/order-server";
+import OrderServer from "@/app/(dashboard)/laundry/orders/_components/order-server";
 type Props = {
   keyProps: string;
 };

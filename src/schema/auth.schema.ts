@@ -30,8 +30,9 @@ export const AuthResponseSchema = z.object({
   userId: z.string().min(1, { message: "User ID không được trống." }),
   fullName: z.string().min(1, { message: "Họ và tên không được trống." }),
   status: z.enum(["Active", "InActive", "Banned"]).default("Active"),
-  role: z.enum(["Manager", "Admin", "Staff"]).default("Manager"),
+  role: z.enum(["Manager", "Admin", "Staff", "ManageLaundry"]).default("Manager"),
   groupId: z.string().optional(),
+  position: z.string().optional(),
 });
 export type TLoginRequest = z.TypeOf<typeof LoginSchema>;
 export type TAuthResponse = z.TypeOf<typeof AuthResponseSchema>;

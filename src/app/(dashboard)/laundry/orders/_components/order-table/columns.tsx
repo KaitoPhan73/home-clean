@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { useRouter } from "next/navigation";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 // Component con cho cột Actions
 const ActionsCell = ({ order }: { order: TOrderLaundryResponse }) => {

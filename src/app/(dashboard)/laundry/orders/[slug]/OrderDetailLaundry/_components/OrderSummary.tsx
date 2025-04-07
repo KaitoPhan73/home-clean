@@ -1,10 +1,10 @@
 "use client";
 
-import { TOrderLaundryResponse } from "@/schema/laundry-order";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Receipt, CreditCard, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderSummaryProps {
   totals: {
