@@ -380,7 +380,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           />
         )}
 
-        {/* Only show WeightSubmissionDialog if not in Paid status and dialog is open */}
         {showWeightDialog && orderStatus !== OrderStatusEnum.Paid && (
           <WeightSubmissionDialog
             open={showWeightDialog}
@@ -415,7 +414,11 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
               isTaskLocked={isTaskLocked}
               onCheckout={() => handleCheckoutClick(task)}
               // Add weight edit function for Task 2 (index 1)
-              onWeightEdit={index === 1 && task.status === TaskStatusEnum.Completed ? handleWeightEdit : undefined}
+              onWeightEdit={
+                index === 1 && task.status === TaskStatusEnum.Completed
+                  ? handleWeightEdit
+                  : undefined
+              }
               tasks={tasks}
             />
           ))}

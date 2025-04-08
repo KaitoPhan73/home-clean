@@ -4,8 +4,6 @@
 import React, { useState, useEffect } from "react";
 import { laundryColumns } from "./columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { RefreshCcw, Search, Layers, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePickerWithRange } from "@/app/(dashboard)/laundry/orders/_components/order-table/DatePickerWithRange";
@@ -13,6 +11,8 @@ import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 import { DataTableProps } from "@/app/(dashboard)/laundry/orders/_components/order-table/DataTable";
+import { Button } from "@/components/ui/button";
+import FilterBar from "@/app/(dashboard)/laundry/orders/_components/order-table/FilterBar";
 
 interface OrderTableProps {
   data: TOrderLaundryResponse[];
@@ -146,33 +146,22 @@ const OrderTable = ({
               variant="outline"
               className="bg-blue-50 text-blue-600 border-blue-200"
             >
-              {totalItems} đơn hàng chưa hoàn thành
+              {totalItems} đơn hàng
             </Badge>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="hover:bg-slate-50"
-            >
-              <RefreshCcw className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Làm mới</span>
-            </Button>
-            {/* <Button
-              size="sm"
-              onClick={onCreateOrder}
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <PlusIcon className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Tạo đơn mới</span>
-            </Button> */}
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
+        <FilterBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          dateRange={dateRange}
+          onDateChange={handleDateChange}
+          onClearFilters={handleClearFilters}
+          isLoading={isLoading}
+          onRefresh={onRefresh}
+        />
+
         <Tabs
           value={activeTab}
           onValueChange={handleTabChange}
@@ -288,8 +277,6 @@ const OrderTable = ({
                 </Button>
               </div>
             )}
-            
-            {/* Removed the top pagination here */}
           </div>
         </Tabs>
       </CardContent>
