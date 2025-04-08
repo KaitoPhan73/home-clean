@@ -1,18 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Scale } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { getOrderItemsForWeightSubmission, submitOrderWeight } from "@/apis/laudry/WeightSubmissionItem";
+import { Loader2, AlertCircle, Info } from "lucide-react";
+import { formatCurrency } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 
 interface WeightSubmissionDialogProps {
   open: boolean;
@@ -21,110 +17,265 @@ interface WeightSubmissionDialogProps {
   onSubmit: () => void;
 }
 
+interface WeightItem {
+  id: string;
+  itemTypeId: string;
+  name: string;
+  quantity?: number;
+  currentWeight: number;
+  actualWeight: number | null;
+  unitPrice: number;
+  priceType: "perKg" | "perItem" | "both";
+  newWeight?: number; // For user input
+}
+
 const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
   open,
   onOpenChange,
   orderId,
   onSubmit,
 }) => {
-  const [weight, setWeight] = useState<string>("");
-  const [processing, setProcessing] = useState(false);
+  const [items, setItems] = useState<WeightItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [noWeightItems, setNoWeightItems] = useState(false);
+
+  useEffect(() => {
+    if (open && orderId) {
+      fetchItems();
+    }
+  }, [open, orderId]);
+
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setNoWeightItems(false);
+      
+      const response = await getOrderItemsForWeightSubmission(orderId);
+      
+      if (!response.orderDetails) {
+        throw new Error("Không lấy được thông tin đơn hàng");
+      }
+      
+      const orderData = response.orderDetails;
+      const weightableItems: WeightItem[] = [];
+      
+      // Xử lý các mặt hàng tính theo kg
+      if (orderData.orderDetailsByKg && orderData.orderDetailsByKg.length > 0) {
+        orderData.orderDetailsByKg.forEach(item => {
+          weightableItems.push({
+            id: item.id,
+            itemTypeId: item.itemTypeId,
+            name: item.itemTypeResponse?.name || "Mặt hàng không xác định",
+            currentWeight: item.weight || 0,
+            actualWeight: item.actualWeight,
+            unitPrice: item.unitPrice || 0,
+            priceType: "perKg",
+            newWeight: item.actualWeight || item.weight || 0
+          });
+        });
+      }
+      
+      // Xử lý tất cả các mặt hàng trong orderDetailsByItem, không có điều kiện lọc
+      if (orderData.orderDetailsByItem && orderData.orderDetailsByItem.length > 0) {
+        orderData.orderDetailsByItem.forEach(item => {
+          // Xác định loại giá
+          const priceType = 
+            (item.itemTypeResponse?.pricePerKg && item.itemTypeResponse.pricePerKg > 0) && 
+            (item.itemTypeResponse?.pricePerItem && item.itemTypeResponse.pricePerItem > 0) 
+              ? "both" 
+              : (item.itemTypeResponse?.pricePerKg && item.itemTypeResponse.pricePerKg > 0)
+                ? "perKg"
+                : "perItem";
+                
+          weightableItems.push({
+            id: item.id,
+            itemTypeId: item.itemTypeId,
+            name: item.itemTypeResponse?.name || "Mặt hàng không xác định",
+            quantity: item.quantity || 1,
+            currentWeight: item.weight || 0,
+            actualWeight: item.actualWeight,
+            unitPrice: item.itemTypeResponse?.pricePerKg || item.unitPrice || 0,
+            priceType: priceType,
+            newWeight: item.actualWeight || item.weight || 0
+          });
+        });
+      }
+      
+      if (weightableItems.length === 0) {
+        setNoWeightItems(true);
+      }
+      
+      setItems(weightableItems);
+    } catch (err) {
+      console.error("Error fetching items:", err);
+      setError("Không thể tải danh sách mặt hàng. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWeightChange = (itemId: string, value: string) => {
+    const newWeight = parseFloat(value) || 0;
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, newWeight } : item
+      )
+    );
+  };
+
+  const calculateTotalAmount = () => {
+    return items.reduce((total, item) => {
+      // Chỉ tính tổng cho các mặt hàng có thể tính theo kg
+      if (item.priceType === "perKg" || item.priceType === "both") {
+        const weight = item.newWeight || 0;
+        return total + (weight * item.unitPrice);
+      }
+      return total;
+    }, 0);
+  };
 
   const handleSubmit = async () => {
-    if (!weight || isNaN(parseFloat(weight)) || parseFloat(weight) <= 0) {
-      setError("Vui lòng nhập trọng lượng hợp lệ lớn hơn 0");
-      return;
-    }
-
     try {
-      setProcessing(true);
+      setSubmitting(true);
       setError(null);
       
-      // Here you would normally have an API call to update the order weight
-      // For example: await updateOrderWeight(orderId, parseFloat(weight));
+      // If there are no weight items, send an empty array
+      if (items.length === 0) {
+        await submitOrderWeight(orderId, []);
+        onSubmit();
+        onOpenChange(false);
+        return;
+      }
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const submissionItems = items
+        .filter(item => item.newWeight !== undefined)
+        .map(item => ({
+          itemTypeId: item.itemTypeId,
+          weight: item.newWeight!,
+        }));
+
+      await submitOrderWeight(orderId, submissionItems);
+      onSubmit(); // Call the parent onSubmit to update order status
       onOpenChange(false);
-      onSubmit();
-    } catch (err: any) {
-      console.error("Error updating weight:", err);
-      setError(err.response?.data?.message || "Không thể cập nhật trọng lượng. Vui lòng thử lại sau.");
+    } catch (err) {
+      console.error("Error submitting weights:", err);
+      setError("Không thể cập nhật trọng lượng. Vui lòng thử lại.");
     } finally {
-      setProcessing(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[650px]">
         <DialogHeader>
-          <DialogTitle>Nhập trọng lượng thực tế</DialogTitle>
-          <DialogDescription>
-            Vui lòng nhập trọng lượng thực tế của đơn hàng để tính phí dịch vụ.
-          </DialogDescription>
+          <DialogTitle>Cập nhật trọng lượng đơn hàng</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="weight" className="text-right">
-              Trọng lượng
-            </Label>
-            <div className="col-span-3 relative">
-              <Input
-                id="weight"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder="0.0"
-                value={weight}
-                onChange={(e) => {
-                  setWeight(e.target.value);
-                  setError(null);
-                }}
-                className="pr-12"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">kg</span>
+        
+        <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Đang tải dữ liệu...</span>
+            </div>
+          ) : error ? (
+            <div className="flex items-center text-red-500 p-4 border border-red-200 rounded-md bg-red-50">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <p>{error}</p>
+            </div>
+          ) : noWeightItems ? (
+            <div className="flex items-center text-blue-500 p-4 border border-blue-200 rounded-md bg-blue-50">
+              <Info className="h-5 w-5 mr-2" />
+              <div>
+                <p className="font-medium">Đơn hàng không có mặt hàng</p>
+                <p className="text-sm text-blue-600 mt-1">
+                  Đơn hàng này không chứa mặt hàng nào. Bạn có thể tiếp tục để xác nhận.
+                </p>
               </div>
             </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 p-3 rounded-md text-sm text-red-700">
-              {error}
-            </div>
+          ) : items.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">Không có mặt hàng nào cần cập nhật trọng lượng.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-12 gap-4 items-center font-medium mb-2 border-b pb-2">
+                <div className="col-span-4">Tên mặt hàng</div>
+                <div className="col-span-3">Trọng lượng mới (kg)</div>
+                <div className="col-span-2">Hiện tại</div>
+                <div className="col-span-3">Đơn giá (kg)</div>
+              </div>
+              
+              {items.map(item => (
+                <div key={item.id} className="grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-4">
+                    <Label htmlFor={`weight-${item.id}`}>
+                      {item.name}
+                      {item.quantity && item.quantity > 1 ? ` (x${item.quantity})` : ''}
+                      {item.priceType === "both" && 
+                        <span className="text-xs text-blue-500 block">Có thể tính theo kg</span>
+                      }
+                      {item.priceType === "perItem" && 
+                        <span className="text-xs text-gray-500 block">Tính theo item</span>
+                      }
+                    </Label>
+                  </div>
+                  <div className="col-span-3">
+                    <Input
+                      id={`weight-${item.id}`}
+                      type="number"
+                      value={item.newWeight ?? ""}
+                      onChange={(e) => handleWeightChange(item.id, e.target.value)}
+                      min={0}
+                      step={0.1}
+                      className="w-full"
+                      placeholder="Nhập kg"
+                    />
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-500">
+                    {item.actualWeight !== null ? item.actualWeight : item.currentWeight} kg
+                  </div>
+                  <div className="col-span-3 text-sm">
+                    {item.priceType === "perItem" 
+                      ? "-" 
+                      : formatCurrency(item.unitPrice)}
+                  </div>
+                </div>
+              ))}
+              
+              {items.length > 0 && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center font-medium">
+                    <span>Tổng giá trị ước tính:</span>
+                    <span className="text-lg font-bold">
+                      {formatCurrency(calculateTotalAmount())}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    *Giá trị ước tính dựa trên trọng lượng mới và đơn giá hiện tại
+                  </p>
+                </div>
+              )}
+            </>
           )}
-
-          <div className="bg-blue-50 p-3 rounded-md">
-            <div className="flex items-center gap-2">
-              <Scale className="h-5 w-5 text-blue-600" />
-              <p className="text-sm text-blue-700">
-                <span className="font-medium">Lưu ý:</span> Sau khi nhập trọng lượng và xác nhận thanh toán, bạn có thể tiếp tục bước cuối cùng của quy trình.
-              </p>
-            </div>
-          </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             Hủy
           </Button>
           <Button 
-            onClick={handleSubmit}
-            disabled={processing}
-            className="bg-blue-600 hover:bg-blue-700"
+            onClick={handleSubmit} 
+            disabled={loading || submitting}
+            className="min-w-[100px]"
           >
-            {processing ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Đang xử lý
-              </span>
-            ) : (
-              "Xác nhận"
-            )}
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Đang xử lý...
+              </>
+            ) : "Xác nhận"}
           </Button>
         </DialogFooter>
       </DialogContent>

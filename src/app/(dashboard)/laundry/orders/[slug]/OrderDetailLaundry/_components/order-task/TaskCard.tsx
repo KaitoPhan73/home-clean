@@ -161,12 +161,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
     return "border-gray-200";
   };
 
-  // Modified condition: Hide weight edit button if order status is PendingPayment
   const showWeightEditButton = index === 1 && 
     task.status === TaskStatusEnum.Completed && 
     onWeightEdit && 
-    orderStatus !== OrderStatusEnum.Paid &&
-    orderStatus !== OrderStatusEnum.PendingPayment; // Added this condition
+    orderStatus !== OrderStatusEnum.PendingPayment;
 
   return (
     <Card
