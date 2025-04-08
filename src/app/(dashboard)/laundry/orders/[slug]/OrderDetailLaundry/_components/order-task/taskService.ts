@@ -86,22 +86,18 @@ export const getEmployeesService = async (params?: any, token?: string): Promise
   try {
     const responseData = await getEmployees(params, token);
     
-    // Type guard to check if responseData is an array
     if (Array.isArray(responseData)) {
       return responseData as Employee[];
     }
     
-    // If responseData is an object with a payload property that is an array
     if (responseData && typeof responseData === 'object' && 'payload' in responseData && Array.isArray(responseData.payload)) {
       return responseData.payload as Employee[];
     }
     
-    // If responseData is an object with an items property that is an array
     if (responseData && typeof responseData === 'object' && 'items' in responseData && Array.isArray(responseData.items)) {
       return responseData.items as Employee[];
     }
     
-    // If we can't find an array in the response, return empty array
     console.warn("Employee response structure unexpected:", responseData);
     return [];
   } catch (error) {

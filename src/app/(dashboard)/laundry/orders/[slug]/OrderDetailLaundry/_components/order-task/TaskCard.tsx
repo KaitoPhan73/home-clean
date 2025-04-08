@@ -3,7 +3,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, CreditCard, PlayCircle } from "lucide-react";
+import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
@@ -14,6 +14,7 @@ interface TaskCardProps {
   canCheckoutTask: (task: Task, index: number) => boolean;
   isTaskLocked: (index: number) => boolean;
   onCheckout: () => void;
+  onWeightEdit?: () => void; // New prop for weight edit
   tasks: Task[];
 }
 
@@ -25,6 +26,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   canCheckoutTask,
   isTaskLocked,
   onCheckout,
+  onWeightEdit,
+  tasks,
 }) => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
@@ -37,6 +40,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       minute: "2-digit",
     }).format(date);
   };
+
+  const isStep3Unlocked = index === 2 && 
+    orderStatus === OrderStatusEnum.Paid && 
+    tasks[1]?.status === TaskStatusEnum.Completed;
 
   const getTaskActionText = (task: Task, index: number) => {
     if (task.status === TaskStatusEnum.Completed) {
@@ -66,7 +73,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
-    if (index === 2 && orderStatus === OrderStatusEnum.PendingPayment) {
+    if (index === 1 && orderStatus === OrderStatusEnum.PendingPayment) {
       return (
         <span className="flex items-center gap-2">
           <CreditCard className="h-4 w-4" />
@@ -75,10 +82,28 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
+    if (index === 2) {
+      if (isStep3Unlocked) {
+        return (
+          <span className="flex items-center gap-2">
+            <Unlock className="h-4 w-4" />
+            {task.status === TaskStatusEnum.Pending ? "Sẵn sàng bắt đầu" : "Chờ xử lý"}
+          </span>
+        );
+      } else {
+        return (
+          <span className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            {orderStatus !== OrderStatusEnum.Paid ? "Chờ thanh toán" : "Đang khóa"}
+          </span>
+        );
+      }
+    }
+
     if (isTaskLocked(index)) {
       return (
         <span className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
+          <Lock className="h-4 w-4" />
           Đang khóa
         </span>
       );
@@ -105,6 +130,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       return "bg-blue-600 hover:bg-blue-700";
     }
     
+    if (index === 2 && isStep3Unlocked && task.status === TaskStatusEnum.Pending) {
+      return "bg-blue-600 hover:bg-blue-700";
+    }
+    
     if (isTaskLocked(index)) {
       return "bg-gray-300 cursor-not-allowed";
     }
@@ -112,17 +141,36 @@ const TaskCard: React.FC<TaskCardProps> = ({
     return "bg-gray-400";
   };
 
+  const getCardBackground = () => {
+    if (task.status === TaskStatusEnum.Completed) {
+      return "border-green-200 bg-green-50";
+    }
+    
+    if (task.status === TaskStatusEnum.InProgress) {
+      return "bg-blue-50";
+    }
+    
+    if (index === 2 && isStep3Unlocked && task.status === TaskStatusEnum.Pending) {
+      return "border-blue-200 bg-blue-50 animate-pulse";
+    }
+    
+    if (isTaskLocked(index)) {
+      return "border-gray-200 bg-gray-50 opacity-70";
+    }
+    
+    return "border-gray-200";
+  };
+
+  // Modified condition: Hide weight edit button if order status is PendingPayment
+  const showWeightEditButton = index === 1 && 
+    task.status === TaskStatusEnum.Completed && 
+    onWeightEdit && 
+    orderStatus !== OrderStatusEnum.Paid &&
+    orderStatus !== OrderStatusEnum.PendingPayment; // Added this condition
+
   return (
     <Card
-      className={`task-card p-6 border transition-all duration-300 hover:shadow-md ${
-        task.status === TaskStatusEnum.Completed
-          ? "border-green-200 bg-green-50"
-          : task.status === TaskStatusEnum.InProgress
-          ? "border-blue-200 bg-blue-50"
-          : isTaskLocked(index)
-          ? "border-gray-200 bg-gray-50 opacity-70"
-          : "border-gray-200"
-      }`}
+      className={`task-card p-6 border transition-all duration-300 hover:shadow-md ${getCardBackground()}`}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1">
@@ -133,6 +181,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   ? "bg-green-100 text-green-800"
                   : task.status === TaskStatusEnum.InProgress
                   ? "bg-blue-100 text-blue-800"
+                  : isStep3Unlocked && index === 2
+                  ? "bg-blue-100 text-blue-800"
                   : isTaskLocked(index)
                   ? "bg-gray-100 text-gray-500"
                   : "bg-gray-100 text-gray-800"
@@ -142,13 +192,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 ? "Hoàn thành"
                 : task.status === TaskStatusEnum.InProgress
                 ? "Đang thực hiện"
+                : isStep3Unlocked && index === 2
+                ? "Sẵn sàng"
                 : isTaskLocked(index)
                 ? "Đang khóa"
                 : "Chờ xử lý"}
             </span>
             <h3
               className={`text-lg font-semibold ${
-                isTaskLocked(index) ? "text-gray-500" : ""
+                isTaskLocked(index) && !(isStep3Unlocked && index === 2) ? "text-gray-500" : ""
               }`}
             >
               {task.taskName}
@@ -157,6 +209,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <p className="text-sm text-gray-600 mt-2">
             Mã công việc: {task.taskCode}
           </p>
+          
+          {isStep3Unlocked && index === 2 && task.status !== TaskStatusEnum.Completed && (
+            <p className="text-sm text-blue-600 font-medium mt-2">
+              Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
+            </p>
+          )}
+          
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
               <p className="text-xs text-gray-500">Ngày tạo</p>
@@ -187,7 +246,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
 
-        <div className="ml-4">
+        <div className="ml-4 flex flex-col gap-2">
           <Button
             variant={
               task.status === TaskStatusEnum.Completed ? "outline" : "default"
@@ -195,7 +254,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             size="sm"
             disabled={
               task.status === TaskStatusEnum.Completed ||
-              !canCheckoutTask(task, index) ||
+              (!canCheckoutTask(task, index) && !(isStep3Unlocked && index === 2 && task.status === TaskStatusEnum.Pending)) ||
               processingTask !== null
             }
             onClick={onCheckout}
@@ -210,6 +269,21 @@ const TaskCard: React.FC<TaskCardProps> = ({
               getTaskActionText(task, index)
             )}
           </Button>
+          
+          {/* Weight Edit Button - Now hidden when orderStatus is PendingPayment */}
+          {showWeightEditButton && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onWeightEdit}
+              className="border-purple-300 text-purple-600 hover:bg-purple-50 min-w-32"
+            >
+              <span className="flex items-center gap-2">
+                <Scale className="h-4 w-4" />
+                Sửa trọng lượng
+              </span>
+            </Button>
+          )}
         </div>
       </div>
     </Card>

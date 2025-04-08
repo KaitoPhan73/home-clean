@@ -62,7 +62,7 @@ export default function OrderInfo({
   if (isLoading) {
     return (
       <Card className="shadow-sm border-gray-200">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-white border-b border-gray-100">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-white border-b border-gray-100">
           <CardTitle className="text-lg text-blue-800 flex items-center">
             <ShoppingBag className="h-5 w-5 mr-2 text-blue-600" />
             Thông tin đơn hàng
@@ -89,7 +89,7 @@ export default function OrderInfo({
 
   return (
     <Card className="shadow-md border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-100 to-white border-b border-gray-100 py-4">
+      <CardHeader className="bg-gradient-to-r from-blue-100 to-red-50 border-b border-gray-100 py-4">
         <CardTitle className="text-lg text-blue-800 flex items-center">
           <ShoppingBag className="h-5 w-5 mr-2 text-blue-600" />
           Thông tin đơn hàng

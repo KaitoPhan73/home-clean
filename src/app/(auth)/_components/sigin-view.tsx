@@ -73,7 +73,6 @@ export default function SignInViewPage() {
         />
       </div>
 
-      {/* Form section */}
       <div
         ref={containerRef}
         className="flex h-full items-center justify-center p-4 lg:p-6 lg:col-span-6"
@@ -86,13 +85,12 @@ export default function SignInViewPage() {
             <Image
               src="/image/homeplus-logo.png"
               alt="Home Plus Logo"
-              width={140} // Tăng kích thước logo nhẹ
+              width={140}
               height={48}
               className="mb-2"
             />
           </div>
 
-          {/* Role selection and title */}
           <div className="flex items-center justify-between">
             <motion.div
               key={`title-${activeRole}`}
@@ -108,7 +106,6 @@ export default function SignInViewPage() {
               <p className="text-sm text-gray-600">{getTabDescription()}</p>
             </motion.div>
 
-            {/* Toggle icon */}
             <div
               onClick={() => toggleRole(activeRole === "user" ? "admin" : "user")}
               className={`flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition-all duration-300 ${
@@ -130,7 +127,6 @@ export default function SignInViewPage() {
             </div>
           </div>
 
-          {/* Forms content */}
           <AnimatePresence mode="wait">
             {activeRole === "admin" ? (
               <motion.div

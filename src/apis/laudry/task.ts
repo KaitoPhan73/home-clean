@@ -8,7 +8,7 @@ export interface ApiTask {
   employeeId: string | null;
   taskName: string;
   description: string | null;
-  priority: string;
+  priority: number;
   startDate: string | null;
   dueDate: string | null;
   completedDate: string | null;
