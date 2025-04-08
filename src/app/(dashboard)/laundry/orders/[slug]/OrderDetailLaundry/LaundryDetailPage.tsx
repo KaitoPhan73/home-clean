@@ -11,8 +11,8 @@ import OrderItems from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaund
 import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderSummary";
 import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
 import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
+import { OrderStatusEnum } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
 
-// UI components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { AlertCircle, ShoppingBag, FileText, ClipboardList, AlertCircleIcon } from "lucide-react";
@@ -27,6 +27,23 @@ interface UserDetail {
   status: string;
 }
 
+const mapApiStatusToEnum = (apiStatus: string): OrderStatusEnum => {
+  switch (apiStatus) {
+    case "Draft":
+      return OrderStatusEnum.Draft;
+    case "Processing":
+      return OrderStatusEnum.Processing;
+    case "PendingPayment":
+      return OrderStatusEnum.PendingPayment;
+    case "Paid":
+      return OrderStatusEnum.Paid;
+    case "Completed":
+      return OrderStatusEnum.Completed;
+    default:
+      return OrderStatusEnum.Processing;
+  }
+};
+
 export default function LaundryDetailPage() {
   const params = useParams();
   const orderId = params.slug;
@@ -40,7 +57,6 @@ export default function LaundryDetailPage() {
   const [userError, setUserError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get current user from cookies
     const userCookie = document.cookie
       .split("; ")
       .find(row => row.startsWith("user="));
@@ -63,13 +79,11 @@ export default function LaundryDetailPage() {
         if (orderResponse?.payload?.userId) {
           setUserLoading(true);
           try {
-            // Try to get user by direct ID first for better performance
             const userResponse = await getUserById(orderResponse.payload.userId);
             if (userResponse?.payload) {
               setUser(userResponse.payload);
               setUserError(null);
             } else {
-              // Fall back to getAllUsers if direct fetch fails
               const usersResponse = await getAllUsers({ id: orderResponse.payload.userId });
               const foundUser = usersResponse?.payload?.items?.find(
                 (u) => u.id === orderResponse.payload.userId
@@ -234,7 +248,7 @@ export default function LaundryDetailPage() {
             </TabsTrigger>
           </TabsList>
           
-          <div className="p-6 bg-white border-x border-b border-gray-200 rounded-b-lg">
+          <div className="p-3 bg-white border-x border-b border-gray-200 rounded-b-lg">
             <TabsContent value="overview" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
@@ -258,7 +272,11 @@ export default function LaundryDetailPage() {
             </TabsContent>
             
             <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">
-              <OrderTasks orderId={order.id} currentUser={currentUser} />
+              <OrderTasks
+                orderId={order.id}
+                currentUser={currentUser}
+                orderStatusOverride={mapApiStatusToEnum(order.status)}
+              />
             </TabsContent>
           </div>
         </Tabs>

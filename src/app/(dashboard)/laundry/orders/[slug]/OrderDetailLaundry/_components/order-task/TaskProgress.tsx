@@ -1,6 +1,6 @@
 import React from "react";
 import { Task, TaskStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock } from "lucide-react";
+import { CheckCircle, Clock, Lock } from "lucide-react";
 
 interface TaskProgressProps {
   tasks: Task[];
@@ -31,7 +31,7 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
               ) : task.status === TaskStatusEnum.InProgress ? (
                 <Clock className="h-7 w-7" />
               ) : isTaskLocked(index) ? (
-                <span className="text-lg">{index + 1}</span>
+                <Lock className="h-6 w-6" />
               ) : (
                 <span className="text-lg">{index + 1}</span>
               )}

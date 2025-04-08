@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -23,6 +24,7 @@ interface OrderDetailsPopupProps {
   onClose: () => void;
   onOrderUpdate?: () => void;
   groupId?: string;
+  onRefresh?: () => void;
 }
 
 const getStatusColor = (status: string) => {
@@ -44,6 +46,7 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
   onClose,
   onOrderUpdate,
   groupId,
+  onRefresh
 }) => {
   const {
     activeTab,
