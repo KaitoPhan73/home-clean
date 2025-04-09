@@ -24,7 +24,7 @@ export const getAllOrdersByGroupId = async (groupId: string) => {
     }
 
     const response = await httpHomePlus.get<TTableResponse<TOrderResponse>>(
-      `/groups/${groupId}/order-v2`
+      `/groups/${groupId}/order-v2?page=1&size=10000`
     );
 
     return response;

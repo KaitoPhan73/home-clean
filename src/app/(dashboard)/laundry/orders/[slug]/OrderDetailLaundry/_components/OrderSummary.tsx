@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -63,7 +64,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
         </div>
       </CardContent>
       
-      <CardFooter className="bg-gray-50 px-5 py-4 flex flex-col space-y-2">
+      {/* <CardFooter className="bg-gray-50 px-5 py-4 flex flex-col space-y-2">
         <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
           <CreditCard className="h-4 w-4 mr-2" />
           Thanh toán
@@ -80,7 +81,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
             Hủy đơn hàng
           </Button>
         )}
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

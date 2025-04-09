@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { laundryColumns } from "./columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, Search, Layers, X } from "lucide-react";
+import { RefreshCcw, Search, Layers, X, FileText, Clock, Loader2, CheckCircle, DollarSign, XCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePickerWithRange } from "@/app/(dashboard)/laundry/orders/_components/order-table/DatePickerWithRange";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
@@ -36,11 +36,8 @@ const OrderTable = ({
   });
   const [filteredData, setFilteredData] = useState<TOrderLaundryResponse[]>(data);
 
-  // Đếm số lượng đơn hàng theo trạng thái từ dữ liệu đã được lọc theo search và dateRange
   const getFilteredCounts = () => {
-    // Áp dụng lọc theo search và dateRange (không lọc theo status)
     const filtered = data.filter((order) => {
-      // Lọc theo tìm kiếm
       const matchesSearch = !searchTerm
         ? true
         : order.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,7 +45,6 @@ const OrderTable = ({
           (order.type &&
             order.type.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      // Lọc theo ngày
       let matchesDateRange = true;
       if (dateRange?.from && dateRange?.to) {
         const orderDate = order.orderDate ? new Date(order.orderDate) : null;
@@ -74,9 +70,7 @@ const OrderTable = ({
   };
 
   useEffect(() => {
-    // Lọc dữ liệu dựa trên tab đang active, tìm kiếm và dateRange
     const filtered = data.filter((order) => {
-      // Lọc theo tìm kiếm
       const matchesSearch = !searchTerm
         ? true
         : order.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +78,6 @@ const OrderTable = ({
           (order.type &&
             order.type.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      // Lọc theo tab/trạng thái
       let matchesStatus = true;
       if (activeTab !== "all") {
         const tabToStatus: Record<string, string> = {
@@ -95,11 +88,9 @@ const OrderTable = ({
           cancelled: "Cancelled",
           paid: "Paid",
         };
-
         matchesStatus = order.status === tabToStatus[activeTab];
       }
 
-      // Lọc theo ngày
       let matchesDateRange = true;
       if (dateRange?.from && dateRange?.to) {
         const orderDate = order.orderDate ? new Date(order.orderDate) : null;
@@ -171,8 +162,9 @@ const OrderTable = ({
             <TabsList className="h-auto p-0 bg-transparent border-b-0 w-full overflow-x-auto flex rounded-none">
               <TabsTrigger
                 value="all"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-blue-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
               >
+                <Layers className="h-4 w-4 mr-2" />
                 Tất cả đơn
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.all}
@@ -180,8 +172,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="draft"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-yellow-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-yellow-600 data-[state=active]:text-yellow-600"
               >
+                <FileText className="h-4 w-4 mr-2" />
                 Nháp
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.draft}
@@ -189,8 +182,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="pendingPayment"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-orange-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-orange-600 data-[state=active]:text-orange-600"
               >
+                <Clock className="h-4 w-4 mr-2" />
                 Chờ thanh toán
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.pendingPayment}
@@ -198,8 +192,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="processing"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-purple-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 data-[state=active]:text-purple-600"
               >
+                <Loader2 className="h-4 w-4 mr-2" />
                 Đang xử lý
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.processing}
@@ -207,8 +202,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="completed"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-green-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600"
               >
+                <CheckCircle className="h-4 w-4 mr-2" />
                 Hoàn thành
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.completed}
@@ -216,8 +212,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="paid"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-teal-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-teal-600 data-[state=active]:text-teal-600"
               >
+                <DollarSign className="h-4 w-4 mr-2" />
                 Đã thanh toán
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.paid}
@@ -225,8 +222,9 @@ const OrderTable = ({
               </TabsTrigger>
               <TabsTrigger
                 value="cancelled"
-                className="flex-1 rounded-none data-[state=active]:bg-transparent data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                className="flex-1 rounded-none data-[state=active]:bg-red-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-red-600 data-[state=active]:text-red-600"
               >
+                <XCircle className="h-4 w-4 mr-2" />
                 Đã hủy
                 <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
                   {orderCounts.cancelled}
