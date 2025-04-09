@@ -223,9 +223,13 @@ const StaffAssignBoard = () => {
   if (isLoading) return <div className="flex justify-center p-6"><RefreshCw className="animate-spin h-8 w-8" /></div>;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
 
-  const dateText = filterMode === "single"
-    ? format(parseISO(selectedDate), "dd/MM/yyyy", { locale: vi })
-    : `${format(parseISO(fromDate), "dd/MM/yyyy", { locale: vi })} - ${format(parseISO(toDate), "dd/MM/yyyy", { locale: vi })}`;
+  // Format date text based on filter mode
+  let dateText = "Tất cả";
+  if (filterMode === "single") {
+    dateText = format(parseISO(selectedDate), "dd/MM/yyyy", { locale: vi });
+  } else if (filterMode === "range") {
+    dateText = `${format(parseISO(fromDate), "dd/MM/yyyy", { locale: vi })} - ${format(parseISO(toDate), "dd/MM/yyyy", { locale: vi })}`;
+  }
 
   return (
     <div className="space-y-4">
@@ -242,7 +246,7 @@ const StaffAssignBoard = () => {
           handleRefresh={handleRefresh}
         />
         <div className="mt-4 text-sm text-gray-600">
-          Đơn hàng: {dateText} ({filteredOrders.length})
+          <>Đơn hàng: {dateText} ({filteredOrders.length})</>
         </div>
       </div>
       <DndProvider backend={HTML5Backend}>

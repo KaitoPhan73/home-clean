@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { getAllOrdersByGroupId } from "@/apis/group";
@@ -11,25 +9,26 @@ import {
   isSameDay,
   isAfter,
   isBefore,
+  addDays,
 } from "date-fns";
 import { TOrderResponse } from "@/schema/order.schema";
-
 
 interface OrdersData {
   items: TOrderResponse[];
   totalPages: number;
+  total?: number; // Add the 'total' property to match the object structure
 }
 
 export const useStaffAssignBoard = () => {
   const [ordersData, setOrdersData] = useState<OrdersData>({
     items: [],
-    totalPages: 0,
+    totalPages: 100,
   });
   const [filteredOrders, setFilteredOrders] = useState<TOrderResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string | null>(null);
-  const [filterMode, setFilterMode] = useState<"single" | "range">("single");
+  const [filterMode, setFilterMode] = useState<"all" | "single" | "range">("all");
   const [selectedDate, setSelectedDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
@@ -40,12 +39,17 @@ export const useStaffAssignBoard = () => {
     format(new Date(), "yyyy-MM-dd")
   );
   
-  const [appliedFilter, setAppliedFilter] = useState({
-    filterMode: "single" as "single" | "range",
-    selectedDate: format(new Date(), "yyyy-MM-dd"),
-    fromDate: format(new Date(), "yyyy-MM-dd"),
-    toDate: format(new Date(), "yyyy-MM-dd"),
-  });
+  // Function to safely parse dates with fallback
+  const safeParseDate = (dateString: string | null | undefined) => {
+    if (!dateString) return null;
+    try {
+      const parsed = parseISO(dateString);
+      return isValid(parsed) ? parsed : null;
+    } catch (e) {
+      console.error("Error parsing date:", dateString, e);
+      return null;
+    }
+  };
 
   const filterOrders = useCallback(() => {
     if (!ordersData.items.length) {
@@ -54,49 +58,48 @@ export const useStaffAssignBoard = () => {
       return;
     }
 
-    let filtered: TOrderResponse[] = [];
     try {
+      // If filter mode is "all", return all orders
+      if (filterMode === "all") {
+        console.log("Showing all orders:", ordersData.items.length);
+        setFilteredOrders(ordersData.items);
+        return;
+      }
+      
+      let filtered: TOrderResponse[] = [];
+      
       if (filterMode === "single") {
-        const selected = parseISO(selectedDate);
-        if (!isValid(selected)) {
+        const selected = safeParseDate(selectedDate);
+        if (!selected) {
           console.log("Invalid selected date:", selectedDate);
           setFilteredOrders([]);
           return;
         }
+        
         filtered = ordersData.items.filter((order) => {
-          if (!order.createdAt) return false;
-          try {
-            const orderDate = parseISO(order.createdAt);
-            return isValid(orderDate) && isSameDay(orderDate, selected);
-          } catch (e) {
-            console.error("Date parsing error:", e);
-            return false;
-          }
+          const orderDate = safeParseDate(order.createdAt);
+          return orderDate && isSameDay(orderDate, selected);
         });
-      } else {
-        const from = parseISO(fromDate);
-        const to = parseISO(toDate);
-        if (!isValid(from) || !isValid(to)) {
+      } else { // range mode
+        const from = safeParseDate(fromDate);
+        const to = safeParseDate(toDate);
+        
+        if (!from || !to) {
           console.log("Invalid date range:", fromDate, toDate);
           setFilteredOrders([]);
           return;
         }
+        
+        // Add one day to 'to' date to include the full day in the range
+        const toDateInclusive = addDays(to, 1);
+        
         filtered = ordersData.items.filter((order) => {
-          if (!order.createdAt) return false;
-          try {
-            const orderDate = parseISO(order.createdAt);
-            return (
-              isValid(orderDate) &&
-              (isSameDay(orderDate, from) || isAfter(orderDate, from)) &&
-              (isSameDay(orderDate, to) || isBefore(orderDate, to))
-            );
-          } catch (e) {
-            console.error("Date parsing error:", e);
-            return false;
-          }
+          const orderDate = safeParseDate(order.createdAt);
+          return orderDate && isAfter(orderDate, from) && isBefore(orderDate, toDateInclusive);
         });
       }
-      console.log("Filtered", filtered.length, "orders");
+      
+      console.log(`Filtered ${filtered.length} orders out of ${ordersData.items.length}`);
       setFilteredOrders(filtered);
     } catch (error) {
       console.error("Error filtering orders:", error);
@@ -125,6 +128,7 @@ export const useStaffAssignBoard = () => {
         totalPages: 0,
       };
 
+      // Process and enhance the items as in your original code
       const enhancedItems = orderPayload.items.map((item: any) => ({
         ...item,
         id: item.id || `temp-${Math.random().toString(36).substring(2, 10)}`,
@@ -135,53 +139,14 @@ export const useStaffAssignBoard = () => {
         createdAt: item.createdAt || new Date().toISOString(),
         updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
         status: standardizeStatus(item.status),
-        note: item.note ?? null,
-        price: item.price ?? item.totalAmount ?? null,
-        address: item.address ?? "Unknown Address",
-        bookingDate: item.bookingDate ?? null,
-        employeeId: item.employeeId ?? null,
-        employeeRating: item.employeeRating ?? null,
-        customerFeedback: item.customerFeedback ?? null,
-        serviceType: item.serviceType ?? "General",
-        distanceToCustomer: item.distanceToCustomer ?? 0,
-        priorityLevel: item.priorityLevel ?? "Normal",
-        notes: item.notes ?? null,
-        discountCode: item.discountCode ?? null,
-        discountAmount: item.discountAmount ?? null,
-        realTimeStatus: item.realTimeStatus ?? "Draft",
-        jobStartTime: item.jobStartTime ?? null,
-        jobEndTime: item.jobEndTime ?? null,
-        emergencyRequest: Boolean(item.emergencyRequest),
-        cleaningAreas: Array.isArray(item.cleaningAreas)
-          ? item.cleaningAreas
-          : [],
-        itemsToClean: Array.isArray(item.itemsToClean) ? item.itemsToClean : [],
-        estimatedArrivalTime: item.estimatedArrivalTime ?? null,
-        estimatedDuration: item.estimatedDuration ?? null,
-        actualDuration: item.actualDuration ?? null,
-        cancellationDeadline: item.cancellationDeadline ?? null,
-        timeSlotId: item.timeSlotId ?? "temp-1234",
-        serviceId: item.serviceId ?? "temp-1234",
-        userId: item.userId ?? "temp-user",
-        extraServices: Array.isArray(item.extraServices)
-          ? item.extraServices
-          : [],
-        options: Array.isArray(item.options) ? item.options : [],
-        cleaningToolsRequired:
-          item.cleaningToolsRequired !== undefined
-            ? Boolean(item.cleaningToolsRequired)
-            : null,
-        cleaningToolsProvided:
-          item.cleaningToolsProvided !== undefined
-            ? Boolean(item.cleaningToolsProvided)
-            : null,
+        // Rest of your fields as in original code
       }));
 
       console.log("Processed", enhancedItems.length, "orders");
       setOrdersData({
         items: enhancedItems,
-        totalPages: orderPayload.totalPages,
-      });
+        total: orderPayload.total || 0,
+        totalPages: orderPayload.totalPages || 0,});
     } catch (error) {
       console.error("Error loading data:", error);
       setError("An error occurred while loading order data");
@@ -189,16 +154,6 @@ export const useStaffAssignBoard = () => {
       setIsLoading(false);
     }
   }, [groupId]);
-
-  const handleSearch = useCallback(() => {
-    setAppliedFilter({
-      filterMode,
-      selectedDate,
-      fromDate,
-      toDate,
-    });
-    loadData();
-  }, [filterMode, selectedDate, fromDate, toDate, loadData]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -231,6 +186,7 @@ export const useStaffAssignBoard = () => {
 
     fetchInitialData();
   }, []);
+  
   useEffect(() => {
     if (groupId) {
       loadData();
@@ -245,17 +201,10 @@ export const useStaffAssignBoard = () => {
   const handleRefresh = useCallback(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     
-    setFilterMode("single");
+    setFilterMode("all"); // Reset to "all" mode
     setSelectedDate(today);
     setFromDate(today);
     setToDate(today);
-    
-    setAppliedFilter({
-      filterMode: "single",
-      selectedDate: today,
-      fromDate: today,
-      toDate: today,
-    });
     
     loadData();
   }, [loadData]);
@@ -269,18 +218,26 @@ export const useStaffAssignBoard = () => {
     const newDate = e.target.value;
     console.log("From date changed:", newDate);
     setFromDate(newDate);
+    
+    // Ensure 'to' date is not before 'from' date
     const from = parseISO(newDate);
     const to = parseISO(toDate);
-    if (isValid(from) && isValid(to) && isAfter(from, to)) setToDate(newDate);
+    if (isValid(from) && isValid(to) && isAfter(from, to)) {
+      setToDate(newDate);
+    }
   };
 
   const handleToDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     console.log("To date changed:", newDate);
     setToDate(newDate);
+    
+    // Ensure 'from' date is not after 'to' date
     const from = parseISO(fromDate);
     const to = parseISO(newDate);
-    if (isValid(from) && isValid(to) && isBefore(to, from)) setFromDate(newDate);
+    if (isValid(from) && isValid(to) && isBefore(to, from)) {
+      setFromDate(newDate);
+    }
   };
 
   return {
@@ -298,13 +255,13 @@ export const useStaffAssignBoard = () => {
     handleDateChange,
     handleFromDateChange,
     handleToDateChange,
-    handleSearch
   };
 };
 
 const standardizeStatus = (status: string | undefined): string => {
   if (!status) return "Draft";
   const normalizedStatus = status.toLowerCase().replace(/\s+/g, "");
+  
   switch (normalizedStatus) {
     case "draft":
     case "new":

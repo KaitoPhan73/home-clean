@@ -27,7 +27,7 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sử dụng useMemo để tính toán board data khi orders thay đổi
+  // Sử dụng useEffect để tính toán board data khi orders thay đổi
   useEffect(() => {
     if (orders.length === 0) {
       setBoardData({

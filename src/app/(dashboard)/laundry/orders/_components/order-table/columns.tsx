@@ -269,21 +269,21 @@ export const laundryColumns: ColumnDef<TOrderLaundryResponse>[] = [
       );
     },
   },
-  {
-    accessorKey: "type",
-    header: "Loại dịch vụ",
-    cell: ({ row }) => {
-      const type = row.getValue("type") as string;
-      return (
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-indigo-50 rounded-md">
-            <Briefcase className="h-4 w-4 text-indigo-600" />
-          </div>
-          <span className="font-medium text-gray-700">{type || "Chưa xác định"}</span>
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "type",
+  //   header: "Loại dịch vụ",
+  //   cell: ({ row }) => {
+  //     const type = row.getValue("type") as string;
+  //     return (
+  //       <div className="flex items-center gap-2">
+  //         <div className="p-1.5 bg-indigo-50 rounded-md">
+  //           <Briefcase className="h-4 w-4 text-indigo-600" />
+  //         </div>
+  //         <span className="font-medium text-gray-700">{type || "Chưa xác định"}</span>
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "totalAmount",
     header: "Giá trị",
