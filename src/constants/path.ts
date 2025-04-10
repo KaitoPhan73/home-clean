@@ -22,6 +22,7 @@ export const PATHS = {
     users:  `${RootPath.admin}/users`,
     revenues: `${RootPath.admin}/revenues`,
     transactions: `${RootPath.admin}/transactions`,
+    transactionRevenue: `${RootPath.admin}/transaction-revenue`,
   },
   
   manager: {
