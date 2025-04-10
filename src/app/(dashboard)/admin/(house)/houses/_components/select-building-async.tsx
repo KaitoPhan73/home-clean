@@ -1,49 +1,52 @@
 "use client";
-import React from "react";
-import { useBuildings } from "@/hooks/use-buildings";
+import React, { useEffect, useState } from "react";
 import {
   Select,
-  SelectGroup,
-  SelectValue,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { getAllBuildings } from "@/apis/building";
+import { TBuildingResponse } from "@/schema/building.schema";
 
-export function SelectBuildingAsync({
-  value,
-  onChange,
-}: {
-  value?: string;
-  onChange: (v: string) => void;
-}) {
-  const { data, isLoading } = useBuildings();
+type Props = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+export const SelectBuildingAsync = ({ value, onChange }: Props) => {
+  const [buildings, setBuildings] = useState<TBuildingResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        setLoading(true);
+        const res = await getAllBuildings();
+        setBuildings(res.payload.items); // Dựa theo cấu trúc của TTableResponse
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách tòa:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBuildings();
+  }, []);
 
   return (
-    <Select value={value} onValueChange={onChange} disabled={isLoading}>
+    <Select value={value} onValueChange={onChange} disabled={loading}>
       <SelectTrigger>
-        <SelectValue placeholder="Chọn tòa" />
+        <SelectValue placeholder="Chọn tòa nhà" />
       </SelectTrigger>
       <SelectContent>
-        <SelectGroup>
-          {!isLoading
-            ? data?.map((item) => (
-                <SelectItem
-                  key={item.id}
-                  value={item.id}
-                  className="hover:bg-accent"
-                >
-                  {item.name}
-                </SelectItem>
-              ))
-            : Array.from({ length: 5 }).map((_, index) => (
-                <SelectItem key={index} value={index.toString()} disabled>
-                  <Skeleton className="h-4 w-full" />
-                </SelectItem>
-              ))}
-        </SelectGroup>
+        {buildings.map((building) => (
+          <SelectItem key={building.id} value={building.id}>
+            {building.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
-}
+};

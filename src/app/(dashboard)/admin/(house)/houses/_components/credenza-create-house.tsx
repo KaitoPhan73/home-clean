@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Credenza,
   CredenzaContent,
@@ -29,7 +30,6 @@ import {
 import { createHouse } from "@/apis/house";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/switch";
-import { SelectBuildingAsync } from "./select-building-async";
 import { SelectHouseTypeAsync } from "./select-house-type-async";
 import { handleErrorApi } from "@/lib/utils";
 import {
@@ -45,14 +45,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { getAllBuildings } from "@/apis/building"; // 👉 API gọi toàn bộ tòa nhà
 
 type Props = {
   className?: string;
 };
 
+type Building = {
+  _id: string;
+  name: string;
+};
+
 export function CredenzaCreateHouse({ className }: Props) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [buildings, setBuildings] = useState<Building[]>([]);
   const router = useRouter();
 
   const form = useForm<TCreateHouseRequest>({
@@ -75,6 +82,24 @@ export function CredenzaCreateHouse({ className }: Props) {
     },
   });
 
+  const fetchBuildings = async () => {
+    try {
+      const res = await getAllBuildings();
+      setBuildings(
+        res.payload.items.map((item: any) => ({
+          _id: item.id,
+          name: item.name,
+        }))
+      ); // tuỳ theo response API của bạn
+    } catch (error) {
+      console.error("Lỗi lấy danh sách tòa nhà:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBuildings();
+  }, []);
+
   const onSubmit = async (data: TCreateHouseRequest) => {
     try {
       const response = await createHouse(data);
@@ -87,11 +112,8 @@ export function CredenzaCreateHouse({ className }: Props) {
         setIsOpen(false);
         router.refresh();
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      handleErrorApi({
-        error,
-      });
+      handleErrorApi({ error });
     }
   };
 
@@ -124,6 +146,7 @@ export function CredenzaCreateHouse({ className }: Props) {
               type="multiple"
               defaultValue={["basic-info", "technical-info", "status-info"]}
             >
+              {/* Accordion 1: Thông tin cơ bản */}
               <AccordionItem value="basic-info">
                 <AccordionTrigger>Thông tin cơ bản</AccordionTrigger>
                 <AccordionContent>
@@ -140,11 +163,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                               <Input
                                 placeholder={`Nhập ${label}...`}
                                 {...field}
-                                value={
-                                  typeof field.value === "boolean"
-                                    ? String(field.value)
-                                    : field.value
-                                }
+                                value={field.value?.toString()}
                                 disabled={isSubmitting}
                               />
                             </FormControl>
@@ -153,8 +172,6 @@ export function CredenzaCreateHouse({ className }: Props) {
                         )}
                       />
                     ))}
-
-                    {/* Hai trường Select ngang hàng, mỗi trường chiếm 3 cột */}
                     <div className="col-span-6 grid grid-cols-6 gap-4">
                       <FormField
                         control={form.control}
@@ -162,14 +179,42 @@ export function CredenzaCreateHouse({ className }: Props) {
                         render={({ field }) => (
                           <FormItem className="col-span-3">
                             <Label htmlFor="buildingId">Chọn tòa</Label>
-                            <SelectBuildingAsync
+                            <Select
                               value={field.value}
-                              onChange={field.onChange}
-                            />
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn tòa nhà" />
+                              </SelectTrigger>
+                              <SelectContent
+                                className="max-h-60 overflow-auto"
+                                onCloseAutoFocus={(e) => {
+                                  e.preventDefault(); // tránh focus thẻ đầu tiên
+                                  setTimeout(() => {
+                                    const el = document.querySelector(
+                                      `[data-radix-select-item-value="${field.value}"]`
+                                    );
+                                    el?.scrollIntoView({ block: "nearest" });
+                                  }, 0);
+                                }}
+                              >
+                                {buildings.map((building) => (
+                                  <SelectItem
+                                    key={building._id}
+                                    value={building._id}
+                                    data-radix-select-item-value={building._id}
+                                  >
+                                    {building.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
                         name="houseTypeId"
@@ -189,6 +234,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                 </AccordionContent>
               </AccordionItem>
 
+              {/* Accordion 2: Thông số kỹ thuật */}
               <AccordionItem value="technical-info">
                 <AccordionTrigger>Thông số kỹ thuật</AccordionTrigger>
                 <AccordionContent>
@@ -205,11 +251,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                               <Input
                                 placeholder={`Nhập ${label}...`}
                                 {...field}
-                                value={
-                                  typeof field.value === "boolean"
-                                    ? String(field.value)
-                                    : field.value
-                                }
+                                value={field.value?.toString()}
                                 disabled={isSubmitting}
                               />
                             </FormControl>
@@ -276,6 +318,7 @@ export function CredenzaCreateHouse({ className }: Props) {
                 </AccordionContent>
               </AccordionItem>
 
+              {/* Accordion 3: Tình trạng */}
               <AccordionItem value="status-info">
                 <AccordionTrigger>Tình trạng nhà</AccordionTrigger>
                 <AccordionContent>
@@ -285,13 +328,13 @@ export function CredenzaCreateHouse({ className }: Props) {
                       name="status"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
-                          <Label htmlFor="status">Tình Trạng Nhà</Label>
+                          <Label htmlFor="status">Tình trạng nhà</Label>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn tình trạng nhà" />
+                              <SelectValue placeholder="Chọn tình trạng" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Active">Hoạt động</SelectItem>
@@ -346,9 +389,9 @@ export function CredenzaCreateHouse({ className }: Props) {
                               <SelectValue placeholder="Chọn tình trạng" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Active">Rất Tốt</SelectItem>
+                              <SelectItem value="Active">Rất tốt</SelectItem>
                               <SelectItem value="Inactive">
-                                Không Tốt
+                                Không tốt
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -361,7 +404,7 @@ export function CredenzaCreateHouse({ className }: Props) {
               </AccordionItem>
             </Accordion>
 
-            <CredenzaFooter>
+            <CredenzaFooter className="mt-4">
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Đang tạo..." : "Tạo Nhà"}
               </Button>
