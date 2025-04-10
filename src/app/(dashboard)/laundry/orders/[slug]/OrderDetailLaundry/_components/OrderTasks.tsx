@@ -74,6 +74,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
             ...apiTask,
             status: convertToTaskStatusEnum(apiTask.status),
             priority: String(apiTask.priority),
+            employeeName: apiTask.employeeName || "Unknown Employee",
+            managerName: apiTask.managerName || "Unknown Manager",
           })
         );
 
@@ -412,13 +414,10 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
               canCheckoutTask={canCheckoutTask}
               isTaskLocked={isTaskLocked}
               onCheckout={() => handleCheckoutClick(task)}
-              onWeightEdit={
-                index === 1 && task.status === TaskStatusEnum.Completed
-                  ? handleWeightEdit
-                  : undefined
-              }
-              tasks={tasks}
-            />
+              onWeightEdit={index === 1 && task.status === TaskStatusEnum.Completed
+                ? handleWeightEdit
+                : undefined}
+              tasks={tasks} staff={null}            />
           ))}
         </div>
 

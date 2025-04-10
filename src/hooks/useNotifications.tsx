@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as signalR from "@microsoft/signalr";
 import { useState, useEffect, useRef } from "react";
 
@@ -44,7 +45,7 @@ export const useSignalR = () => {
       setConnectionStatus("connecting");
       const accessToken = localStorage.getItem("accessToken") || "";
       const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl("https://homeclean-2z89.onrender.com/homeCleanHub", {
+        .withUrl("https://homeclean.vinhomesresident.com/homeCleanHub", {
           accessTokenFactory: () => accessToken,
           transport: signalR.HttpTransportType.WebSockets,
         })
