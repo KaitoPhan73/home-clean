@@ -13,7 +13,6 @@ export const getAllStaffs = async (params?: any) => {
       params,
     }
   );
-  // console.log("getAllserrr Response:", response);
   return response;
 };
 

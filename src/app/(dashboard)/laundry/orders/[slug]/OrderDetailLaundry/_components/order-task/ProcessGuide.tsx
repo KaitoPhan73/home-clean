@@ -4,7 +4,7 @@ import { Bell } from "lucide-react";
 
 const ProcessGuide: React.FC = () => {
   return (
-    <Card className="p-4 bg-blue-50 border-blue-200 mt-8">
+    <Card className="p-4 bg-blue-50 border-blue-200 mt-0">
       <div className="flex items-start gap-3">
         <div className="bg-blue-100 rounded-full p-2">
           <Bell className="h-5 w-5 text-blue-600" />

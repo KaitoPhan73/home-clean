@@ -118,7 +118,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       orderStatus !== OrderStatusEnum.Paid
     ) {
       setOrderStatus(OrderStatusEnum.PendingPayment);
-      // Only auto-show dialog when completing a task, not on initial load
       if (!loading && !weightSubmitted) {
         setShowWeightDialog(true);
       }
@@ -413,7 +412,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
               canCheckoutTask={canCheckoutTask}
               isTaskLocked={isTaskLocked}
               onCheckout={() => handleCheckoutClick(task)}
-              // Add weight edit function for Task 2 (index 1)
               onWeightEdit={
                 index === 1 && task.status === TaskStatusEnum.Completed
                   ? handleWeightEdit

@@ -29,7 +29,6 @@ export const getRoomsInHouse = async (id: string, params?: any) => {
 
 export const getHouseById = async (id: string) => {
   const response = await httpHomePlus.get<THouseResponse>(`/houses/${id}`);
-  // console.log("getHouseById Response:", response);
   return response;
 };
 

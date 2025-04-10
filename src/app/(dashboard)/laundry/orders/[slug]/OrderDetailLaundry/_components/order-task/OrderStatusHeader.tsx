@@ -86,9 +86,7 @@ const OrderStatusHeader: React.FC<OrderStatusHeaderProps> = ({
       <div className="flex items-center animate-pulse">
         {getOrderStatusIcon()}
         <div>
-          <p className="text-sm text-gray-600">
-            Trạng thái đơn hàng
-          </p>{" "}
+          <p className="text-sm text-gray-600">Trạng thái đơn hàng</p>{" "}
           <p className="font-medium">
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOrderStatusColor()}`}

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getOrderItemsForWeightSubmission, submitOrderWeight } from "@/apis/laudry/WeightSubmissionItem";
 import { Loader2, AlertCircle, Info } from "lucide-react";
-import { formatCurrency } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 
 interface WeightSubmissionDialogProps {
   open: boolean;
@@ -126,17 +125,6 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
     );
   };
 
-  const calculateTotalAmount = () => {
-    return items.reduce((total, item) => {
-      // Chỉ tính tổng cho các mặt hàng có thể tính theo kg
-      if (item.priceType === "perKg" || item.priceType === "both") {
-        const weight = item.newWeight || 0;
-        return total + (weight * item.unitPrice);
-      }
-      return total;
-    }, 0);
-  };
-
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
@@ -204,7 +192,6 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
                 <div className="col-span-4">Tên mặt hàng</div>
                 <div className="col-span-3">Trọng lượng mới (kg)</div>
                 <div className="col-span-2">Hiện tại</div>
-                <div className="col-span-3">Đơn giá (kg)</div>
               </div>
               
               {items.map(item => (
@@ -214,10 +201,10 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
                       {item.name}
                       {item.quantity && item.quantity > 1 ? ` (x${item.quantity})` : ''}
                       {item.priceType === "both" && 
-                        <span className="text-xs text-blue-500 block">Có thể tính theo kg</span>
+                        <span className="text-xs text-blue-500 block">Tính theo item</span>
                       }
                       {item.priceType === "perItem" && 
-                        <span className="text-xs text-gray-500 block">Tính theo item</span>
+                        <span className="text-xs text-gray-500 block">Có thể tính theo kg</span>
                       }
                     </Label>
                   </div>
@@ -236,27 +223,8 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
                   <div className="col-span-2 text-sm text-gray-500">
                     {item.actualWeight !== null ? item.actualWeight : item.currentWeight} kg
                   </div>
-                  <div className="col-span-3 text-sm">
-                    {item.priceType === "perItem" 
-                      ? "-" 
-                      : formatCurrency(item.unitPrice)}
-                  </div>
                 </div>
               ))}
-              
-              {items.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between items-center font-medium">
-                    <span>Tổng giá trị ước tính:</span>
-                    <span className="text-lg font-bold">
-                      {formatCurrency(calculateTotalAmount())}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    *Giá trị ước tính dựa trên trọng lượng mới và đơn giá hiện tại
-                  </p>
-                </div>
-              )}
             </>
           )}
         </div>

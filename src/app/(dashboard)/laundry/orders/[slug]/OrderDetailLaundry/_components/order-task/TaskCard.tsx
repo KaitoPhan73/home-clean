@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
 import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale } from "lucide-react";
+import { Employee, getEmployeeById } from "@/apis/laudry/employee";
+import EmployeeDetail from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/EmployeeDetail";
 
 interface TaskCardProps {
   task: Task;
@@ -14,7 +17,7 @@ interface TaskCardProps {
   canCheckoutTask: (task: Task, index: number) => boolean;
   isTaskLocked: (index: number) => boolean;
   onCheckout: () => void;
-  onWeightEdit?: () => void; // New prop for weight edit
+  onWeightEdit?: () => void;
   tasks: Task[];
 }
 
@@ -29,6 +32,36 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onWeightEdit,
   tasks,
 }) => {
+  // State for storing employee data
+  const [assignedByEmployee, setAssignedByEmployee] = useState<Employee | null>(null);
+  const [assignedToEmployee, setAssignedToEmployee] = useState<Employee | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      setLoading(true);
+      try {
+        // Fetch assigned by employee data if available
+        if (task.assignedBy) {
+          const assignedByData = await getEmployeeById(task.assignedBy);
+          setAssignedByEmployee(assignedByData);
+        }
+        
+        // Fetch assigned to employee data if available
+        if (task.employeeId) {
+          const assignedToData = await getEmployeeById(task.employeeId);
+          setAssignedToEmployee(assignedToData);
+        }
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchEmployeeData();
+  }, [task.assignedBy, task.employeeId]);
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
     const date = new Date(dateString);
@@ -207,13 +240,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <p className="text-sm text-gray-600 mt-2">
             Mã công việc: {task.taskCode}
           </p>
-          
-          {isStep3Unlocked && index === 2 && task.status !== TaskStatusEnum.Completed && (
-            <p className="text-sm text-blue-600 font-medium mt-2">
-              Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
-            </p>
-          )}
-          
+          <p className="text-sm text-gray-600 mt-2">
+            Nhân viên: {task.employeeId}
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+           Quản lí phụ trách: {task.assignedBy}
+          </p>
+
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
               <p className="text-xs text-gray-500">Ngày tạo</p>
@@ -236,11 +269,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
               </div>
             )}
           </div>
+          
           {task.notes && (
             <div className="mt-4">
               <p className="text-xs text-gray-500">Ghi chú</p>
               <p className="text-sm">{task.notes}</p>
             </div>
+          )}
+          
+          {isStep3Unlocked && index === 2 && task.status !== TaskStatusEnum.Completed && (
+            <p className="text-sm text-blue-600 font-medium mt-4">
+              Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
+            </p>
           )}
         </div>
 
@@ -268,7 +308,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
             )}
           </Button>
           
-          {/* Weight Edit Button - Now hidden when orderStatus is PendingPayment */}
           {showWeightEditButton && (
             <Button
               variant="outline"
@@ -278,7 +317,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             >
               <span className="flex items-center gap-2">
                 <Scale className="h-4 w-4" />
-                Sửa trọng lượng
+                Nhập trọng lượng
               </span>
             </Button>
           )}

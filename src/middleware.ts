@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
     console.error("Error parsing user cookie:", error);
     user = null;
   }
-  console.log("eeeeeeeeeee:", user);
+  console.log("User Information:", user);
 
   const requestHeaders = new Headers(request.headers);
 

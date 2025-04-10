@@ -1,15 +1,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/OrderDetailsPopup/SchedulingTab.tsx
+import { useState, useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Clock, MapPin } from "lucide-react";
 import { formatDateTime, getStatusColor } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
+import { getHouseById } from "@/apis/house";
 
 interface SchedulingTabProps {
   order: any;
 }
 
 export const SchedulingTab: React.FC<SchedulingTabProps> = ({ order }) => {
+  const [houseName, setHouseName] = useState<string>("Đang tải...");
+
+  useEffect(() => {
+    const fetchHouseName = async () => {
+      try {
+        if (order.address) { 
+          const houseData = await getHouseById(order.address);
+          setHouseName(houseData.payload.no || "Không xác định"); 
+        } else {
+          setHouseName("N/A");
+        }
+      } catch (error) {
+        console.error("Error fetching house name:", error);
+        setHouseName("Lỗi khi tải");
+      }
+    };
+
+    fetchHouseName();
+  }, [order.address]);
+
   return (
     <TabsContent value="scheduling" className="space-y-6">
       <div className="bg-violet-50 p-4 rounded-lg shadow-sm">
@@ -76,7 +97,7 @@ export const SchedulingTab: React.FC<SchedulingTabProps> = ({ order }) => {
           <MapPin size={18} />
           Địa chỉ
         </h3>
-        <div className="text-gray-700">{order.address}</div>
+        <div className="text-gray-700">{houseName}</div>
       </div>
 
       <div className="bg-amber-50 p-4 rounded-lg shadow-sm">
