@@ -49,7 +49,7 @@ export const useSignalR = () => {
           accessTokenFactory: () => accessToken,
           transport: signalR.HttpTransportType.WebSockets,
         })
-        .withAutomaticReconnect([0, 2000, 10000, 30000]) // Giảm tần suất reconnect
+        .withAutomaticReconnect([0, 2, 1, 3]) // Giảm tần suất reconnect
         .build();
 
       globalConnection = newConnection;
