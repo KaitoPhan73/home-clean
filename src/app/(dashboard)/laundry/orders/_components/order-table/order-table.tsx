@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { laundryColumns } from "./columns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, Search, Layers, X, FileText, Clock, Loader2, CheckCircle, DollarSign, XCircle } from "lucide-react";
+import { RefreshCcw, Search, Layers, X, FileText, Clock, Loader2, CheckCircle, DollarSign, XCircle, User } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePickerWithRange } from "@/app/(dashboard)/laundry/orders/_components/order-table/DatePickerWithRange";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
@@ -13,6 +13,8 @@ import { DateRange } from "react-day-picker";
 import { DataTableProps } from "@/app/(dashboard)/laundry/orders/_components/order-table/DataTable";
 import { Button } from "@/components/ui/button";
 import FilterBar from "@/app/(dashboard)/laundry/orders/_components/order-table/FilterBar";
+import { updateEmployeesRealTimeStatus } from "@/apis/laudry/employee";
+import { toast } from "@/hooks/use-toast";
 
 interface OrderTableProps {
   data: TOrderLaundryResponse[];
@@ -35,6 +37,7 @@ const OrderTable = ({
     to: undefined,
   });
   const [filteredData, setFilteredData] = useState<TOrderLaundryResponse[]>(data);
+  const [loadingRealTimeStatus, setLoadingRealTimeStatus] = useState(false);
 
   const getFilteredCounts = () => {
     const filtered = data.filter((order) => {
@@ -122,6 +125,29 @@ const OrderTable = ({
     setDateRange(range);
   };
 
+  const fetchEmployeeRealTimeStatus = async () => {
+    try {
+      setLoadingRealTimeStatus(true);
+      const employees = await updateEmployeesRealTimeStatus();
+      
+      toast({
+        title: "Trạng thái của bạn đã được cập nhật",
+        description: `Đã cập nhật thông tin trạng thái vào việc.`,
+        variant: "success",
+      });
+      
+    } catch (error) {
+      console.error("Error fetching employee real-time status:", error);
+      toast({
+        title: "Lỗi cập nhật trạng thái",
+        description: "Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingRealTimeStatus(false);
+    }
+  };
+
   const hasFilters = searchTerm || (dateRange?.from && dateRange?.to);
 
   return (
@@ -139,6 +165,39 @@ const OrderTable = ({
             >
               {totalItems} đơn hàng
             </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={fetchEmployeeRealTimeStatus}
+              disabled={loadingRealTimeStatus}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              {loadingRealTimeStatus ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Đang cập nhật...
+                </>
+              ) : (
+                <>
+                  <User className="h-4 w-4 mr-2" />
+                  Cập nhật trạng thái
+                </>
+              )}
+            </Button>
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                <RefreshCcw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Làm mới
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>

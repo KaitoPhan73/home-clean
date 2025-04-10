@@ -18,14 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { TaskStatusEnum } from "./TaskEnums";
-import { getEmployeesService, getNextTaskStatus } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/taskService";
-
-interface Employee {
-  id: string;
-  employeeCode: string;
-  fullName: string;
-  role: string;
-}
+import { getNextTaskStatus } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/taskService";
+import { EmployeRealTimeStatus, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
 
 interface TaskCheckoutDialogProps {
   open: boolean;
@@ -45,7 +39,7 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   currentStatus,
   currentUser,
 }) => {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<EmployeRealTimeStatus[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,13 +51,10 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   useEffect(() => {
     if (open) {
       setError(null);
-      
+
       if (isFirstCheckout) {
-        // For starting a task, fetch employees to assign
         fetchEmployees();
       } else if (isCompletingTask) {
-        // For completing a task, use the current user's ID
-        // If we're completing a task, we presume the current user has permission to complete it
         setSelectedEmployeeId(currentUser?.id || "");
       }
     }
@@ -73,21 +64,29 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") || "" : "";
-      const fetchedEmployees = await getEmployeesService(undefined, token);
-      // Filter for Staff roles only
-      const staffEmployees = fetchedEmployees.filter((emp: Employee) => emp.role === "Staff");
-      setEmployees(staffEmployees);
 
-      if (staffEmployees.length === 0) {
-        setError("Không có nhân viên nào với vai trò Staff để phân công.");
+      const fetchedEmployees = await getEmployeesRealTimeStatus();
+      console.log("Fetched employees:", fetchedEmployees);
+
+      // Filter out employees with status "Working"
+      const filteredEmployees = fetchedEmployees.filter(
+        (employee) => employee.status !== "Working"
+      );
+
+      setEmployees(filteredEmployees);
+
+      if (filteredEmployees.length === 0) {
+        setError("Không có nhân viên nào sẵn sàng để phân công.");
         setSelectedEmployeeId("");
       } else {
-        setSelectedEmployeeId(staffEmployees[0].id);
+        setSelectedEmployeeId(filteredEmployees[0].id);
       }
     } catch (err: any) {
       console.error("Failed to fetch employees:", err);
-      setError(err.response?.data?.description || "Không thể tải danh sách nhân viên. Vui lòng thử lại sau.");
+      setError(
+        err.response?.data?.description ||
+          "Không thể tải danh sách nhân viên. Vui lòng thử lại sau."
+      );
       setSelectedEmployeeId("");
     } finally {
       setLoading(false);
@@ -96,9 +95,6 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
 
   const handleConfirm = () => {
     if (!selectedEmployeeId && isCompletingTask) {
-      // If completing a task and no employee ID is available, use a fallback mechanism
-      // This could be the task's existing assigned employeeId or another appropriate value
-      // For now, we'll use the current user's ID even if it's empty, as the backend should handle this case
       onConfirm(currentUser?.id || "");
     } else if (selectedEmployeeId) {
       onConfirm(selectedEmployeeId);
@@ -124,9 +120,24 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   const isActionDisabled = () => {
     if (processing) return true;
     if (isFirstCheckout) return !selectedEmployeeId;
-    // For task completion, we should allow proceeding even if no explicit employee ID is selected
     return false;
   };
+
+  // Format lastUpdated to a readable date
+  const formatLastUpdated = (lastUpdated: string) => {
+    try {
+      const date = new Date(lastUpdated);
+      return date.toLocaleString("vi-VN", {
+        dateStyle: "short",
+        timeStyle: "short",
+      });
+    } catch {
+      return lastUpdated; // Fallback if date parsing fails
+    }
+  };
+
+  // Get the selected employee's details
+  const selectedEmployee = employees.find((emp) => emp.id === selectedEmployeeId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,44 +154,85 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
               {loading ? (
                 <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
               ) : (
-                <Select
-                  value={selectedEmployeeId}
-                  onValueChange={setSelectedEmployeeId}
-                  disabled={processing || loading || employees.length === 0}
-                >
-                  <SelectTrigger id="employee" className="w-full">
-                    <SelectValue placeholder={employees.length === 0 ? "Không có nhân viên Staff" : "Chọn nhân viên"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.fullName} {employee.id === currentUser?.id && "(Người dùng hiện tại)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select
+                    value={selectedEmployeeId}
+                    onValueChange={setSelectedEmployeeId}
+                    disabled={processing || loading || employees.length === 0}
+                  >
+                    <SelectTrigger id="employee" className="w-full">
+                      <SelectValue
+                        placeholder={
+                          employees.length === 0
+                            ? "Không có nhân viên Staff"
+                            : "Chọn nhân viên"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.staffName}{" "}
+                          {employee.id === currentUser?.id &&
+                            "(Người dùng hiện tại)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedEmployee && (
+                    <div className="text-sm text-gray-600">
+                      <p>
+                        <span className="font-medium">Mã nhân viên:</span>{" "}
+                        {selectedEmployee.staffCode}
+                      </p>
+                      <p>
+                        <span className="font-medium">Trạng thái:</span>{" "}
+                        {selectedEmployee.status}
+                      </p>
+                      <p>
+                        <span className="font-medium">Cập nhật lần cuối:</span>{" "}
+                        {formatLastUpdated(selectedEmployee.lastUpdated)}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
               {error && <p className="text-sm text-red-500">{error}</p>}
             </div>
 
             <div className="bg-blue-50 p-3 rounded-md">
               <p className="text-sm text-blue-700">
-                <span className="font-medium">Lưu ý:</span> Sau khi bắt đầu, trạng thái
-                sẽ chuyển từ {currentStatus} sang {nextStatus}.
+                <span className="font-medium">Lưu ý:</span> Sau khi bắt đầu,
+                trạng thái sẽ chuyển từ {currentStatus} sang {nextStatus}.
               </p>
             </div>
           </div>
         )}
 
         {isCompletingTask && (
-          <div className="space-y-4 py-2">
-            <div className="bg-yellow-50 p-3 rounded-md">
-              <p className="text-sm text-yellow-700">
-                <span className="font-medium">Lưu ý:</span> Sau khi hoàn thành, trạng thái
-                sẽ chuyển từ {currentStatus} sang {nextStatus} và không thể hoàn tác.
-              </p>
-            </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="flex items-center gap-3 p-3 rounded-md border border-yellow-200 bg-yellow-50">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-yellow-500"
+            >
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <p className="text-sm text-yellow-700">
+              Sau khi hoàn thành, trạng thái sẽ chuyển từ{" "}
+              <span className="font-medium">{currentStatus}</span> sang{" "}
+              <span className="font-medium">{nextStatus}</span> và không thể
+              hoàn tác.
+            </p>
           </div>
         )}
 
@@ -191,7 +243,11 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
           <Button
             onClick={handleConfirm}
             disabled={isActionDisabled()}
-            className={isCompletingTask ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+            className={
+              isCompletingTask
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }
           >
             {processing ? (
               <span className="flex items-center gap-2">
