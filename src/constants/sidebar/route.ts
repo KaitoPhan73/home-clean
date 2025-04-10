@@ -182,6 +182,12 @@ export const adminNavItems: TNavItem[] = [
         icon: "post",
         shortcut: ["r", "s"],
       },
+      {
+        title: "Doanh thu Giao Dịch",
+        url: PATHS.admin.transactionRevenue,
+        icon: "post",
+        shortcut: ["r", "s"],
+      },
     ],
   },
 ];
