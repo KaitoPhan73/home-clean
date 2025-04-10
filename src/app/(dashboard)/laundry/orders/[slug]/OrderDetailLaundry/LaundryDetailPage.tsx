@@ -7,7 +7,6 @@ import LoadingSkeleton from "@/app/(dashboard)/laundry/orders/Loading";
 import NotFoundMessage from "@/app/(dashboard)/laundry/orders/NotFound";
 import OrderHeader from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderHeader";
 import OrderInfo from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderInfo";
-import OrderItems from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
 import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderSummary";
 import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
 import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
+import { OrderItems } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
 
 interface UserDetail {
   id: string;

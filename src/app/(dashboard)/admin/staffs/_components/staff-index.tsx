@@ -6,6 +6,7 @@ import { Heading } from "@/components/ui/headling";
 import { Separator } from "@/components/ui/separator";
 import StaffTable from "@/app/(dashboard)/admin/staffs/_components/staff-table";
 import StaffTableAction from "@/app/(dashboard)/admin/staffs/_components/staff-tables/staff-table-action";
+import { CredenzaCreateStaff } from "@/app/(dashboard)/admin/staffs/_components/credenza-create-staff";
 type Props = {
   keyProps: string;
 };
@@ -15,7 +16,7 @@ const StaffIndex = ({ keyProps }: Props) => {
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <Heading title="Quản Lí" description="Nhân Viên" />
-          {/* <CredenzaCreateStaff /> */}
+          <CredenzaCreateStaff />
         </div>
         <Separator />
 

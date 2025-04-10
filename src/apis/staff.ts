@@ -69,3 +69,8 @@ export const getOrderByStaffId = async (id: string) => {
   const response = await httpHomePlus.get<TOrderResponse>(`/staffs/${id}/order`);
   return response;
 };  
+
+export const createStaff = async (data: Partial<TStaffResponse>) => {
+  const response = await httpHomePlus.post<TStaffResponse>(`/auth/register-staff`, data);
+  return response;
+};

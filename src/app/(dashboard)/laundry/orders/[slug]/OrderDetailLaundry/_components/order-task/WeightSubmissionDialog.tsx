@@ -61,7 +61,7 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
       const orderData = response.orderDetails;
       const weightableItems: WeightItem[] = [];
       
-      // Xử lý các mặt hàng tính theo kg
+      // Chỉ xử lý các mặt hàng tính theo kg
       if (orderData.orderDetailsByKg && orderData.orderDetailsByKg.length > 0) {
         orderData.orderDetailsByKg.forEach(item => {
           weightableItems.push({
@@ -77,31 +77,7 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
         });
       }
       
-      // Xử lý tất cả các mặt hàng trong orderDetailsByItem, không có điều kiện lọc
-      if (orderData.orderDetailsByItem && orderData.orderDetailsByItem.length > 0) {
-        orderData.orderDetailsByItem.forEach(item => {
-          // Xác định loại giá
-          const priceType = 
-            (item.itemTypeResponse?.pricePerKg && item.itemTypeResponse.pricePerKg > 0) && 
-            (item.itemTypeResponse?.pricePerItem && item.itemTypeResponse.pricePerItem > 0) 
-              ? "both" 
-              : (item.itemTypeResponse?.pricePerKg && item.itemTypeResponse.pricePerKg > 0)
-                ? "perKg"
-                : "perItem";
-                
-          weightableItems.push({
-            id: item.id,
-            itemTypeId: item.itemTypeId,
-            name: item.itemTypeResponse?.name || "Mặt hàng không xác định",
-            quantity: item.quantity || 1,
-            currentWeight: item.weight || 0,
-            actualWeight: item.actualWeight,
-            unitPrice: item.itemTypeResponse?.pricePerKg || item.unitPrice || 0,
-            priceType: priceType,
-            newWeight: item.actualWeight || item.weight || 0
-          });
-        });
-      }
+      // Removed processing of orderDetailsByItem items
       
       if (weightableItems.length === 0) {
         setNoWeightItems(true);
@@ -130,7 +106,7 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
       setSubmitting(true);
       setError(null);
       
-      // If there are no weight items, send an empty array
+      // If there are no weight items or all items are from orderDetailsByItem, send an empty array
       if (items.length === 0) {
         await submitOrderWeight(orderId, []);
         onSubmit();
@@ -178,9 +154,9 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
             <div className="flex items-center text-blue-500 p-4 border border-blue-200 rounded-md bg-blue-50">
               <Info className="h-5 w-5 mr-2" />
               <div>
-                <p className="font-medium">Đơn hàng không có mặt hàng</p>
+                <p className="font-medium">Đơn hàng không có mặt hàng tính theo kg</p>
                 <p className="text-sm text-blue-600 mt-1">
-                  Đơn hàng này không chứa mặt hàng nào. Bạn có thể tiếp tục để xác nhận.
+                  Đơn hàng này không chứa mặt hàng nào tính theo kg. Bạn có thể tiếp tục để xác nhận.
                 </p>
               </div>
             </div>

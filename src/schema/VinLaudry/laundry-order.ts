@@ -12,7 +12,7 @@ const ItemTypeResponseSchema = z.object({
   imageUrl: z.string().nullable(),
 });
 
-const OrderDetailByItemSchema = z.object({
+export const OrderDetailByItemSchema = z.object({
   id: z.string().uuid(),
   itemTypeId: z.string().uuid(),
   quantity: z.number(),
@@ -26,7 +26,7 @@ const OrderDetailByItemSchema = z.object({
   itemTypeResponse: ItemTypeResponseSchema,
 });
 
-const OrderDetailByKgSchema = z.object({
+export const OrderDetailByKgSchema = z.object({
   id: z.string().uuid(),
   itemTypeId: z.string().uuid(),
   quantity: z.number().optional(),
