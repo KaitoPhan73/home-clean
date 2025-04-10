@@ -23,6 +23,7 @@ export const PATHS = {
     revenues: `${RootPath.admin}/revenues`,
     transactions: `${RootPath.admin}/transactions`,
     transactionRevenue: `${RootPath.admin}/transaction-revenue`,
+    serviceInHouseTypes: `${RootPath.admin}/service-in-house-types`,
   },
   
   manager: {

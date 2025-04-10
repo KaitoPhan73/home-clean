@@ -17,7 +17,6 @@ export const getAllServices = async (params?: any) => {
       params,
     }
   );
-  // console.log("getAllserrr Response:", response);
   return response;
 };
 

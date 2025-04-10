@@ -17,9 +17,9 @@ export const getAllHouseTypes = async (params?: any) => {
       params,
     }
   );
-  console.log("getAllHouseTypes Response:", response);
   return response;
 };
+
 export const getHousesInHouseType = async (id: string, params?: any) => {
   const response = await httpHomePlus.get<TTableResponse<THouseResponse>>(
     `/house-types/${id}/house`,

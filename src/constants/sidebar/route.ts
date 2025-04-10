@@ -162,6 +162,13 @@ export const adminNavItems: TNavItem[] = [
         icon: "post",
         shortcut: ["r", "s"],
       },
+      {
+        title: "Dịch Vụ Loại Căn Hộ",
+        url: PATHS.admin.serviceInHouseTypes,
+        icon: "post",
+        shortcut: ["r", "s"],
+      },
+
     ],
   },
   {
