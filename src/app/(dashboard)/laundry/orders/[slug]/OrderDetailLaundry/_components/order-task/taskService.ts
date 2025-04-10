@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { EmployeRealTimeStatus, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
 import { TaskStatusEnum } from "./TaskEnums";
-import { taskAssign, getEmployees } from "@/apis/laudry/task";
+import { taskAssign } from "@/apis/laudry/task";
 
 /**
  * Converts a string status to TaskStatusEnum
@@ -33,7 +34,7 @@ export const getNextTaskStatus = (currentStatus: TaskStatusEnum): TaskStatusEnum
     case TaskStatusEnum.InProgress:
       return TaskStatusEnum.Completed;
     case TaskStatusEnum.Completed:
-      return TaskStatusEnum.Completed; // No further status after completed
+      return TaskStatusEnum.Completed;
     default:
       return TaskStatusEnum.Pending;
   }
@@ -55,11 +56,11 @@ export const assignTask = async (
     if (!taskId) {
       throw new Error("Task ID is required");
     }
-    
+
     if (!employeeId && action === "start") {
       throw new Error("Employee ID is required to start a task");
     }
-    
+
     return await taskAssign(taskId, employeeId, action);
   } catch (error: any) {
     console.error(`Error ${action === "start" ? "starting" : "completing"} task:`, error);
@@ -67,37 +68,42 @@ export const assignTask = async (
   }
 };
 
-// Define the interface for employee data
-interface Employee {
-  id: string;
-  employeeCode: string;
-  fullName: string;
-  role: string;
-  // Add any other fields your employee objects have
-}
-
 /**
- * Fetches employees from the API
+ * Fetches employees real-time status from the API
  * @param params Optional query parameters
  * @param token Authentication token
- * @returns Array of employees
+ * @returns Array of employees (EmployeRealTimeStatus)
  */
-export const getEmployeesService = async (params?: any, token?: string): Promise<Employee[]> => {
+export const getEmployeesService = async (
+  params?: any,
+): Promise<EmployeRealTimeStatus[]> => {
   try {
-    const responseData = await getEmployees(params, token);
-    
+    const responseData = await getEmployeesRealTimeStatus(params);
+
     if (Array.isArray(responseData)) {
-      return responseData as Employee[];
+      return responseData.map((employee: EmployeRealTimeStatus) => ({
+        id: employee.id,
+        staffCode: employee.staffCode || "",
+        staffName: employee.staffName || "",
+        status: employee.status || "Unknown",
+        lastUpdated: employee.lastUpdated || "",
+      }));
     }
-    
-    if (responseData && typeof responseData === 'object' && 'payload' in responseData && Array.isArray(responseData.payload)) {
-      return responseData.payload as Employee[];
+
+    if (responseData && typeof responseData === "object") {
+      const items = (responseData as any).payload?.items || (responseData as any).items || [];
+
+      if (Array.isArray(items)) {
+        return items.map((employee: EmployeRealTimeStatus) => ({
+          id: employee.id,
+          staffCode: employee.staffCode || "",
+          staffName: employee.staffName || "",
+          status: employee.status || "Unknown",
+          lastUpdated: employee.lastUpdated || "",
+        }));
+      }
     }
-    
-    if (responseData && typeof responseData === 'object' && 'items' in responseData && Array.isArray(responseData.items)) {
-      return responseData.items as Employee[];
-    }
-    
+
     console.warn("Employee response structure unexpected:", responseData);
     return [];
   } catch (error) {

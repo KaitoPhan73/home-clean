@@ -29,4 +29,6 @@ export enum OrderStatusEnum {
     status: TaskStatusEnum;
     createdAt: string;
     updatedAt: string;
+    employeeName: string | null;
+    managerName: string | null;
   }

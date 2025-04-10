@@ -5,10 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
 import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale } from "lucide-react";
-import { Employee, getEmployeeById } from "@/apis/laudry/employee";
+import { EmployeRealTimeStatus, getEmployeeById } from "@/apis/laudry/employee";
 import EmployeeDetail from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/EmployeeDetail";
 
 interface TaskCardProps {
+  staff: EmployeRealTimeStatus | null;
   task: Task;
   index: number;
   currentUser: any;
@@ -23,6 +24,7 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  staff,
   index,
   orderStatus,
   processingTask,
@@ -33,8 +35,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   tasks,
 }) => {
   // State for storing employee data
-  const [assignedByEmployee, setAssignedByEmployee] = useState<Employee | null>(null);
-  const [assignedToEmployee, setAssignedToEmployee] = useState<Employee | null>(null);
+  const [assignedByEmployee, setAssignedByEmployee] = useState<EmployeRealTimeStatus | null>(null);
+  const [assignedToEmployee, setAssignedToEmployee] = useState<EmployeRealTimeStatus | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -241,10 +243,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
             Mã công việc: {task.taskCode}
           </p>
           <p className="text-sm text-gray-600 mt-2">
-            Nhân viên: {task.employeeId}
+            Nhân viên: {task?.employeeName || "Chưa xác định"}
           </p>
           <p className="text-sm text-gray-600 mt-2">
-           Quản lí phụ trách: {task.assignedBy}
+           Quản lí phụ trách: {task?.managerName || "Chưa xác định"}
           </p>
 
           <div className="grid grid-cols-2 gap-4 mt-4">

@@ -61,7 +61,7 @@ export const taskAssign = async (taskId: string, employeeId: string, action: "st
   }
 };
 
-export const getEmployees = async (params?: any, token?: string) => {
+export const getEmployeesRealTimeStatus = async (params?: any, token?: string) => {
   try {
     // Configure headers with token if provided
     const config: any = {};
@@ -71,7 +71,7 @@ export const getEmployees = async (params?: any, token?: string) => {
       };
     }
     
-    const response = await httpVinLaundry.get('/employees', {
+    const response = await httpVinLaundry.get('/employees/real-time-status', {
       params,
       ...config
     });
