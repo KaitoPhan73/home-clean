@@ -17,6 +17,9 @@ export interface ApiTask {
   status: string;
   createdAt: string;
   updatedAt: string;
+  managerName: string | null;
+  employeeName: string | null;
+
 }
 
 export interface TasksResponse {
