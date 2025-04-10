@@ -158,7 +158,7 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
           )}
         </Tabs>
 
-        <DialogFooter className="border-t pt-4 flex justify-between">
+        {/* <DialogFooter className="border-t pt-4 flex justify-between">
           <Button
             variant="outline"
             onClick={onClose}
@@ -177,7 +177,7 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
               Cập nhật trạng thái
             </Button>
           </div>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

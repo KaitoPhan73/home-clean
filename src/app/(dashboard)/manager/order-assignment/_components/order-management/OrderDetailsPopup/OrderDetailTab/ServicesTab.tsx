@@ -1,16 +1,154 @@
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// // components/OrderDetailsPopup/ServicesTab.tsx
+// import { TabsContent } from "@/components/ui/tabs";
+// import { Badge } from "@/components/ui/badge";
+// import { Package, Wrench } from "lucide-react";
+// import { getPriorityColor } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
+
+// interface ServicesTabProps {
+//   order: any;
+// }
+
+// export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
+//   const priorityClass = getPriorityColor(order.priorityLevel || "");
+
+//   return (
+//     <TabsContent value="services" className="space-y-6">
+//       <div className="bg-indigo-50 p-4 rounded-lg shadow-sm">
+//         <h3 className="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+//           <Package size={18} />
+//           Thông tin dịch vụ
+//         </h3>
+//         <div className="grid grid-cols-2 gap-4">
+//           <div>
+//             <div className="text-sm text-gray-500">Loại dịch vụ</div>
+//             <div className="font-medium">{order.serviceType || "N/A"}</div>
+//           </div>
+//           <div>
+//             <div className="text-sm text-gray-500">ID Dịch vụ</div>
+//             <div className="font-medium">{order.serviceId}</div>
+//           </div>
+//           <div>
+//             <div className="text-sm text-gray-500">Mức độ ưu tiên</div>
+//             <Badge className={priorityClass}>{order.priorityLevel || "Bình thường"}</Badge>
+//           </div>
+//           <div>
+//             <div className="text-sm text-gray-500">Khoảng cách</div>
+//             <div className="font-medium">{order.distanceToCustomer ? `${order.distanceToCustomer} km` : "N/A"}</div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div className="bg-orange-50 p-4 rounded-lg shadow-sm">
+//         <h3 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+//           <Wrench size={18} />
+//           Dụng cụ vệ sinh
+//         </h3>
+//         <div className="grid grid-cols-2 gap-4">
+//           <div>
+//             <div className="text-sm text-gray-500">Yêu cầu dụng cụ</div>
+//             <div className="font-medium">{order.cleaningToolsRequired ? "Có" : "Không"}</div>
+//           </div>
+//           <div>
+//             <div className="text-sm text-gray-500">Cung cấp dụng cụ</div>
+//             <div className="font-medium">{order.cleaningToolsProvided ? "Có" : "Không"}</div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {order.cleaningAreas && order.cleaningAreas.length > 0 && (
+//         <div className="bg-teal-50 p-4 rounded-lg shadow-sm">
+//           <h3 className="font-semibold text-teal-800 mb-3">Khu vực vệ sinh</h3>
+//           <div className="flex flex-wrap gap-2">
+//             {order.cleaningAreas.map((area: string, index: number) => (
+//               <Badge key={index} className="bg-teal-100 text-teal-800">{area}</Badge>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+
+//       {order.itemsToClean && order.itemsToClean.length > 0 && (
+//         <div className="bg-cyan-50 p-4 rounded-lg shadow-sm">
+//           <h3 className="font-semibold text-cyan-800 mb-3">Đồ cần vệ sinh</h3>
+//           <div className="flex flex-wrap gap-2">
+//             {order.itemsToClean.map((item: string, index: number) => (
+//               <Badge key={index} className="bg-cyan-100 text-cyan-800">{item}</Badge>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+
+//       {order.extraServices && order.extraServices.length > 0 && (
+//         <div className="bg-pink-50 p-4 rounded-lg shadow-sm">
+//           <h3 className="font-semibold text-pink-800 mb-3">Dịch vụ thêm</h3>
+//           <div className="flex flex-wrap gap-2">
+//             {order.extraServices.map((service: string, index: number) => (
+//               <Badge key={index} className="bg-pink-100 text-pink-800">{service}</Badge>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+
+//       {order.options && order.options.length > 0 && (
+//         <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+//           <h3 className="font-semibold text-gray-800 mb-3">Tùy chọn khác</h3>
+//           <div className="flex flex-wrap gap-2">
+//             {order.options.map((option: string, index: number) => (
+//               <Badge key={index} className="bg-gray-200 text-gray-800">{option}</Badge>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+//     </TabsContent>
+//   );
+// };
+
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/OrderDetailsPopup/ServicesTab.tsx
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Package, Wrench } from "lucide-react";
 import { getPriorityColor } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
+import { useEffect, useState } from "react";
+import { getServiceById } from "@/apis/service";
+import { z } from "zod";
+import { OrderSchema } from "@/schema/order.schema";
+
+type OrderType = z.infer<typeof OrderSchema>;
 
 interface ServicesTabProps {
-  order: any;
+  order: OrderType;
 }
 
 export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
+  const [serviceName, setServiceName] = useState<string>("Đang tải...");
   const priorityClass = getPriorityColor(order.priorityLevel || "");
+
+  useEffect(() => {
+    if (order.serviceId) {
+      const fetchService = async () => {
+        try {
+          const response = await getServiceById(order.serviceId);
+          if (response && response.payload.name) {
+            setServiceName(response.payload.name || "Không có dịch vụ");
+          } else {
+            setServiceName("Không tìm thấy");
+          }
+        } catch (error) {
+          console.error("Error fetching service:", error);
+          setServiceName("Lỗi tải dữ liệu");
+        }
+      };
+      fetchService();
+    } else {
+      setServiceName("N/A");
+    }
+  }, [order.serviceId]);
+
+  // Helper function to extract display text from string or object
+  const getDisplayText = (item: string | { name: string }): string => {
+    return typeof item === "string" ? item : item.name || "Không xác định";
+  };
 
   return (
     <TabsContent value="services" className="space-y-6">
@@ -22,11 +160,12 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-sm text-gray-500">Loại dịch vụ</div>
-            <div className="font-medium">{order.serviceType || "N/A"}</div>
+            <div className="font-medium">{order.serviceType ?? "N/A"}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-500">ID Dịch vụ</div>
-            <div className="font-medium">{order.serviceId}</div>
+            <div className="text-sm text-gray-500">Tên dịch vụ</div>
+            <div className="font-medium">{serviceName}</div>
+            <div className="text-xs text-gray-400">ID: {order.serviceId ?? "N/A"}</div>
           </div>
           <div>
             <div className="text-sm text-gray-500">Mức độ ưu tiên</div>
@@ -34,7 +173,9 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
           </div>
           <div>
             <div className="text-sm text-gray-500">Khoảng cách</div>
-            <div className="font-medium">{order.distanceToCustomer ? `${order.distanceToCustomer} km` : "N/A"}</div>
+            <div className="font-medium">
+              {order.distanceToCustomer ? `${order.distanceToCustomer} km` : "N/A"}
+            </div>
           </div>
         </div>
       </div>
@@ -60,8 +201,10 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
         <div className="bg-teal-50 p-4 rounded-lg shadow-sm">
           <h3 className="font-semibold text-teal-800 mb-3">Khu vực vệ sinh</h3>
           <div className="flex flex-wrap gap-2">
-            {order.cleaningAreas.map((area: string, index: number) => (
-              <Badge key={index} className="bg-teal-100 text-teal-800">{area}</Badge>
+            {order.cleaningAreas.map((area, index) => (
+              <Badge key={index} className="bg-teal-100 text-teal-800">
+                {getDisplayText(area)}
+              </Badge>
             ))}
           </div>
         </div>
@@ -71,8 +214,10 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
         <div className="bg-cyan-50 p-4 rounded-lg shadow-sm">
           <h3 className="font-semibold text-cyan-800 mb-3">Đồ cần vệ sinh</h3>
           <div className="flex flex-wrap gap-2">
-            {order.itemsToClean.map((item: string, index: number) => (
-              <Badge key={index} className="bg-cyan-100 text-cyan-800">{item}</Badge>
+            {order.itemsToClean.map((item, index) => (
+              <Badge key={index} className="bg-cyan-100 text-cyan-800">
+                {getDisplayText(item)}
+              </Badge>
             ))}
           </div>
         </div>
@@ -82,8 +227,10 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
         <div className="bg-pink-50 p-4 rounded-lg shadow-sm">
           <h3 className="font-semibold text-pink-800 mb-3">Dịch vụ thêm</h3>
           <div className="flex flex-wrap gap-2">
-            {order.extraServices.map((service: string, index: number) => (
-              <Badge key={index} className="bg-pink-100 text-pink-800">{service}</Badge>
+            {order.extraServices.map((service, index) => (
+              <Badge key={index} className="bg-pink-100 text-pink-800">
+                {getDisplayText(service)}
+              </Badge>
             ))}
           </div>
         </div>
@@ -93,8 +240,10 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
         <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
           <h3 className="font-semibold text-gray-800 mb-3">Tùy chọn khác</h3>
           <div className="flex flex-wrap gap-2">
-            {order.options.map((option: string, index: number) => (
-              <Badge key={index} className="bg-gray-200 text-gray-800">{option}</Badge>
+            {order.options.map((option, index) => (
+              <Badge key={index} className="bg-gray-200 text-gray-800">
+                {getDisplayText(option)}
+              </Badge>
             ))}
           </div>
         </div>

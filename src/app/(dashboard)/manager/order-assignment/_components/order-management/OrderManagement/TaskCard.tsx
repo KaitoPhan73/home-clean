@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { TOrderResponse } from "@/schema/order.schema";
 import OrderDetailsPopup from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/OrderDetailsPopup";
-import { User, MapPin, Clock, DollarSign, Tag } from "lucide-react";
+import { User, MapPin, Clock, DollarSign, Tag, Coins } from "lucide-react";
 import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 
 const getStatusColor = (status: string): string => {
@@ -113,8 +113,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </span>
         {order.totalAmount && (
           <div className="flex items-center text-green-600 text-sm font-semibold">
-            <DollarSign className="h-4 w-4 mr-1" />
-            {order.totalAmount.toLocaleString("vi-VN")} VND
+            <Coins className="h-4 w-4 mr-1" />
+            {order.totalAmount.toLocaleString("vi-VN")} Point
           </div>
         )}
       </div>

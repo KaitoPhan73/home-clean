@@ -1,15 +1,59 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/OrderDetailsPopup/OverviewTab.tsx
+import { getAllStaffs } from "@/apis/staff";
+import { getUserById } from "@/apis/vinwallet/user";
 import { formatCurrency, formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { TabsContent } from "@/components/ui/tabs";
 import { Clipboard, DollarSign, Tag, CheckCircle, User, Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface OverviewTabProps {
   order: any;
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
-  const assignedStaffName = order.employeeId || "Chưa phân công";
+  const [userName, setUserName] = useState<string>();
+  const [staffName, setStaffName] = useState<string>("Chưa phân công");
+
+  useEffect(() => {
+    // Fetch user data if userId exists
+    if (order.userId) {
+      const fetchUser = async () => {
+        try {
+          const response = await getUserById(order.userId);
+          if (response && response.payload.fullName) {
+            setUserName(response.payload.fullName || "Không có tên");
+          } else {
+            setUserName("Không tìm thấy");
+          }
+        } catch (error) {
+          console.error("Error fetching user:", error);
+          setUserName("Lỗi tải dữ liệu");
+        }
+      };
+      fetchUser();
+    } else {
+      setUserName("N/A");
+    }
+
+    // Fetch staff data if employeeId exists
+    if (order.employeeId) {
+      const fetchStaff = async () => {
+        try {
+          const response = await getAllStaffs({ id: order.employeeId });
+          if (response && response.payload.items && response.payload.items.length > 0) {
+            setStaffName(response.payload.items[0].fullName || response.payload.items[0].email || "Không có tên");
+          } else {
+            setStaffName("Không tìm thấy");
+          }
+        } catch (error) {
+          console.error("Error fetching staff:", error);
+          setStaffName("Lỗi tải dữ liệu");
+        }
+      };
+      fetchStaff();
+    }
+  }, [order.userId, order.employeeId]);
 
   return (
     <TabsContent value="overview" className="space-y-6">
@@ -23,14 +67,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
             <User size={16} className="text-blue-600" />
             <div>
               <div className="text-sm text-gray-500">Khách hàng</div>
-              <div className="font-medium">{order.userId || "N/A"}</div>
+              <div className="font-medium">{userName}</div>
+              <div className="text-xs text-gray-400">{order.userId || "N/A"}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <User size={16} className="text-green-600" />
             <div>
               <div className="text-sm text-gray-500">Nhân viên</div>
-              <div className="font-medium">{assignedStaffName}</div>
+              <div className="font-medium">{staffName}</div>
+              {order.employeeId && <div className="text-xs text-gray-400">ID: {order.employeeId}</div>}
             </div>
           </div>
           <div className="flex items-center gap-2">

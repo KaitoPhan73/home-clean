@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -25,13 +31,18 @@ interface CancellationTabProps {
 
 const paymentMethods = [
   {
-    id: "15890b1a-f5a6-42c3-8f37-541029189722",
-    name: "VNPay",
-  },
-  {
     id: "233423b8-b936-472f-af5c-335934263bb6",
     name: "Wallet",
   },
+];
+
+// Predefined cancellation reasons
+const predefinedReasons = [
+  "Khách hàng yêu cầu hủy",
+  "Không đủ nhân viên",
+  "Lỗi hệ thống",
+  "Thời gian không phù hợp",
+  "Khác",
 ];
 
 export const CancellationTab: React.FC<CancellationTabProps> = ({
@@ -67,17 +78,38 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
           </h3>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="cancelReason" className="text-gray-700">Lý do hủy</Label>
-              <Input
-                id="cancelReason"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Nhập lý do hủy đơn hàng"
-                className="mt-1"
-              />
+              <Label htmlFor="cancelReason" className="text-gray-700">
+                Lý do hủy
+              </Label>
+              <div className="flex gap-2 mt-1">
+                <Select
+                  value={predefinedReasons.includes(cancelReason) ? cancelReason : "Khác"}
+                  onValueChange={(value) => setCancelReason(value === "Khác" ? "" : value)}
+                >
+                  <SelectTrigger className="w-1/3">
+                    <SelectValue placeholder="Chọn lý do" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedReasons.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {reason}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="cancelReason"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Nhập lý do hủy đơn hàng"
+                  className="w-2/3"
+                />
+              </div>
             </div>
             <div>
-              <Label htmlFor="refundMethod" className="text-gray-700">Phương thức hoàn tiền</Label>
+              <Label htmlFor="refundMethod" className="text-gray-700">
+                Phương thức hoàn tiền
+              </Label>
               <Select value={refundMethod} onValueChange={setRefundMethod}>
                 <SelectTrigger className="w-full mt-1">
                   <SelectValue placeholder="Chọn phương thức hoàn tiền" />

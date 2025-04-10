@@ -13,12 +13,15 @@ interface OrderHeaderProps {
 
 const getStatusBadge = (status: string) => {
   const statusMap: Record<string, { color: string; label: string }> = {
-    Draft: { color: "bg-slate-100 text-slate-800 border border-slate-200", label: "Nháp" },
-    Pending: { color: "bg-amber-50 text-amber-700 border border-amber-200", label: "Chờ xử lý" },
-    Processing: { color: "bg-sky-50 text-sky-700 border border-sky-200", label: "Đang xử lý" },
-    Completed: { color: "bg-emerald-50 text-emerald-700 border border-emerald-200", label: "Hoàn thành" },
-    Cancelled: { color: "bg-rose-50 text-rose-700 border border-rose-200", label: "Đã hủy" },
-    Delivered: { color: "bg-indigo-50 text-indigo-700 border border-indigo-200", label: "Đã giao" },
+    Draft: { color: "bg-gray-100 text-gray-800", label: "Nháp" },
+    PendingPayment: {
+      color: "bg-yellow-100 text-yellow-800",
+      label: "Chờ thanh toán",
+    },
+    Processing: { color: "bg-blue-100 text-blue-800", label: "Đang xử lý" },
+    Completed: { color: "bg-green-100 text-green-800", label: "Hoàn thành" },
+    Cancelled: { color: "bg-red-100 text-red-800", label: "Đã hủy" },
+    Paid: { color: "bg-emerald-100 text-emerald-800", label: "Đã thanh toán" },
   };
 
   const statusInfo = statusMap[status] || {
@@ -37,12 +40,16 @@ const getStatusBadge = (status: string) => {
 
 export default function OrderHeader({ order }: OrderHeaderProps) {
   return (
-    <Card className="mb-6 shadow-sm border-slate-200">
-      <CardHeader className="p-4">
+    <Card className="mb-3 shadow-sm border-slate-200">
+      <CardHeader className="p-2">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <Link href="/laundry/orders">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-slate-100">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full hover:bg-slate-100"
+              >
                 <ArrowLeft className="h-5 w-5 text-slate-600" />
               </Button>
             </Link>
@@ -54,7 +61,7 @@ export default function OrderHeader({ order }: OrderHeaderProps) {
 
           <div className="flex items-center space-x-4">
             <span className="text-sm text-slate-500 bg-slate-50 px-2 py-1 rounded">
-              ID: {order.id.substring(0, 8)}
+              ID: {order.id.substring(0, 100)}
             </span>
             <span className="text-sm text-slate-500 flex items-center bg-slate-50 px-2 py-1 rounded">
               <Clock className="h-4 w-4 mr-1 text-slate-400" />

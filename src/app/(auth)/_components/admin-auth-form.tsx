@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import {
   LoginAdminSchema,
   TAuthResponse,
@@ -28,6 +28,25 @@ import authClient from "@/apis/clients/auth";
 import { HttpResponse } from "@/lib/http";
 import { setUser } from "@/redux/User/userSlice";
 import { useDispatch } from "react-redux";
+
+// Compact toast notification
+const CompactAdminToast = ({ 
+  message, 
+  type = "success" 
+}: { 
+  message: string; 
+  type: "success" | "error"; 
+}) => {
+  return (
+    <div className="flex items-center space-x-2 py-1">
+      {type === "success" ? 
+        <CheckCircle className="text-red-600 flex-shrink-0" size={16} /> : 
+        <AlertCircle className="text-red-600 flex-shrink-0" size={16} />
+      }
+      <span className="text-sm font-medium">{message}</span>
+    </div>
+  );
+};
 
 const AdminAuthForm = () => {
   const { toast } = useToast();
@@ -86,26 +105,23 @@ const AdminAuthForm = () => {
         dispatch(setUser(userData));
 
         let redirectUrl = "/homeplus";
-        let message = "Không xác định được vai trò, chuyển đến trang chính.";
+        let message = "Chuyển đến trang chính";
 
         if (userData.role?.toLowerCase() === "admin") {
           redirectUrl = "/admin/buildings";
-          message = "Đang chuyển đến trang quản lý.";
+          message = "Đang chuyển đến trang quản lý";
         } else if (userData.role?.toLowerCase() === "manager") {
           redirectUrl = "/manager/groups";
-          message = "Đang chuyển đến trang quản lý dịch vụ.";
+          message = "Đang chuyển đến trang quản lý dịch vụ";
         } else if (userData.role?.toLowerCase() === "staff") {
           redirectUrl = "/homeplus";
-          message = "Đang chuyển đến trang HomePlus.";
+          message = "Đang chuyển đến trang HomePlus";
         }
 
         toast({
-          title: "Chào mừng bạn trở lại",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">{message}</code>
-            </pre>
-          ),
+          title: "Đăng nhập thành công",
+          description: <CompactAdminToast message={message} type="success" />,
+          duration: 2500,
         });
 
         router.push(redirectUrl);
@@ -114,7 +130,11 @@ const AdminAuthForm = () => {
       console.error("Login error: ", error);
       toast({
         title: "Đăng nhập thất bại",
-        description: "Vui lòng kiểm tra lại thông tin đăng nhập.",
+        description: <CompactAdminToast 
+          message="Vui lòng kiểm tra lại thông tin đăng nhập" 
+          type="error" 
+        />,
+        duration: 2500,
       });
     }
   };

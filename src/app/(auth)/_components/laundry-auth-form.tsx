@@ -16,13 +16,32 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import { checkLoginManagerLaudry } from "@/apis/authencation";
 import { useRouter } from "next/navigation";
 import authClient from "@/apis/clients/auth";
 import { setUser } from "@/redux/User/userSlice";
 import { useDispatch } from "react-redux";
 import { LoginLaundrySchema, TLoginLaundryRequest } from "@/schema/VinLaudry/auth-laudry";
+
+// Compact toast notification
+const CompactLaundryToast = ({ 
+  message, 
+  type = "success" 
+}: { 
+  message: string; 
+  type: "success" | "error"; 
+}) => {
+  return (
+    <div className="flex items-center space-x-2 py-1">
+      {type === "success" ? 
+        <CheckCircle className="text-indigo-600 flex-shrink-0" size={16} /> : 
+        <AlertCircle className="text-indigo-600 flex-shrink-0" size={16} />
+      }
+      <span className="text-sm font-medium">{message}</span>
+    </div>
+  );
+};
 
 const LaundryAuthForm = () => {
   const { toast } = useToast();
@@ -86,22 +105,20 @@ const LaundryAuthForm = () => {
         dispatch(setUser(positionUserData));
 
         let redirectUrl = "/homeplus";
-        let message = "Không xác định được vai trò, chuyển đến trang chính.";
+        let message = "Chuyển đến trang chính";
 
         if (userData.role?.toLowerCase() === "admin") {
           redirectUrl = "/admin/laundry";
           message = "Đang chuyển đến trang quản lí giặt ủi";
         } else if (userData.role?.toLowerCase() === "manager") {
           redirectUrl = "/laundry/orders";
-          message = "Đang chuyển đến trang quản lý dịch vụ giặt ủi.";
+          message = "Đang chuyển đến trang quản lý dịch vụ giặt ủi";
         } 
+        
         toast({
           title: "Đăng nhập thành công",
-          description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-              <code className="text-white">{message}</code>
-            </pre>
-          ),
+          description: <CompactLaundryToast message={message} type="success" />,
+          duration: 2500,
         });
 
         router.push(redirectUrl);
@@ -110,7 +127,11 @@ const LaundryAuthForm = () => {
       console.error("Login laundry error: ", error);
       toast({
         title: "Đăng nhập thất bại",
-        description: "Vui lòng kiểm tra lại thông tin đăng nhập dịch vụ giặt ủi.",
+        description: <CompactLaundryToast 
+          message="Vui lòng kiểm tra lại thông tin đăng nhập" 
+          type="error" 
+        />,
+        duration: 2500,
       });
     }
   };
