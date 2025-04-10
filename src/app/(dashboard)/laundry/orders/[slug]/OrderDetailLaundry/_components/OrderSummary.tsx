@@ -49,7 +49,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Tổng giá trị:</span>
             <span className="font-medium">
-              {formatCurrency(totals.itemsTotal)}
+              {totals.itemsTotal} Point
             </span>
           </div>
 
@@ -57,7 +57,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Dịch vụ bổ sung:</span>
               <span className="font-medium">
-                {formatCurrency(totals.additionalServicesTotal)}
+                {totals.additionalServicesTotal} Point
               </span>
             </div>
           )}
@@ -66,19 +66,19 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Giảm giá:</span>
               <span className="font-medium text-red-600">
-                - {formatCurrency(totals.discount)}
+                - {totals.discount} Point
               </span>
             </div>
           )}
 
           <Separator className="my-3" />
 
-          <div className="flex justify-between items-center text-base">
+          <div className="flex justify-between items-center text-sm">
             <span className="font-semibold text-gray-800">
               Tổng tiền (ước tính):
             </span>
             <span className="font-bold text-purple-700">
-              {formatCurrency(totals.grandTotal)}
+              {totals.grandTotal} Point
             </span>
           </div>
         </div>

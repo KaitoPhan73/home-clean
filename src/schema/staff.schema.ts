@@ -37,6 +37,20 @@ export const StaffStatusReadySchema = BaseSchema.extend({
   fullName: z.string().max(255).optional(),
 });
 
+export const StaffCreateSchema = z.object({
+  fullName: z.string().max(255),
+  phoneNumber: z.string().max(20),
+  email: z.string().email().max(255),
+  gender: z.enum(["Male", "Female", "Other"]),
+  dateOfBirth: z.string(), // ISO 8601
+  address: z.string().max(500),
+  hireDate: z.string(), // ISO 8601
+  jobPosition: z.string().max(255),
+  password: z.string().optional(),
+  groupId: z.string().uuid(),
+  code: z.string().max(255),
+});
+
 
 export type TStaffRequest = z.TypeOf<typeof StaffSchema>;
 export type TStaffResponse = z.TypeOf<typeof StaffSchema>;
@@ -45,3 +59,4 @@ export type TStaffStatus = z.TypeOf<typeof StaffSchema>;
 export type TStaffStatusArrayResponse = z.TypeOf<typeof StaffStatusArraySchema>;
 export type TStaffStatusReady = z.TypeOf<typeof StaffStatusReadySchema>;
 export type TStaffStatusReadyResponse = z.TypeOf<typeof StaffStatusReadySchema>;
+export type TStaffCreateRequest = z.TypeOf<typeof StaffCreateSchema>;

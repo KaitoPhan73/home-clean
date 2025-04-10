@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Credenza,
   CredenzaTrigger,
@@ -23,43 +24,88 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { ServiceCategoryCreateSchema, TServiceCategoryCreateRequest } from "@/schema/service-category.schema";
-import { createServiceCategory } from "@/apis/service-category";
+import { StaffCreateSchema, TStaffCreateRequest } from "@/schema/staff.schema";
+import { createStaff } from "@/apis/staff";
 import { useRouter } from "next/navigation";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { TGroupResponse } from "@/schema/group.schema";
+import { getAllGroups } from "@/apis/group";
 
 type Props = {
   className?: string;
 };
 
-export function CredenzaCreateServiceCategory({ className }: Props) {
+export function CredenzaCreateStaff({ className }: Props) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const route = useRouter();
-  const form = useForm<TServiceCategoryCreateRequest>({
-    resolver: zodResolver(ServiceCategoryCreateSchema),
+  const [groups, setGroups] = useState<TGroupResponse[]>([]);
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false);
+  const router = useRouter();
+  
+  const form = useForm<TStaffCreateRequest>({
+    resolver: zodResolver(StaffCreateSchema),
     defaultValues: {
-      name: "",
+      fullName: "",
+      phoneNumber: "",
+      email: "",
+      gender: "Male",
+      dateOfBirth: "",
+      address: "",
+      hireDate: "",
+      jobPosition: "",
       code: "",
+      groupId: "",
+      password: ""
     },
   });
 
   const { isSubmitting } = form.formState;
 
-  const onSubmit = async (data: TServiceCategoryCreateRequest) => {
+  useEffect(() => {
+    const fetchGroups = async () => {
+      if (isOpen) {
+        try {
+          setIsLoadingGroups(true);
+          const response = await getAllGroups();
+          if (response.payload.items) {
+            setGroups(response.payload.items);
+          }
+        } catch (error) {
+          toast({
+            title: "Lỗi",
+            description: "Không thể tải dữ liệu nhóm",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoadingGroups(false);
+        }
+      }
+    };
+
+    fetchGroups();
+  }, [isOpen, toast]);
+
+  const onSubmit = async (data: TStaffCreateRequest) => {
     try {
-      const response = await createServiceCategory(data);
-      if (response.status === 201) {
+      const response = await createStaff(data);
+      if (response.status === 200) {
         toast({
-          title: "Tạo loại dịch vụ thành công",
-          description: "Loại dịch vụ đã được tạo thành công.",
+          title: "Tạo nhân viên thành công",
+          description: "Nhân viên đã được tạo thành công.",
         });
         form.reset();
-        route.refresh();
-        setIsOpen(false); // Đóng Credenza
+        router.refresh();
+        setIsOpen(false);
       } else {
         toast({
           title: "Lỗi",
-          description: "Không thể tạo loại dịch vụ",
+          description: "Không thể tạo nhân viên",
           variant: "destructive",
         });
       }
@@ -67,7 +113,7 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
     } catch (error: any) {
       toast({
         title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo khu vực ${error.message}`,
+        description: `Có lỗi xảy ra khi tạo nhân viên: ${error.message}`,
         variant: "destructive",
       });
     }
@@ -76,25 +122,25 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
   return (
     <Credenza open={isOpen} onOpenChange={setIsOpen}>
       <CredenzaTrigger asChild className={className}>
-        <Button variant="default">Tạo Loại Dịch Vụ</Button>
+        <Button variant="default">Tạo Nhân Viên</Button>
       </CredenzaTrigger>
-      <CredenzaContent className="sm:max-w-[425px]">
+      <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
-          <CredenzaTitle>Tạo Loại Dịch Vụ</CredenzaTitle>
-          <CredenzaDescription>Tạo một loại dịch vụ mới</CredenzaDescription>
+          <CredenzaTitle>Tạo Nhân Viên</CredenzaTitle>
+          <CredenzaDescription>Tạo một nhân viên mới</CredenzaDescription>
         </CredenzaHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid grid-cols-2 gap-4 py-0 px-4 md:px-0 md:py-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="fullName"
                 render={({ field }) => (
                   <FormItem>
-                    <Label htmlFor="name">Tên Loại Dịch Vụ</Label>
+                    <Label htmlFor="fullName">Họ Tên</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập tên khu vực..."
+                        placeholder="Nhập họ tên..."
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -109,10 +155,10 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <Label htmlFor="code">Mã Dịch Vụ</Label>
+                    <Label htmlFor="code">Mã Nhân Viên</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập mã khu vực..."
+                        placeholder="Nhập mã nhân viên..."
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -121,11 +167,194 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
                   </FormItem>
                 )}
               />
-              
+
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="phoneNumber">Số Điện Thoại</Label>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập số điện thoại..."
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="email">Email</Label>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập email..."
+                        {...field}
+                        disabled={isSubmitting}
+                        type="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="gender">Giới Tính</Label>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn giới tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Male">Nam</SelectItem>
+                        <SelectItem value="Female">Nữ</SelectItem>
+                        <SelectItem value="Other">Khác</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dateOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="dateOfBirth">Ngày Sinh</Label>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <Label htmlFor="address">Địa Chỉ</Label>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập địa chỉ..."
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hireDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="hireDate">Ngày Tuyển Dụng</Label>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="jobPosition"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="jobPosition">Vị Trí Công Việc</Label>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập vị trí công việc..."
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="groupId"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="groupId">Nhóm</Label>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={isSubmitting || isLoadingGroups}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={isLoadingGroups ? "Đang tải..." : "Chọn nhóm"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {groups.map(group => (
+                          <SelectItem key={group.id} value={group.id}>
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="password">Mật Khẩu</Label>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nhập mật khẩu..."
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <CredenzaFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Đang cập nhập..." : "Cập nhập Khu Vực"}
+              <Button type="submit" disabled={isSubmitting || isLoadingGroups}>
+                {isSubmitting ? "Đang tạo..." : "Tạo Nhân Viên"}
               </Button>
               <CredenzaClose asChild>
                 <Button
