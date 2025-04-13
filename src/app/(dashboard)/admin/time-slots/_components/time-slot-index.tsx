@@ -1,0 +1,38 @@
+import PageContainer from "@/components/layout/page-container";
+import React, { Suspense } from "react";
+
+import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
+import { Heading } from "@/components/ui/headling";
+import { Separator } from "@/components/ui/separator";
+import TimeSlotTableAction from "./time-slot-tables/time-slot-table-action";
+import TimeSlotTable from "./time-slot-table";
+import { CreateTimeSlotCredenza } from "./credenza-create-time-slot-category";
+type Props = {
+  keyProps: string;
+};
+const TimeSlotIndex = ({ keyProps }: Props) => {
+  return (
+    <PageContainer>
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <Heading
+            title="Quản lí thời gian"
+            description="Quản lí các ca giờ làm việc"
+          />
+          <CreateTimeSlotCredenza />
+        </div>
+        <Separator />
+
+        <TimeSlotTableAction />
+        <Suspense
+          key={keyProps}
+          fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}
+        >
+          <TimeSlotTable />
+        </Suspense>
+      </div>
+    </PageContainer>
+  );
+};
+
+export default TimeSlotIndex;

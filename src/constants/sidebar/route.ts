@@ -1,4 +1,4 @@
-import { TNavItem } from "@/types/SideBar";
+import { TNavItem, TSettingItem } from "@/types/SideBar";
 import {
   AudioWaveform,
   Command,
@@ -71,12 +71,30 @@ export const data = {
 // **Navigation cho Admin**
 export const adminNavItems: TNavItem[] = [
   {
-    title: "Quản lý nhóm",
-    url: PATHS.admin.groups,
-    icon: "users",
-    shortcut: ["s", "h"],
+    title: "Doanh Thu & Báo Cáo",
+    url: "#",
+    icon: "chart",
     isActive: false,
-    items: [],
+    items: [
+      {
+        title: "Doanh Thu Tổng",
+        url: PATHS.admin.revenues,
+        icon: "grMoney",
+        shortcut: ["r", "a"],
+      },
+      {
+        title: "Các Giao Dịch",
+        url: PATHS.admin.transactions,
+        icon: "badgeDollarSign",
+        shortcut: ["r", "s"],
+      },
+      {
+        title: "Doanh thu Giao Dịch",
+        url: PATHS.admin.transactionRevenue,
+        icon: "handCoins",
+        shortcut: ["r", "s"],
+      },
+    ],
   },
 
   {
@@ -88,13 +106,13 @@ export const adminNavItems: TNavItem[] = [
       {
         title: "Điều Phối Viên",
         url: PATHS.admin.managers,
-        icon: "userPlus",
+        icon: "manager",
         shortcut: ["a", "m"],
       },
       {
         title: "Nhân Viên",
         url: PATHS.admin.staffs,
-        icon: "employee",
+        icon: "staff",
         shortcut: ["a", "s"],
       },
       {
@@ -102,6 +120,12 @@ export const adminNavItems: TNavItem[] = [
         url: PATHS.admin.users,
         icon: "users",
         shortcut: ["a", "u"],
+      },
+      {
+        title: "Ví người dùng",
+        url: PATHS.admin.wallets,
+        icon: "wallet",
+        shortcut: ["a", "m"],
       },
     ],
   },
@@ -168,34 +192,15 @@ export const adminNavItems: TNavItem[] = [
         icon: "post",
         shortcut: ["r", "s"],
       },
-
     ],
   },
   {
-    title: "Doanh Thu & Báo Cáo",
-    url: "#",
-    icon: "chart",
+    title: "Quản lý nhóm",
+    url: PATHS.admin.groups,
+    icon: "users",
+    shortcut: ["s", "h"],
     isActive: false,
-    items: [
-      {
-        title: "Doanh Thu Tổng",
-        url: PATHS.admin.revenues,
-        icon: "page",
-        shortcut: ["r", "a"],
-      },
-      {
-        title: "Các Giao Dịch",
-        url: PATHS.admin.transactions,
-        icon: "post",
-        shortcut: ["r", "s"],
-      },
-      {
-        title: "Doanh thu Giao Dịch",
-        url: PATHS.admin.transactionRevenue,
-        icon: "post",
-        shortcut: ["r", "s"],
-      },
-    ],
+    items: [],
   },
 ];
 
@@ -231,7 +236,6 @@ export const managerNavItems: TNavItem[] = [
   //   items: [],
   // },
 ];
-
 
 export const laundryNavItems: TNavItem[] = [
   {
@@ -360,5 +364,13 @@ export const storeNavItems: TNavItem[] = [
     shortcut: ["s", "p"],
     isActive: false,
     items: [],
+  },
+];
+
+export const settingAdminItems: TSettingItem[] = [
+  {
+    name: "Ca làm việc",
+    url: "/admin/time-slots",
+    icon: "calendarLock",
   },
 ];

@@ -47,12 +47,10 @@ export function NavMain({
               ? Icons[item.icon as keyof typeof Icons]
               : Icons.logo;
 
-          // ✅ Kiểm tra nếu một trong các mục con đang active
           const isChildActive = item.items?.some((subItem) =>
             activeCondition(subItem.url)
           );
 
-          // ✅ Mục cha chỉ active nếu chính nó được chọn
           const isActive = activeCondition(item.url);
 
           return item?.items && item?.items?.length > 0 ? (
@@ -66,7 +64,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    isActive={isActive} // ✅ Không active mục cha nếu mục con active
+                    isActive={isActive}
                     className={`${
                       isChildActive && !isActive
                         ? "bg-[hsl(var(--sidebar-accent-blur))]/80 backdrop-blur-lg dark:bg-sidebar-accent"
@@ -80,20 +78,28 @@ export function NavMain({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items?.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={activeCondition(subItem.url)}
-                          size="md"
-                        >
-                          <Link href={subItem.url}>
-                            {subItem.icon && <Icon />}
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                    {item.items?.map((subItem) => {
+                      const SubIcon =
+                        subItem.icon &&
+                        Icons[subItem.icon as keyof typeof Icons]
+                          ? Icons[subItem.icon as keyof typeof Icons]
+                          : Icons.logo;
+
+                      return (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={activeCondition(subItem.url)}
+                            size="md"
+                          >
+                            <Link href={subItem.url}>
+                              {subItem.icon && <SubIcon />}
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      );
+                    })}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>

@@ -18,14 +18,15 @@ export const PATHS = {
     serviceCategories: `${RootPath.admin}/service-categories`,
     services: `${RootPath.admin}/services`,
     managers: `${RootPath.admin}/managers`,
-    staffs:  `${RootPath.admin}/staffs`,
-    users:  `${RootPath.admin}/users`,
+    wallets: `${RootPath.admin}/wallets`,
+    staffs: `${RootPath.admin}/staffs`,
+    users: `${RootPath.admin}/users`,
     revenues: `${RootPath.admin}/revenues`,
     transactions: `${RootPath.admin}/transactions`,
     transactionRevenue: `${RootPath.admin}/transaction-revenue`,
     serviceInHouseTypes: `${RootPath.admin}/service-in-house-types`,
   },
-  
+
   manager: {
     groups: `${RootPath.manager}/groups`,
     timeSlots: `${RootPath.manager}/time-slots`,

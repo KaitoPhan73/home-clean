@@ -12,6 +12,7 @@ export const searchParams = {
   search: parseAsString,
   gender: parseAsString,
   categories: parseAsString,
+  types: parseAsString,
   areaId: parseAsString,
 };
 

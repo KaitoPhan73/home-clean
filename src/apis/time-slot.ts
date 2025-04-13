@@ -3,7 +3,11 @@
 "use server";
 
 import { httpHomePlus } from "@/lib/http";
-import { TTimesSlotResponse, TTimesSlotUpdateRequest } from "@/schema/time-slot.schema";
+import {
+  TTimesSlotCreateRequest,
+  TTimesSlotResponse,
+  TTimesSlotUpdateRequest,
+} from "@/schema/time-slot.schema";
 import { TTableResponse } from "@/types/Table";
 
 export const getAllTimeSlots = async (params?: any) => {
@@ -13,21 +17,36 @@ export const getAllTimeSlots = async (params?: any) => {
       params,
     }
   );
-  // console.log("getAllserrr Response:", response);
   return response;
 };
 
 export const getTimeSlotById = async (id: string) => {
-  const response = await httpHomePlus.get<TTimesSlotResponse>(`/time-slots/${id}`);
-  // console.log("Service Category Response:", response);
+  const response = await httpHomePlus.get<TTimesSlotResponse>(
+    `/time-slots/${id}`
+  );
   return response;
 };
 
-export const updateTimeSlot = async (id: string, data: TTimesSlotUpdateRequest) => {
+export const deleteTimeSlot = async (id: string) => {
+  const response = await httpHomePlus.delete<TTimesSlotResponse>(
+    `/time-slots/${id}`
+  );
+  return response;
+};
+export const createTimeSlot = async (data: TTimesSlotCreateRequest) => {
+  const response = await httpHomePlus.post<TTimesSlotResponse>(
+    `/time-slots`,
+    data
+  );
+  return response;
+};
+export const updateTimeSlot = async (
+  id: string,
+  data: TTimesSlotUpdateRequest
+) => {
   const response = await httpHomePlus.patch<TTimesSlotResponse>(
     `/time-slots/${id}`,
     data
   );
-  // console.log("update service-categories Response:", response);
   return response;
 };

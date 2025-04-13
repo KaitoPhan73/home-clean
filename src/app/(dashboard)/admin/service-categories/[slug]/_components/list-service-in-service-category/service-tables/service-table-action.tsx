@@ -19,7 +19,7 @@ export default function ClusterTableAction() {
     <div className="flex flex-wrap items-center gap-4">
       <DataTableSearch
         searchKey="name"
-        placeholder="Tìm kiếm tên dịch vụ"
+        placeholder="Tìm kiếm tên ..."
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         setPage={setPage}

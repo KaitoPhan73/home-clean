@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 type Option = {
   value: string;
@@ -27,17 +28,23 @@ type Option = {
 interface ResponsiveComboBoxProps {
   options: Option[];
   isLoading?: boolean;
+  modal?: boolean;
+  portal?: boolean; // 👈 thêm dòng này
   placeholder?: string;
   defaultValue?: Option | null;
   onChange?: (selected: Option | null) => void;
+  className?: string;
 }
 
 export function ResponsiveComboBox({
   options,
+  modal = true,
   isLoading = false,
   placeholder = "+ Select option",
   defaultValue = null,
+  portal = true,
   onChange,
+  className,
 }: ResponsiveComboBoxProps) {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -54,13 +61,16 @@ export function ResponsiveComboBox({
 
   if (isDesktop) {
     return (
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={modal}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="w-[150px] justify-start">
+          <Button
+            variant="outline"
+            className={cn("w-[150px] justify-start", className)}
+          >
             {selectedOption ? selectedOption.label : placeholder}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start">
+        <PopoverContent className="w-[200px] p-0" align="start" portal={portal}>
           <OptionList
             options={options}
             onSelect={handleSelect}
@@ -72,9 +82,12 @@ export function ResponsiveComboBox({
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={setOpen} modal={modal}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="w-[150px] justify-start">
+        <Button
+          variant="outline"
+          className={cn("w-[150px] justify-start", className)}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </Button>
       </DrawerTrigger>
@@ -102,9 +115,9 @@ function OptionList({
 }) {
   return (
     <Command>
-      <CommandInput placeholder="Search..." />
+      <CommandInput placeholder="Tìm..." />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>Không tìm thấy kết quả</CommandEmpty>
         <CommandGroup>
           {isLoading
             ? Array.from({ length: 5 }).map((_, index) => (
@@ -112,9 +125,9 @@ function OptionList({
                   <Skeleton className="h-5 w-full" />
                 </CommandItem>
               ))
-            : options.map((option) => (
+            : options.map((option, index) => (
                 <CommandItem
-                  key={option.value}
+                  key={index}
                   value={option.value}
                   onSelect={onSelect}
                 >

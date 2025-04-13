@@ -31,6 +31,7 @@ import {
 } from "@/schema/manager.schema";
 import { createManager } from "@/apis/manager";
 import { Eye, EyeOff } from "lucide-react";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -68,18 +69,10 @@ export function CredenzaCreateManager({ className }: Props) {
         form.reset();
         route.refresh();
         setIsOpen(false);
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo điều phối viên",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo quản lý: ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };
