@@ -3,7 +3,7 @@ import { searchParamsCache } from "@/lib/searchparams";
 import { getAllTransactions } from "@/apis/transaction";
 import { getAllUsers } from "@/apis/vinwallet/user";
 import { getAllWallets } from "@/apis/vinwallet/wallet";
-import { getAllPaymentMethods } from "@/apis/vinwallet/payment-metthod";
+import { getAllPaymentMethods } from "@/apis/vinwallet/payment-method";
 import { EnrichedTransaction } from "@/schema/transaction.schema";
 import TransactionTableContent from "@/app/(dashboard)/admin/transactions/_components/transaction-table-content";
 
