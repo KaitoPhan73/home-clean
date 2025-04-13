@@ -23,9 +23,13 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { ServiceCategoryCreateSchema, TServiceCategoryCreateRequest } from "@/schema/service-category.schema";
+import {
+  ServiceCategoryCreateSchema,
+  TServiceCategoryCreateRequest,
+} from "@/schema/service-category.schema";
 import { createServiceCategory } from "@/apis/service-category";
 import { useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -56,19 +60,11 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
         form.reset();
         route.refresh();
         setIsOpen(false); // Đóng Credenza
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo loại dịch vụ",
-          variant: "destructive",
-        });
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo khu vực ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };
@@ -121,7 +117,6 @@ export function CredenzaCreateServiceCategory({ className }: Props) {
                   </FormItem>
                 )}
               />
-              
             </div>
             <CredenzaFooter>
               <Button type="submit" disabled={isSubmitting}>

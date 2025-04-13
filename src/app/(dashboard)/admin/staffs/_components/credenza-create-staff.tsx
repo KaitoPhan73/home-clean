@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -27,12 +27,12 @@ import {
 import { StaffCreateSchema, TStaffCreateRequest } from "@/schema/staff.schema";
 import { createStaff } from "@/apis/staff";
 import { useRouter } from "next/navigation";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { TGroupResponse } from "@/schema/group.schema";
 import { getAllGroups } from "@/apis/group";
@@ -47,7 +47,7 @@ export function CredenzaCreateStaff({ className }: Props) {
   const [groups, setGroups] = useState<TGroupResponse[]>([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
   const router = useRouter();
-  
+
   const form = useForm<TStaffCreateRequest>({
     resolver: zodResolver(StaffCreateSchema),
     defaultValues: {
@@ -61,7 +61,7 @@ export function CredenzaCreateStaff({ className }: Props) {
       jobPosition: "",
       code: "",
       groupId: "",
-      password: ""
+      password: "",
     },
   });
 
@@ -76,10 +76,11 @@ export function CredenzaCreateStaff({ className }: Props) {
           if (response.payload.items) {
             setGroups(response.payload.items);
           }
-        } catch (error) {
+        } catch (error: any) {
+          const errorMessage = JSON.parse(error.message);
           toast({
             title: "Lỗi",
-            description: "Không thể tải dữ liệu nhóm",
+            description: `Có lỗi xảy ra: ${errorMessage.description}`,
             variant: "destructive",
           });
         } finally {
@@ -109,7 +110,7 @@ export function CredenzaCreateStaff({ className }: Props) {
           variant: "destructive",
         });
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast({
         title: "Lỗi",
@@ -211,8 +212,8 @@ export function CredenzaCreateStaff({ className }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="gender">Giới Tính</Label>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isSubmitting}
                     >
@@ -239,11 +240,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                   <FormItem>
                     <Label htmlFor="dateOfBirth">Ngày Sinh</Label>
                     <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        disabled={isSubmitting}
-                      />
+                      <Input type="date" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -275,11 +272,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                   <FormItem>
                     <Label htmlFor="hireDate">Ngày Tuyển Dụng</Label>
                     <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        disabled={isSubmitting}
-                      />
+                      <Input type="date" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -310,18 +303,22 @@ export function CredenzaCreateStaff({ className }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="groupId">Nhóm</Label>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isSubmitting || isLoadingGroups}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={isLoadingGroups ? "Đang tải..." : "Chọn nhóm"} />
+                          <SelectValue
+                            placeholder={
+                              isLoadingGroups ? "Đang tải..." : "Chọn nhóm"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {groups.map(group => (
+                        {groups.map((group) => (
                           <SelectItem key={group.id} value={group.id}>
                             {group.name}
                           </SelectItem>

@@ -32,6 +32,7 @@ import { useRouter } from "next/navigation";
 import { SelectRoomTypeAsync } from "./select-room-type-async";
 import { SelectHouseAsync } from "./select-house-async";
 import { Switch } from "@/components/ui/switch";
+import { handleErrorApi } from "@/lib/utils";
 
 export function CredenzaCreateRoom() {
   const { toast } = useToast();
@@ -62,18 +63,10 @@ export function CredenzaCreateRoom() {
         form.reset();
         setIsOpen(false);
         router.refresh();
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo phòng",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo phòng: ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };

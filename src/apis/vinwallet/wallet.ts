@@ -15,3 +15,11 @@ export const getAllWallets = async (params?: any) => {
   );
   return response;
 };
+export const getWalletById = async (id: string, accessToken: string) => {
+  const response = await httpVinWallet.get<TWalletResponse>(`/wallets/${id}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response;
+};

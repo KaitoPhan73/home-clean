@@ -77,13 +77,17 @@ import {
   CheckCircle,
   XCircle,
   LineChart,
+  CalendarClock,
+  Wallet,
+  HandCoins,
+  BadgeDollarSign,
 } from "lucide-react";
 
 // Additional imports from React Icons
 import { MdStorefront, MdAddBox, MdCategory } from "react-icons/md";
 import { RiTaskLine, RiFeedbackLine } from "react-icons/ri";
-import { FaUserTie } from "react-icons/fa";
-
+import { FaUserTie, FaUsersCog } from "react-icons/fa";
+import { GrMoney } from "react-icons/gr";
 export type Icon = LucideIcon;
 
 export const Icons = {
@@ -91,6 +95,9 @@ export const Icons = {
   logo: Command,
   login: LogIn,
   close: X,
+
+  badgeDollarSign: BadgeDollarSign,
+  handCoins: HandCoins,
   product: LucideShoppingBag,
   spinner: Loader2,
   kanban: CircuitBoardIcon,
@@ -125,6 +132,7 @@ export const Icons = {
   history: History,
   clock: Clock,
   calendar: Calendar,
+  calendarLock: CalendarClock,
   users: Users,
   userPlus: UserPlus,
   userCheck: UserCheck,
@@ -160,7 +168,7 @@ export const Icons = {
   alert: AlertCircle,
   success: CheckCircle,
   error: XCircle,
-
+  wallet: Wallet,
   // Additional icons
   storeChart: MdStorefront,
   platformChart: LineChart,
@@ -192,5 +200,7 @@ export const Icons = {
   // New icons added
   tasks: RiTaskLine,
   feedback: RiFeedbackLine,
-  staff: FaUserTie,
+  manager: FaUserTie,
+  staff: FaUsersCog,
+  grMoney: GrMoney,
 };

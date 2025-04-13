@@ -14,7 +14,10 @@ const TimeSlotIndex = ({ keyProps }: Props) => {
     <PageContainer>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
-          <Heading title="Quản lí thời gian" description="Quản lí các ca giờ làm việc" />
+          <Heading
+            title="Quản lí thời gian"
+            description="Quản lí các ca giờ làm việc"
+          />
         </div>
         <Separator />
 

@@ -33,10 +33,7 @@ type Props = {
   initialData: TUpdateServiceCategoryRequest; // Data passed to update form
 };
 
-export function CredenzaUpdateServiceCategory({
-  className,
-  initialData,
-}: Props) {
+export function CredenzaUpdateUser({ className, initialData }: Props) {
   const { toast } = useToast();
   const form = useForm<TUpdateServiceCategoryRequest>({
     resolver: zodResolver(ServiceCategorySchema),
@@ -48,7 +45,7 @@ export function CredenzaUpdateServiceCategory({
     toast({
       title: "Cập nhật dịch vụ thành công",
     });
-    form.reset(); // Reset form after successful submit
+    form.reset();
   };
 
   return (

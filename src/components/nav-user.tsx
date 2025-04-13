@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  ChevronsUpDown,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -73,12 +68,12 @@ export function NavUser({ user }: { user: TAuthResponse }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            {/* <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles />
                 Hồ sơ
               </DropdownMenuItem>
-            </DropdownMenuGroup>
+            </DropdownMenuGroup> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/logout")}>
               <LogOut /> Đăng xuất

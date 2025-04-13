@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/form";
 import { createHouseType } from "@/apis/house-type";
 import { useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -62,18 +63,10 @@ export function CredenzaCreateHouseType({ className }: Props) {
         form.reset();
         setIsOpen(false); // Đóng Credenza
         router.refresh(); // Refresh lại trang
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo ",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo ${error}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };
