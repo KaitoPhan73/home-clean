@@ -1,12 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
 import React from "react";
-import { LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import NotificationBell from "@/components/NotificationBell";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface HeaderMainProps {
   className?: string;
@@ -14,6 +24,12 @@ interface HeaderMainProps {
 
 const HeaderMain = ({ className }: HeaderMainProps) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const shouldShowBack = () => {
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments.length < 3) return false;
+    return segments.slice(2).some((segment) => segment.length > 8);
+  };
 
   return (
     <header
@@ -23,9 +39,32 @@ const HeaderMain = ({ className }: HeaderMainProps) => {
     >
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        {/* <DynamicBreadcrumb className="flex items-center gap-2" /> */}
+        <Separator orientation="vertical" className="h-4" />
+
+        {shouldShowBack() && (
+          <>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.back()}
+                    className="gap-1 px-2"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Quay lại trang trước</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Separator orientation="vertical" className="h-4" />
+          </>
+        )}
       </div>
+
       <div className="flex items-center gap-4 ml-auto">
         <NotificationBell />
         <ModeToggle />
