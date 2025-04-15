@@ -8,13 +8,9 @@ type PageProps = {
 
 const StaffAssignPage = async ({ searchParams }: PageProps) => {
   const resolvedSearchParams = searchParams ? await searchParams : {};
-
-  console.log("🔍 searchParams:", resolvedSearchParams); 
-
   searchParamsCache.parse(resolvedSearchParams);
-
   const searchKey = serialize({ ...resolvedSearchParams });
-
+  
   return <StaffAssignIndex keyProps={searchKey} />;
 };
 

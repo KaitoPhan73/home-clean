@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { httpVinLaundry } from "@/lib/http";
+import { TTaskResponse } from "@/schema/VinLaudry/task.schema";
+import { TTableResponse } from "@/types/Table";
 
 export interface ApiTask {
   id: string;
@@ -19,7 +21,6 @@ export interface ApiTask {
   updatedAt: string;
   managerName: string | null;
   employeeName: string | null;
-
 }
 
 export interface TasksResponse {
@@ -47,15 +48,15 @@ export const getOrderTasks = async (orderId: string, params?: any) => {
 
 export const taskAssign = async (taskId: string, employeeId: string, action: "start" | "complete") => {
   try {
-    const endpoint = action === "start" 
-      ? `/tasks/assign` 
+    const endpoint = action === "start"
+      ? `/tasks/assign`
       : `/tasks/${taskId}/check-out`;
-    
+
     const requestBody = {
       taskId: taskId,
       employeeId: employeeId
     };
-    
+
     const response = await httpVinLaundry.put(endpoint, requestBody);
     return response;
   } catch (error) {
@@ -73,15 +74,27 @@ export const getEmployeesRealTimeStatus = async (params?: any, token?: string) =
         Authorization: `Bearer ${token}`
       };
     }
-    
+
     const response = await httpVinLaundry.get('/employees/real-time-status', {
       params,
       ...config
     });
-    
+
     return response.payload;
   } catch (error) {
     console.error("Error fetching employees:", error);
     throw error;
   }
+};
+
+export const getAllTasks = async (params?: any) => {
+  const response = await httpVinLaundry.get<TTableResponse<TTaskResponse>>("/tasks", {
+    params,
+  });
+  return { payload: response.payload };
+};
+
+export const getTaskById = async (id: string) => {
+  const response = await httpVinLaundry.get<TTaskResponse>(`/tasks/${id}`);
+  return response;
 };

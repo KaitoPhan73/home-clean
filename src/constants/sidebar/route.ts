@@ -110,7 +110,13 @@ export const adminNavItems: TNavItem[] = [
         shortcut: ["a", "m"],
       },
       {
-        title: "Nhân Viên",
+        title: "Nhân Viên Dịch Vụ",
+        url: PATHS.admin.staffs,
+        icon: "staff",
+        shortcut: ["a", "s"],
+      },
+      {
+        title: "Nhân Viên Giặt Sấy",
         url: PATHS.admin.staffs,
         icon: "staff",
         shortcut: ["a", "s"],
@@ -195,6 +201,50 @@ export const adminNavItems: TNavItem[] = [
     ],
   },
   {
+    "title": "Quản lí giặt sấy",
+    "url": "#",
+    "icon": "store",
+    "isActive": false,
+    "items": [
+      {
+        "title": "Đơn hàng",
+        "url": PATHS.admin.laundryOrders,
+        "icon": "cart",
+        "shortcut": ["r", "a"]
+      },
+      {
+        "title": "Lịch sử đơn hàng",
+        "url": PATHS.admin.orderHistory,
+        "icon": "history",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Các nhiệm vụ",
+        "url": PATHS.admin.tasks,
+        "icon": "tasks",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại đồ dùng",
+        "url": PATHS.admin.itemTypes,
+        "icon": "product",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại dịch vụ",
+        "url": PATHS.admin.serviceTypes,
+        "icon": "package",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại dịch vụ bổ sung",
+        "url": PATHS.admin.additionalServices,
+        "icon": "plusBox",
+        "shortcut": ["r", "s"]
+      }
+    ]
+  },
+  {
     title: "Quản lý nhóm",
     url: PATHS.admin.groups,
     icon: "users",
@@ -227,14 +277,6 @@ export const managerNavItems: TNavItem[] = [
     isActive: false,
     items: [],
   },
-
-  // {
-  //   title: "Giặt Ủi",
-  //   url: PATHS.manager.laundry,
-  //   icon: "tasks",
-  //   isActive: false,
-  //   items: [],
-  // },
 ];
 
 export const laundryNavItems: TNavItem[] = [
@@ -281,96 +323,16 @@ export const staffNavItems: TNavItem[] = [
   },
 ];
 
-// Navigation cho Store (Cửa hàng)
-export const storeNavItems: TNavItem[] = [
-  {
-    title: "Tổng quan",
-    url: "/store/dashboard",
-    icon: "dashboard",
-    isActive: false,
-    shortcut: ["d", "d"],
-    items: [],
-  },
-  {
-    title: "Sản phẩm",
-    url: "#",
-    icon: "box",
-    isActive: false,
-    items: [
-      {
-        title: "Tất cả sản phẩm",
-        url: "/store/products",
-        icon: "boxes",
-        shortcut: ["p", "a"],
-      },
-      {
-        title: "Thêm sản phẩm",
-        url: "/store/products/add",
-        icon: "plusBox",
-        shortcut: ["p", "n"],
-      },
-      {
-        title: "Danh mục",
-        url: "/store/products/categories",
-        icon: "category",
-        shortcut: ["p", "c"],
-      },
-    ],
-  },
-  {
-    title: "Đơn hàng",
-    url: "#",
-    icon: "boxes",
-    isActive: false,
-    items: [
-      {
-        title: "Tất cả đơn hàng",
-        url: "/store/orders",
-        icon: "list",
-        shortcut: ["o", "a"],
-      },
-      {
-        title: "Chờ xử lý",
-        url: "/store/orders/pending",
-        icon: "clock",
-        shortcut: ["o", "p"],
-      },
-      {
-        title: "Đang xử lý",
-        url: "/store/orders/processing",
-        icon: "loader",
-        shortcut: ["o", "r"],
-      },
-      {
-        title: "Hoàn thành",
-        url: "/store/orders/completed",
-        icon: "check",
-        shortcut: ["o", "c"],
-      },
-    ],
-  },
-  {
-    title: "Doanh thu",
-    url: "/store/revenue",
-    icon: "chart",
-    shortcut: ["r", "e"],
-    isActive: false,
-    items: [],
-  },
-  {
-    title: "Thông tin cửa hàng",
-    url: "/store/profile",
-    icon: "store",
-    shortcut: ["s", "p"],
-    isActive: false,
-    items: [],
-  },
-];
 
 export const settingAdminItems: TSettingItem[] = [
   {
     name: "Ca làm việc",
     url: "/admin/time-slots",
     icon: "calendarLock",
+  },
+  {
+    name: "Hồ sơ",
+    url: "/admin/profile",
+    icon: "user",
   },
 ];

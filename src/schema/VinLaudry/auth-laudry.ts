@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const LoginLaundrySchema = z
     .object({
-        phone: z.string().min(1, {
+        phoneNumber: z.string().min(1, {
             message: "Số điện thoại không được trống.",
         }),
         password: z.string().min(1, {

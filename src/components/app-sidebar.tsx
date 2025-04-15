@@ -5,19 +5,16 @@ import { useSelector } from "react-redux";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
 import { RootState } from "@/redux/store";
 import {
   adminNavItems,
   managerNavItems,
   laundryNavItems,
-  data,
   settingAdminItems,
 } from "@/constants/sidebar/route";
 import SidebarSkeleton from "./sidebar-sekeleton";
@@ -55,15 +52,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+      <NavUser user={user} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
         {settingItems ? <NavProjects settingItems={settingItems} /> : null}
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={user} />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

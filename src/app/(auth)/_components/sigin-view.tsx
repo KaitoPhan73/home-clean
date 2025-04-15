@@ -4,17 +4,14 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import UserAuthForm from "./user-auth-form";
 import AdminAuthForm from "@/app/(auth)/_components/admin-auth-form";
-import LaundryAuthForm from "@/app/(auth)/_components/laundry-auth-form";
 import { ModeToggle } from "@/components/mode-toggle";
 import Image from "next/image";
 import { UserIcon, ShieldIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CombinedManagerAuthForm from "@/app/(auth)/_components/user-auth-form";
 
 export default function SignInViewPage() {
   const [activeRole, setActiveRole] = useState<"user" | "admin">("user");
-  const [activeUserTab, setActiveUserTab] = useState<"cleaning" | "laundry">("cleaning");
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -29,11 +26,7 @@ export default function SignInViewPage() {
     if (activeRole === "admin") {
       return "Đăng nhập tài khoản Admin.";
     } else {
-      if (activeUserTab === "laundry") {
-        return "Đăng nhập tài khoản quản lí Giặt Đồ của bạn.";
-      } else {
-        return "Đăng nhập tài khoản quản lí Dịch Vụ của bạn.";
-      }
+      return "Đăng nhập tài khoản quản lí dịch vụ của bạn.";
     }
   };
 
@@ -47,10 +40,6 @@ export default function SignInViewPage() {
         }, 300);
       }, 300);
     }
-  };
-
-  const handleUserTabChange = (tab: string) => {
-    setActiveUserTab(tab as "cleaning" | "laundry");
   };
 
   return (
@@ -81,7 +70,9 @@ export default function SignInViewPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">          <div className="flex justify-center mb-2">
+          className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">
+          
+          <div className="flex justify-center mb-2">
             <Image
               src="/image/homeplus-logo.png"
               alt="Home Plus Logo"
@@ -140,40 +131,13 @@ export default function SignInViewPage() {
               </motion.div>
             ) : (
               <motion.div
-                key="user-tabs-container"
+                key="user-form"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <Tabs
-                  value={activeUserTab}
-                  onValueChange={handleUserTabChange}
-                  className="w-full"
-                >
-                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100 rounded-md p-1">
-                    <TabsTrigger
-                      value="cleaning"
-                      className="text-sm text-gray-700 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                    >
-                      Dọn dẹp
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="laundry"
-                      className="text-sm text-gray-700 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-                    >
-                      Giặt đồ
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="cleaning" className="mt-0">
-                    <UserAuthForm />
-                  </TabsContent>
-
-                  <TabsContent value="laundry" className="mt-0">
-                    <LaundryAuthForm />
-                  </TabsContent>
-                </Tabs>
+                <CombinedManagerAuthForm />
               </motion.div>
             )}
           </AnimatePresence>
