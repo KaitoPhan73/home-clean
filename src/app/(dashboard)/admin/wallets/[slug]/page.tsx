@@ -4,7 +4,7 @@ import WalletDetailIndex from "./_components/wallet-detail-index";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 };
 
 const WalletDetail = async (props: PageProps) => {
@@ -12,8 +12,7 @@ const WalletDetail = async (props: PageProps) => {
   searchParamsCache.parse(searchParams);
 
   const key = serialize({ ...searchParams });
-
-  return <WalletDetailIndex id={(await props.params).id} keyProps={key} />;
+  return <WalletDetailIndex id={(await props.params).slug} keyProps={key} />;
 };
 
 export default WalletDetail;
