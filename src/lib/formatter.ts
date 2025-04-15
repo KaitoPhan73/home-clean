@@ -27,3 +27,14 @@ export const formatPriceVND = (price: any) => {
     minimumFractionDigits: 0, // Không hiển thị phần thập phân
   });
 };
+export const formatNumberWithDot = (num: any) => {
+  return num.toLocaleString("de-DE");
+};
+
+export const formatPoint = (price: any) => {
+  return price.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0, // Không hiển thị phần thập phân
+  });
+};

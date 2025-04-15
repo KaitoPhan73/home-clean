@@ -36,7 +36,16 @@ export function NavMain({
 }) {
   const pathname = usePathname();
 
-  const activeCondition = (url: string) => pathname === url;
+  const activeCondition = (url: string) => {
+    // Exact match
+    if (pathname === url) return true;
+
+    if (url !== "/") {
+      return pathname.startsWith(url + "/");
+    }
+
+    return false;
+  };
 
   return (
     <SidebarGroup>
