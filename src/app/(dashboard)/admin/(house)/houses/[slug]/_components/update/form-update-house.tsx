@@ -50,7 +50,7 @@ export function FormUpdateHouse({ initialData }: Props) {
         });
       }
       router.refresh();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast({
         title: "Lỗi",
@@ -122,7 +122,7 @@ export function FormUpdateHouse({ initialData }: Props) {
             name="houseTypeId"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <Label htmlFor="areaId">Khu vực</Label>
+                <Label htmlFor="houseTypeId">Loại nhà</Label>
 
                 <SelectHouseTypeAsync
                   value={field.value}

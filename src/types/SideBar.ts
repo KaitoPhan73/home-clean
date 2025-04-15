@@ -12,3 +12,9 @@ export type TNavItem = {
   isActive?: boolean;
   items?: TNavItem[];
 };
+
+export type TSettingItem = {
+  name: string;
+  url: string;
+  icon: keyof typeof Icons;
+};

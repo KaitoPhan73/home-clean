@@ -31,7 +31,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
   handleAssignStaff,
 }) => {
   const assignedStaff = availableStaffs.find((s) => s.staffId === order.employeeId);
-  const assignedStaffName = assignedStaff?.fullName || "Chưa phân công";
+  const assignedStaffName = assignedStaff?.phoneNumber || "Chưa phân công";
 
   console.log("Available Staffs in StaffingTab:", availableStaffs); // Debug log
   console.log("Assigned Staff:", assignedStaff); // Debug log

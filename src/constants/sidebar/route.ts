@@ -1,4 +1,4 @@
-import { TNavItem } from "@/types/SideBar";
+import { TNavItem, TSettingItem } from "@/types/SideBar";
 import {
   AudioWaveform,
   Command,
@@ -71,12 +71,30 @@ export const data = {
 // **Navigation cho Admin**
 export const adminNavItems: TNavItem[] = [
   {
-    title: "Quản lý nhóm",
-    url: PATHS.admin.groups,
-    icon: "users",
-    shortcut: ["s", "h"],
+    title: "Doanh Thu & Báo Cáo",
+    url: "#",
+    icon: "chart",
     isActive: false,
-    items: [],
+    items: [
+      {
+        title: "Doanh Thu Tổng",
+        url: PATHS.admin.revenues,
+        icon: "grMoney",
+        shortcut: ["r", "a"],
+      },
+      {
+        title: "Các Giao Dịch",
+        url: PATHS.admin.transactions,
+        icon: "badgeDollarSign",
+        shortcut: ["r", "s"],
+      },
+      {
+        title: "Doanh thu Giao Dịch",
+        url: PATHS.admin.transactionRevenue,
+        icon: "handCoins",
+        shortcut: ["r", "s"],
+      },
+    ],
   },
 
   {
@@ -88,13 +106,19 @@ export const adminNavItems: TNavItem[] = [
       {
         title: "Điều Phối Viên",
         url: PATHS.admin.managers,
-        icon: "userPlus",
+        icon: "manager",
         shortcut: ["a", "m"],
       },
       {
-        title: "Nhân Viên",
+        title: "Nhân Viên Dịch Vụ",
         url: PATHS.admin.staffs,
-        icon: "employee",
+        icon: "staff",
+        shortcut: ["a", "s"],
+      },
+      {
+        title: "Nhân Viên Giặt Sấy",
+        url: PATHS.admin.staffs,
+        icon: "staff",
         shortcut: ["a", "s"],
       },
       {
@@ -103,41 +127,47 @@ export const adminNavItems: TNavItem[] = [
         icon: "users",
         shortcut: ["a", "u"],
       },
+      {
+        title: "Ví người dùng",
+        url: PATHS.admin.wallets,
+        icon: "wallet",
+        shortcut: ["a", "m"],
+      },
     ],
   },
 
   {
-    title: "Khu vực",
+    title: "Quản lý địa điểm",
     url: "#",
     icon: "dashboard",
     isActive: false,
     items: [
       {
-        title: "Quản lí khu vực",
+        title: "Khu vực",
         url: PATHS.admin.areas,
         icon: "filter",
         shortcut: ["r", "a"],
       },
       {
-        title: "Quản lí cụm khu vực",
+        title: "Cụm khu vực",
         url: PATHS.admin.clusters,
         icon: "kanban",
         shortcut: ["r", "s"],
       },
       {
-        title: "Quản lí tòa nhà",
+        title: "Tòa nhà",
         url: PATHS.admin.buildings,
         icon: "building",
         shortcut: ["r", "p"],
       },
       {
-        title: "Quản lí căn hộ",
+        title: "Căn hộ",
         url: PATHS.admin.houses,
         icon: "home",
         shortcut: ["r", "p"],
       },
       {
-        title: "Quản lí phòng",
+        title: "Phòng",
         url: PATHS.admin.rooms,
         icon: "post",
         shortcut: ["r", "p"],
@@ -145,19 +175,19 @@ export const adminNavItems: TNavItem[] = [
     ],
   },
   {
-    title: "Dịch Vụ",
+    title: "Quản lí dịch Vụ",
     url: "#",
     icon: "product",
     isActive: false,
     items: [
       {
-        title: "Phân Loại Dịch Vụ",
+        title: "Loại dịch vụ",
         url: PATHS.admin.serviceCategories,
         icon: "page",
         shortcut: ["r", "a"],
       },
       {
-        title: "Loại Dịch Vụ",
+        title: "Dịch vụ",
         url: PATHS.admin.services,
         icon: "post",
         shortcut: ["r", "s"],
@@ -168,37 +198,61 @@ export const adminNavItems: TNavItem[] = [
         icon: "post",
         shortcut: ["r", "s"],
       },
-
     ],
   },
   {
-    title: "Doanh Thu & Báo Cáo",
-    url: "#",
-    icon: "chart",
+    "title": "Quản lí giặt sấy",
+    "url": "#",
+    "icon": "store",
+    "isActive": false,
+    "items": [
+      {
+        "title": "Đơn hàng",
+        "url": PATHS.admin.laundryOrders,
+        "icon": "cart",
+        "shortcut": ["r", "a"]
+      },
+      {
+        "title": "Lịch sử đơn hàng",
+        "url": PATHS.admin.orderHistory,
+        "icon": "history",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Các nhiệm vụ",
+        "url": PATHS.admin.tasks,
+        "icon": "tasks",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại đồ dùng",
+        "url": PATHS.admin.itemTypes,
+        "icon": "product",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại dịch vụ",
+        "url": PATHS.admin.serviceTypes,
+        "icon": "package",
+        "shortcut": ["r", "s"]
+      },
+      {
+        "title": "Loại dịch vụ bổ sung",
+        "url": PATHS.admin.additionalServices,
+        "icon": "plusBox",
+        "shortcut": ["r", "s"]
+      }
+    ]
+  },
+  {
+    title: "Quản lý nhóm",
+    url: PATHS.admin.groups,
+    icon: "users",
+    shortcut: ["s", "h"],
     isActive: false,
-    items: [
-      {
-        title: "Doanh Thu Tổng",
-        url: PATHS.admin.revenues,
-        icon: "page",
-        shortcut: ["r", "a"],
-      },
-      {
-        title: "Các Giao Dịch",
-        url: PATHS.admin.transactions,
-        icon: "post",
-        shortcut: ["r", "s"],
-      },
-      {
-        title: "Doanh thu Giao Dịch",
-        url: PATHS.admin.transactionRevenue,
-        icon: "post",
-        shortcut: ["r", "s"],
-      },
-    ],
+    items: [],
   },
 ];
-
 
 export const managerNavItems: TNavItem[] = [
   {
@@ -208,7 +262,7 @@ export const managerNavItems: TNavItem[] = [
     isActive: false,
     items: [],
   },
-  
+
   {
     title: "Ca Làm Việc",
     url: PATHS.manager.timeSlots,
@@ -223,16 +277,7 @@ export const managerNavItems: TNavItem[] = [
     isActive: false,
     items: [],
   },
-
-  // {
-  //   title: "Giặt Ủi",
-  //   url: PATHS.manager.laundry,
-  //   icon: "tasks",
-  //   isActive: false,
-  //   items: [],
-  // },
 ];
-
 
 export const laundryNavItems: TNavItem[] = [
   {
@@ -278,88 +323,16 @@ export const staffNavItems: TNavItem[] = [
   },
 ];
 
-// Navigation cho Store (Cửa hàng)
-export const storeNavItems: TNavItem[] = [
+
+export const settingAdminItems: TSettingItem[] = [
   {
-    title: "Tổng quan",
-    url: "/store/dashboard",
-    icon: "dashboard",
-    isActive: false,
-    shortcut: ["d", "d"],
-    items: [],
+    name: "Ca làm việc",
+    url: "/admin/time-slots",
+    icon: "calendarLock",
   },
   {
-    title: "Sản phẩm",
-    url: "#",
-    icon: "box",
-    isActive: false,
-    items: [
-      {
-        title: "Tất cả sản phẩm",
-        url: "/store/products",
-        icon: "boxes",
-        shortcut: ["p", "a"],
-      },
-      {
-        title: "Thêm sản phẩm",
-        url: "/store/products/add",
-        icon: "plusBox",
-        shortcut: ["p", "n"],
-      },
-      {
-        title: "Danh mục",
-        url: "/store/products/categories",
-        icon: "category",
-        shortcut: ["p", "c"],
-      },
-    ],
-  },
-  {
-    title: "Đơn hàng",
-    url: "#",
-    icon: "boxes",
-    isActive: false,
-    items: [
-      {
-        title: "Tất cả đơn hàng",
-        url: "/store/orders",
-        icon: "list",
-        shortcut: ["o", "a"],
-      },
-      {
-        title: "Chờ xử lý",
-        url: "/store/orders/pending",
-        icon: "clock",
-        shortcut: ["o", "p"],
-      },
-      {
-        title: "Đang xử lý",
-        url: "/store/orders/processing",
-        icon: "loader",
-        shortcut: ["o", "r"],
-      },
-      {
-        title: "Hoàn thành",
-        url: "/store/orders/completed",
-        icon: "check",
-        shortcut: ["o", "c"],
-      },
-    ],
-  },
-  {
-    title: "Doanh thu",
-    url: "/store/revenue",
-    icon: "chart",
-    shortcut: ["r", "e"],
-    isActive: false,
-    items: [],
-  },
-  {
-    title: "Thông tin cửa hàng",
-    url: "/store/profile",
-    icon: "store",
-    shortcut: ["s", "p"],
-    isActive: false,
-    items: [],
+    name: "Hồ sơ",
+    url: "/admin/profile",
+    icon: "user",
   },
 ];

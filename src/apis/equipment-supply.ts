@@ -13,7 +13,6 @@ export const getEquipmentSupplyById = async (id: string) => {
 
 export const createEquipmentSupply = async (data: Partial<TEquipmentSupplyResponse>) => {
   const response = await httpHomePlus.post<TEquipmentSupplyResponse>(`/equipment-supplies`, data);
-  // console.log("create Services Response:", response);
   return response;
 };
 

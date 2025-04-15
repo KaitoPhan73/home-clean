@@ -28,6 +28,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createArea } from "@/apis/area";
 import { useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -63,18 +64,10 @@ export function CredenzaCreateArea({ className }: Props) {
         form.reset();
         setIsOpen(false); // Đóng Credenza
         router.refresh(); // Refresh lại trang
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo khu vực",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo khu vực ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };

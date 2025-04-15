@@ -12,11 +12,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from 'recharts';
 import {
-  ArrowUpCircle,
-  ArrowDownCircle,
   Users,
   Wallet,
   Activity,
@@ -109,13 +106,13 @@ export default function DashboardOverview({
       });
     }
     
-    if (showAll || dateParams.transactionType === 'Refund') {
-      data.push({ 
-        name: 'Refund', 
-        value: overviewData.totalRefund || 0, 
-        color: transactionTypeColors.Refund 
-      });
-    }
+    // if (showAll || dateParams.transactionType === 'Refund') {
+    //   data.push({ 
+    //     name: 'Refund', 
+    //     value: overviewData.totalRefund || 0, 
+    //     color: transactionTypeColors.Refund 
+    //   });
+    // }
     
     return data;
   };
@@ -185,14 +182,15 @@ export default function DashboardOverview({
         icon: <DollarSign className="h-5 w-5 text-amber-500" />,
         change: null,
       });
-    } else if (dateParams.transactionType === 'Refund') {
-      cards.push({
-        title: 'Total Refund Amount',
-        value: `$${(overviewData.totalRefund || 0).toLocaleString()}`,
-        icon: <DollarSign className="h-5 w-5 text-amber-500" />,
-        change: null,
-      });
     }
+    // } else if (dateParams.transactionType === 'Refund') {
+    //   cards.push({
+    //     title: 'Total Refund Amount',
+    //     value: `$${(overviewData.totalRefund || 0).toLocaleString()}`,
+    //     icon: <DollarSign className="h-5 w-5 text-amber-500" />,
+    //     change: null,
+    //   });
+    // }
     
     return cards;
   };

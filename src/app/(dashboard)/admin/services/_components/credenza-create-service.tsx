@@ -38,6 +38,7 @@ import {
 import { createService } from "@/apis/service";
 import { Textarea } from "@/components/ui/textarea";
 import { getAllServiceCategories } from "@/apis/service-category";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -100,10 +101,8 @@ export function CredenzaCreateService({ className }: Props) {
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo dịch vụ ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };

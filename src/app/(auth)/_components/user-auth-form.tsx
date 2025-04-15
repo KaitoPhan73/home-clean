@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
@@ -17,25 +18,20 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
-import {
-  LoginSchema,
-  TAuthResponse,
-  TLoginRequest,
-} from "@/schema/auth.schema";
-import { checkLoginManager } from "@/apis/authencation";
+import { checkLoginManager, checkLoginManagerLaudry } from "@/apis/authencation";
 import { useRouter } from "next/navigation";
 import authClient from "@/apis/clients/auth";
-import { HttpResponse } from "@/lib/http";
 import { setUser } from "@/redux/User/userSlice";
 import { useDispatch } from "react-redux";
+import { z } from "zod";
 
-// Compact toast notification
-const CompactUserToast = ({ 
+// Toast component
+const CompactToast = ({ 
   message, 
-  type = "success" 
+  type = "success"
 }: { 
   message: string; 
-  type: "success" | "error"; 
+  type: "success" | "error";
 }) => {
   return (
     <div className="flex items-center space-x-2 py-1">
@@ -48,14 +44,38 @@ const CompactUserToast = ({
   );
 };
 
-const UserAuthForm = () => {
+// Authentication Form Schema
+const AuthSchema = z
+  .object({
+    phoneNumber: z.string().min(1, {
+      message: "Số điện thoại không được trống.",
+    }),
+    password: z.string().min(1, {
+      message: "Mật khẩu không được trống.",
+    }),
+  })
+  .strict();
+
+type TAuthRequest = z.infer<typeof AuthSchema>;
+
+const CombinedManagerAuthForm = () => {
   const { toast } = useToast();
   const router = useRouter();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<TAuthRequest>({
+    resolver: zodResolver(AuthSchema),
+    defaultValues: {
+      phoneNumber: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
+    // Check for saved credentials
     const savedPhone = localStorage.getItem("user_phone");
     const savedPassword = localStorage.getItem("user_password");
     const savedRememberMe = localStorage.getItem("user_remember") === "true";
@@ -65,17 +85,7 @@ const UserAuthForm = () => {
       form.setValue("password", savedPassword);
       setRememberMe(true);
     }
-  }, []);
-
-  const form = useForm<TLoginRequest>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      phoneNumber: "",
-      password: "",
-    },
-  });
-
-  const { isSubmitting } = form.formState;
+  }, [form]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -85,8 +95,11 @@ const UserAuthForm = () => {
     setRememberMe(checked);
   };
 
-  const onSubmit = async (data: TLoginRequest) => {
+  const onSubmit = async (data: TAuthRequest) => {
+    setIsLoading(true);
+    
     try {
+      // Handle remember me logic
       if (rememberMe) {
         localStorage.setItem("user_phone", data.phoneNumber);
         localStorage.setItem("user_password", data.password);
@@ -97,18 +110,31 @@ const UserAuthForm = () => {
         localStorage.removeItem("user_remember");
       }
 
-      let response: HttpResponse<TAuthResponse> | null = null;
-      response = await checkLoginManager(data).catch(() => null);
-      if (!response) throw new Error("Tất cả các API đều thất bại.");
+      // Try both APIs in parallel
+      const [cleaningResponse, laundryResponse] = await Promise.allSettled([
+        // Cleaning service API
+        checkLoginManager({
+          phoneNumber: data.phoneNumber,
+          password: data.password
+        }).catch(() => null),
+        
+        // Laundry service API
+        checkLoginManagerLaudry({
+          phoneNumber: data.phoneNumber,
+          password: data.password
+        }).catch(() => null)
+      ]);
 
-      if (response && response.status === 200) {
-        const userData = response.payload;
+      // Check if cleaning API succeeded
+      if (cleaningResponse.status === 'fulfilled' && cleaningResponse.value?.status === 200) {
+        const userData = cleaningResponse.value.payload;
         await authClient.auth(userData);
         dispatch(setUser(userData));
 
         let redirectUrl = "/homeplus";
-        let message = "Chuyển đến trang chính";
+        let message = "Đang chuyển đến trang chính";
 
+        // Set redirect based on role for cleaning service
         if (userData.role?.toLowerCase() === "admin") {
           redirectUrl = "/admin/buildings";
           message = "Đang chuyển đến trang quản lí";
@@ -122,22 +148,56 @@ const UserAuthForm = () => {
 
         toast({
           title: "Đăng nhập thành công",
-          description: <CompactUserToast message={message} type="success" />,
+          description: <CompactToast message={message} type="success" />,
           duration: 2500,
         });
 
         router.push(redirectUrl);
+        return;
       }
+
+      // Check if laundry API succeeded
+      if (laundryResponse.status === 'fulfilled' && laundryResponse.value?.status === 200) {
+        const userData = laundryResponse.value.payload;
+        await authClient.auth(userData);
+        
+        const positionUserData = {
+          ...userData,
+          position: "ManageLaundry",
+        };
+        dispatch(setUser(positionUserData));
+
+        let redirectUrl = "/laundry/orders";
+        let message = "Đang chuyển đến trang quản lý dịch vụ giặt ủi";
+
+        // Set redirect based on role for laundry service
+        if (userData.role?.toLowerCase() === "admin") {
+          redirectUrl = "/admin/laundry";
+          message = "Đang chuyển đến trang quản lí giặt ủi";
+        }
+
+        toast({
+          title: "Đăng nhập thành công",
+          description: <CompactToast message={message} type="success" />,
+          duration: 2500,
+        });
+
+        router.push(redirectUrl);
+        return;
+      }
+
+      // If both APIs failed
+      throw new Error("Đăng nhập thất bại");
+      
     } catch (error) {
-      console.error("Login error: ", error);
+      console.error("Login error:", error);
       toast({
         title: "Đăng nhập thất bại",
-        description: <CompactUserToast 
-          message="Vui lòng kiểm tra lại thông tin đăng nhập" 
-          type="error" 
-        />,
+        description: <CompactToast message="Vui lòng kiểm tra lại thông tin đăng nhập" type="error" />,
         duration: 2500,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -155,7 +215,7 @@ const UserAuthForm = () => {
                 <Input
                   placeholder="Nhập số điện thoại..."
                   {...field}
-                  disabled={isSubmitting}
+                  disabled={isLoading}
                   className="focus-visible:ring-blue-500"
                 />
               </FormControl>
@@ -177,7 +237,7 @@ const UserAuthForm = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Nhập mật khẩu..."
                     {...field}
-                    disabled={isSubmitting}
+                    disabled={isLoading}
                     className="pr-10 focus-visible:ring-blue-500"
                   />
                   <button
@@ -199,13 +259,13 @@ const UserAuthForm = () => {
         <div className="flex justify-between items-center text-xs">
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="user-remember-me"
+              id="remember-me"
               checked={rememberMe}
               onCheckedChange={handleRememberMeChange}
               className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <label
-              htmlFor="user-remember-me"
+              htmlFor="remember-me"
               className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               Ghi nhớ mật khẩu
@@ -223,13 +283,13 @@ const UserAuthForm = () => {
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 transition-colors"
-          disabled={isSubmitting}
+          disabled={isLoading}
         >
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </Button>
       </form>
     </Form>
   );
 };
 
-export default UserAuthForm;
+export default CombinedManagerAuthForm;

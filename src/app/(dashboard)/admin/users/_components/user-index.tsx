@@ -6,6 +6,7 @@ import { Heading } from "@/components/ui/headling";
 import { Separator } from "@/components/ui/separator";
 import UserTable from "@/app/(dashboard)/admin/users/_components/user-table";
 import UserTableAction from "@/app/(dashboard)/admin/users/_components/user-tables/user-table-action";
+import { CredenzaCreateUser } from "./credenza-create-user";
 type Props = {
   keyProps: string;
 };
@@ -15,7 +16,7 @@ const UserIndex = ({ keyProps }: Props) => {
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <Heading title="Quản Lí" description="Người Dùng" />
-          {/* <CredenzaCreateUser /> */}
+          <CredenzaCreateUser />
         </div>
         <Separator />
 

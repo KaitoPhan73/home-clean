@@ -35,7 +35,5 @@ export const getUserById = async (id: string) => {
 
 export const createUser = async (data: Partial<TUserResponse>) => {
   const response = await httpVinWallet.post<TUserResponse>(`/users`, data);
-  console.log("createUser Response:", response);
   return response;
 };
-

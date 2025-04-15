@@ -108,7 +108,7 @@ const AdminAuthForm = () => {
         let message = "Chuyển đến trang chính";
 
         if (userData.role?.toLowerCase() === "admin") {
-          redirectUrl = "/admin/buildings";
+          redirectUrl = "/admin/revenues";
           message = "Đang chuyển đến trang quản lý";
         } else if (userData.role?.toLowerCase() === "manager") {
           redirectUrl = "/manager/groups";

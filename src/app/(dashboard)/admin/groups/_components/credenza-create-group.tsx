@@ -44,6 +44,7 @@ import { X, Plus, Users, Building, Map, Briefcase } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getAllManagers } from "@/apis/manager";
+import { handleErrorApi } from "@/lib/utils";
 
 export function CredenzaCreateGroup({ className }: { className?: string }) {
   const { toast } = useToast();
@@ -135,11 +136,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         setClusterOptions(clustersResponse.payload.items);
       }
     } catch (error: any) {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      const errorMessage = JSON.parse(error.message);
       toast({
-        title: "Lỗi khi tải dữ liệu",
-        description:
-          error.message || "Không thể tải dữ liệu. Vui lòng thử lại sau.",
+        title: "Lỗi",
+        description: `Có lỗi xảy ra: ${errorMessage.description}`,
         variant: "destructive",
       });
     } finally {
@@ -158,7 +158,6 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
           data.clusterIds && data.clusterIds.length > 0
             ? (data.clusterIds as [string, ...string[]])
             : undefined,
-
       };
 
       const response = await createGroup(formattedData);
@@ -170,18 +169,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         });
         form.reset();
         setIsOpen(false);
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo nhóm. Vui lòng thử lại sau.",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: error.message || "Đã xảy ra lỗi khi tạo nhóm.",
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     } finally {
       setIsLoading(false);

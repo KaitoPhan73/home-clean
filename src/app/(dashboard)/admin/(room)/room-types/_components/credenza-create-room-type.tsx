@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/form";
 import { createRoomType } from "@/apis/room-type";
 import { useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
 
 export function CredenzaCreateRoomType() {
   const { toast } = useToast();
@@ -55,18 +56,10 @@ export function CredenzaCreateRoomType() {
         form.reset();
         setIsOpen(false);
         router.refresh();
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo loại phòng",
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra khi tạo loại phòng: ${error.message}`,
-        variant: "destructive",
+      handleErrorApi({
+        error,
       });
     }
   };

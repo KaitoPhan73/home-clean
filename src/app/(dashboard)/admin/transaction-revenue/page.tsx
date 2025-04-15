@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 // In DashboardPage.tsx
 'use client';
 
@@ -74,17 +76,17 @@ export default function DashboardPage() {
             setTopUsersData(users.payload);
           }
           break;
-        case 'wallets':
-          if (!walletTypeData) {
-            const wallets = await getWalletTypeStats(dateParams);
-            setWalletTypeData(wallets.payload);
-          }
-          break;
-        case 'trends':
-          if (!monthlyTrendData) {
-            const trends = await getMonthlyTransactionTrend(dateParams);
-            setMonthlyTrendData(trends.payload);
-          }
+        // case 'wallets':
+        //   if (!walletTypeData) {
+        //     const wallets = await getWalletTypeStats(dateParams);
+        //     setWalletTypeData(wallets.payload);
+        //   }
+        //   break;
+        // case 'trends':
+        //   if (!monthlyTrendData) {
+        //     const trends = await getMonthlyTransactionTrend(dateParams);
+        //     setMonthlyTrendData(trends.payload);
+        //   }
           break;
         case 'payments':
           if (!paymentMethodData) {
@@ -189,14 +191,14 @@ export default function DashboardPage() {
                       ) : (
                         <div className="text-center text-xs text-gray-500">No transaction stats available</div>
                       )}
-                      {dailyTransactionData ? (
+                      {/* {dailyTransactionData ? (
                         <DailyTransactions
                           data={dailyTransactionData}
                           transactionType={dateParams.transactionType}
                         />
                       ) : (
                         <div className="text-center text-xs text-gray-500">No daily transaction data available</div>
-                      )}
+                      )} */}
                     </div>
                   </TabsContent>
                   <TabsContent value="users">
@@ -242,13 +244,13 @@ export default function DashboardPage() {
                       <div className="text-center text-xs text-gray-500">No wallet data available</div>
                     )}
                   </TabsContent>
-                  <TabsContent value="trends">
+                  {/* <TabsContent value="trends">
                     {monthlyTrendData && monthlyTrendData.length > 0 ? (
                       <MonthlyTransactionTrends data={monthlyTrendData} />
                     ) : (
                       <div className="text-center text-xs text-gray-500">No trend data available</div>
                     )}
-                  </TabsContent>
+                  </TabsContent> */}
                   <TabsContent value="payments">
                     {paymentMethodData && paymentMethodData.length > 0 ? (
                       <PaymentMethodStats data={paymentMethodData} />
@@ -256,7 +258,7 @@ export default function DashboardPage() {
                       <div className="text-center text-xs text-gray-500">No payment method data available</div>
                     )}
                   </TabsContent>
-                  <TabsContent value="categories">
+                  {/* <TabsContent value="categories">
                     {categoryStatsData && categoryStatsData.length > 0 ? (
                       <CategoryStats
                         data={categoryStatsData}
@@ -265,7 +267,7 @@ export default function DashboardPage() {
                     ) : (
                       <div className="text-center text-xs text-gray-500">No category data available</div>
                     )}
-                  </TabsContent>
+                  </TabsContent> */}
                 </>
               )}
             </div>

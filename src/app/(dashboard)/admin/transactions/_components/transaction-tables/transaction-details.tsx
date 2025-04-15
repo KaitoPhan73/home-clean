@@ -20,10 +20,13 @@ import {
   AlertCircle,
   NotebookPen,
   Copy,
+  LocateFixedIcon,
 } from "lucide-react";
 import { EnrichedTransaction } from "@/schema/transaction.schema";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useUserHouseInfo } from "@/hooks/use-user-house-info";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const TransactionDetails = ({ data }: { data: EnrichedTransaction }) => {
   const paymentMethodIcon =
@@ -32,7 +35,9 @@ export const TransactionDetails = ({ data }: { data: EnrichedTransaction }) => {
     ) : (
       <CreditCard className="text-green-500 h-5 w-5" />
     );
-
+  const { user, building, house, loading } = useUserHouseInfo({
+    userId: data.userId,
+  });
   return (
     <div className="max-h-[90vh] overflow-auto">
       <div className="sticky top-0 z-10 bg-white p-4 border-b">
@@ -78,20 +83,43 @@ export const TransactionDetails = ({ data }: { data: EnrichedTransaction }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="space-y-3">
-                  <DetailItem
-                    icon={<User className="h-4 w-4 text-gray-500" />}
-                    label="Tên khách hàng"
-                    value={<span className="font-medium">{data.userName}</span>}
-                  />
-                  <DetailItem
-                    icon={<Wallet className="h-4 w-4 text-blue-500" />}
-                    label="Ví"
-                    value={
-                      <span className="font-medium">{data.walletName}</span>
-                    }
-                  />
-                </div>
+                {loading ? (
+                  <div className="space-y-2">
+                    {Array(3)
+                      .fill(0)
+                      .map((_, index) => (
+                        <Skeleton key={index} className="h-6 w-full mb-2" />
+                      ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <DetailItem
+                      icon={<User className="h-4 w-4 text-gray-500" />}
+                      label="Tên khách hàng"
+                      value={
+                        <span className="font-medium">{user?.fullName}</span>
+                      }
+                    />
+                    <DetailItem
+                      icon={
+                        <LocateFixedIcon className="h-4 w-4 text-gray-500" />
+                      }
+                      label="Địa chỉ"
+                      value={
+                        <span className="font-medium">
+                          {house?.no} - Tòa {building?.name}
+                        </span>
+                      }
+                    />
+                    <DetailItem
+                      icon={<Wallet className="h-4 w-4 text-blue-500" />}
+                      label="Ví"
+                      value={
+                        <span className="font-medium">{data.walletName}</span>
+                      }
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
