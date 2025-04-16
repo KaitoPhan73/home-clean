@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,10 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { UserPlus } from "lucide-react";
 import { getUsersInWallet } from "@/apis/vinwallet/wallet";
 import { TWalletResponse } from "@/schema/wallet.schema";
 import { UsersTableActions } from "./users-table-actions";
+import { InviteMemberCredenza } from "./credenza-invite-member";
 
 type Props = {
   walletId: string;
@@ -30,10 +29,7 @@ export async function UsersTableInWallet({ walletId, wallet }: Props) {
             <CardTitle>Thành viên</CardTitle>
             <CardDescription>Danh sách thành viên</CardDescription>
           </div>
-          <Button>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Thêm thành viên
-          </Button>
+          <InviteMemberCredenza walletId={walletId} />
         </div>
       </CardHeader>
       <CardContent>

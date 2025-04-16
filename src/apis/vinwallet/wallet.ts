@@ -8,6 +8,7 @@ import { TWalletResponse } from "@/schema/wallet.schema";
 import { TTableResponse } from "@/types/Table";
 import {
   TContributionResponse,
+  TInviteRequest,
   TTransactionWalletResponse,
 } from "@/types/wallet";
 import { revalidateTag } from "next/cache";
@@ -31,6 +32,14 @@ export const getUsersInWallet = async (id: string, params?: any) => {
         tags: [`users-in-wallet-${id}`],
       },
     }
+  );
+  return response;
+};
+
+export const inviteMemberToWallet = async (data: TInviteRequest) => {
+  const response = await httpVinWallet.post<TUserResponse>(
+    `/wallets/invite-member`,
+    data
   );
   return response;
 };
@@ -79,8 +88,6 @@ type TBodyWalletStatistics = {
 export const getTransactionWalletStatistics = async (
   data: TBodyWalletStatistics
 ) => {
-  console.log("dataCCC", data);
-
   const response = await httpVinWallet.post<TTransactionWalletResponse>(
     `/transactions/statistics`,
     data
