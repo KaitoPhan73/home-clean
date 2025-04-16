@@ -30,11 +30,11 @@ const STATUS_CONFIG = {
 
 const WALLET_TYPE_CONFIG = {
   Personal: {
-    label: "Cá nhân",
+    label: "Ví Cá Nhân",
     className: "bg-blue-100 text-blue-500 hover:bg-blue-100",
   },
   Shared: {
-    label: "Chia sẻ",
+    label: "Ví Chung",
     className: "bg-purple-100 text-green-500 hover:bg-purple-100",
   },
 };

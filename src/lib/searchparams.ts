@@ -20,6 +20,7 @@ export const searchParams = {
   endDate: parseAsString,
   types: parseAsString,
   areaId: parseAsString,
+  staffType: parseAsString.withDefault("all"),
 };
 
 export function searchParamsToString(

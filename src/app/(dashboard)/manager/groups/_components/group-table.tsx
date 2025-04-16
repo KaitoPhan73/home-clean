@@ -7,7 +7,6 @@ import { cookies } from "next/headers";
 import GroupDetailsView from "@/app/(dashboard)/manager/groups/_components/group-tables/group-detail-card";
 
 const GroupTable = async () => {
-  // Get the user cookie which contains the groupId
   const cookieStore = await cookies();
   const userCookie = cookieStore.get("user");
 
@@ -16,16 +15,13 @@ const GroupTable = async () => {
 
   if (userCookie) {
     try {
-      // Parse the user data from cookie
       const userData = JSON.parse(userCookie.value);
       const groupId = userData.groupId;
 
       if (groupId) {
-        // Fetch the specific group by ID
         const groupResponse = await getGroupById(groupId);
 
         if (groupResponse?.payload) {
-          // Format data for the table
           groupData = [groupResponse.payload];
           totalItems = 1;
         }
@@ -45,7 +41,6 @@ const GroupTable = async () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Thông tin nhóm</h2>
       <GroupDetailsView data={finalData} />
     </div>
   );

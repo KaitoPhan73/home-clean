@@ -14,7 +14,7 @@ import {
 import React from "react";
 import { TStaffResponse } from "@/schema/staff.schema";
 
-export const StaffColumns: ColumnDef<TStaffResponse>[] = [
+export const StaffServiceColumns: ColumnDef<TStaffResponse>[] = [
   {
     accessorKey: "fullName",
     header: "Họ và Tên",

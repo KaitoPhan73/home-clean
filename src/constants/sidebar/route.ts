@@ -115,12 +115,12 @@ export const adminNavItems: TNavItem[] = [
         icon: "staff",
         shortcut: ["a", "s"],
       },
-      {
-        title: "Nhân Viên Giặt Sấy",
-        url: PATHS.admin.staffs,
-        icon: "staff",
-        shortcut: ["a", "s"],
-      },
+      // {
+      //   title: "Nhân Viên Giặt Sấy",
+      //   url: PATHS.admin.staffs,
+      //   icon: "staff",
+      //   shortcut: ["a", "s"],
+      // },
       {
         title: "Người Dùng",
         url: PATHS.admin.users,
@@ -212,24 +212,24 @@ export const adminNavItems: TNavItem[] = [
         "icon": "cart",
         "shortcut": ["r", "a"]
       },
-      {
-        "title": "Lịch sử đơn hàng",
-        "url": PATHS.admin.orderHistory,
-        "icon": "history",
-        "shortcut": ["r", "s"]
-      },
+      // {
+      //   "title": "Lịch sử đơn hàng",
+      //   "url": PATHS.admin.orderHistory,
+      //   "icon": "history",
+      //   "shortcut": ["r", "s"]
+      // },
       {
         "title": "Các nhiệm vụ",
         "url": PATHS.admin.tasks,
         "icon": "tasks",
         "shortcut": ["r", "s"]
       },
-      {
-        "title": "Loại đồ dùng",
-        "url": PATHS.admin.itemTypes,
-        "icon": "product",
-        "shortcut": ["r", "s"]
-      },
+      // {
+      //   "title": "Loại đồ dùng",
+      //   "url": PATHS.admin.itemTypes,
+      //   "icon": "product",
+      //   "shortcut": ["r", "s"]
+      // },
       {
         "title": "Loại dịch vụ",
         "url": PATHS.admin.serviceTypes,
