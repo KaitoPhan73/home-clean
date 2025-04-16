@@ -24,7 +24,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
-import { inviteMemberToWallet } from "@/apis/vinwallet/wallet";
+import {
+  inviteMemberToWallet,
+  refetchUserInWallet,
+} from "@/apis/vinwallet/wallet";
 import { UserPlus } from "lucide-react";
 import { ResponsiveComboBoxUserAsync } from "@/components/features/responsive-combobo-user-async";
 import { handleErrorApi } from "@/lib/utils";
@@ -60,6 +63,7 @@ export function InviteMemberCredenza({ walletId, className }: Props) {
         userId: data.userId,
         walletId: walletId,
       });
+      await refetchUserInWallet(walletId);
 
       if (response.status === 201) {
         toast({
