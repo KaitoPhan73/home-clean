@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -8,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import NotificationBell from "@/components/NotificationBell";
+import { LogOut } from "lucide-react";
+
 import {
   Tooltip,
   TooltipContent,
@@ -20,8 +23,8 @@ interface HeaderMainProps {
 }
 
 const HeaderMain = ({ className }: HeaderMainProps) => {
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
   const shouldShowBack = () => {
     const segments = pathname.split("/").filter(Boolean);
     if (segments.length < 3) return false;
@@ -65,6 +68,18 @@ const HeaderMain = ({ className }: HeaderMainProps) => {
       <div className="flex items-center gap-4 ml-auto">
         <NotificationBell />
         <ModeToggle />
+
+        <div className="flex items-center gap-2 mr-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/logout")}
+            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="sr-only">Đăng xuất</span>
+          </Button>
+        </div>
       </div>
     </header>
   );

@@ -56,7 +56,7 @@ export const OrderLaundrySchema = BaseSchema.extend({
   balance: z.number().nullable(),
   currency: z.string().nullable(),
   type: z.string().min(1),
-  extraField: z.string().min(1),
+  extraField: z.string(),
   totalAmount: z.number().nullable(),
   discountAmount: z.number().nullable(),
   orderDate: z.string().datetime(),
@@ -70,5 +70,6 @@ export const OrderLaundrySchema = BaseSchema.extend({
   orderDetailsByKg: z.array(OrderDetailByKgSchema),
   orderDetailsByItem: z.array(OrderDetailByItemSchema),
 });
+
 
 export type TOrderLaundryResponse = z.infer<typeof OrderLaundrySchema>;

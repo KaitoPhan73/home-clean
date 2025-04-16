@@ -1,68 +1,91 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { DateRangeParams } from '@/app/(dashboard)/admin/transaction-revenue/types/transaction';
 import { useState } from 'react';
+import { DateRangeParams } from '@/app/(dashboard)/admin/transaction-revenue/types/transaction';
+import { Calendar } from 'lucide-react';
 
 interface DateFilterProps {
+  defaultFromDate: string;
+  defaultToDate: string;
+  defaultTransactionType?: 'Deposit' | 'Spending' | 'Refund';
   onChange: (params: DateRangeParams) => void;
-  defaultFromDate?: string;
-  defaultToDate?: string;
 }
 
 export default function DateFilter({
+  defaultFromDate,
+  defaultToDate,
+  defaultTransactionType,
   onChange,
-  defaultFromDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 60 days ago
-  defaultToDate = new Date().toISOString().split('T')[0], // today
 }: DateFilterProps) {
   const [fromDate, setFromDate] = useState(defaultFromDate);
   const [toDate, setToDate] = useState(defaultToDate);
-  const [type, setType] = useState<'day' | 'week' | 'month' | 'year'>('day');
+  const [transactionType, setTransactionType] = useState<'Deposit' | 'Spending' | 'Refund' | undefined>(
+    defaultTransactionType
+  );
 
-  const handleFilterChange = () => {
-    onChange({ fromDate, toDate, type });
+  const handleApplyFilter = () => {
+    onChange({
+      fromDate,
+      toDate,
+      transactionType,
+    });
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-lg shadow-sm mb-6">
-      <div className="flex flex-1 flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">From Date</label>
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+    <div className="flex flex-col sm:flex-row gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <label htmlFor="fromDate" className="block text-xs font-medium text-gray-700 mb-1">
+            From
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="date"
+              id="fromDate"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="pl-8 block w-full rounded-md border-gray-300 shadow-sm text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+        <div className="relative">
+          <label htmlFor="toDate" className="block text-xs font-medium text-gray-700 mb-1">
+            To
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="date"
+              id="toDate"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="pl-8 block w-full rounded-md border-gray-300 shadow-sm text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
       </div>
-      
-      <div className="flex flex-1 flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">To Date</label>
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-      
-      <div className="flex flex-1 flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-1">Group By</label>
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as any)}
-          className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="day">Day</option>
-          <option value="week">Week</option>
-          <option value="month">Month</option>
-          <option value="year">Year</option>
-        </select>
-      </div>
-      
-      <div className="flex items-end">
+      <div className="flex items-end gap-3">
+        <div>
+          <label htmlFor="transactionType" className="block text-xs font-medium text-gray-700 mb-1">
+            Transaction Type
+          </label>
+          <select
+            id="transactionType"
+            value={transactionType || ''}
+            onChange={(e) => setTransactionType(e.target.value as any || undefined)}
+            className="block w-full rounded-md border-gray-300 shadow-sm text-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All Types</option>
+            <option value="Deposit">Deposit</option>
+            <option value="Spending">Spending</option>
+            <option value="Refund">Refund</option>
+          </select>
+        </div>
         <button
-          onClick={handleFilterChange}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+          onClick={handleApplyFilter}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md transition-colors"
         >
           Apply Filters
         </button>

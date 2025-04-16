@@ -245,10 +245,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <p className="text-sm text-gray-600 mt-2">
             Nhân viên: {task?.employeeName || "Chưa xác định"}
           </p>
-          <p className="text-sm text-gray-600 mt-2">
-           Quản lí phụ trách: {task?.managerName || "Chưa xác định"}
-          </p>
-
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
               <p className="text-xs text-gray-500">Ngày tạo</p>

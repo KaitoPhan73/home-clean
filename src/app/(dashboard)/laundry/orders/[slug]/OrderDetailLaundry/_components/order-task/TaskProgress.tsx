@@ -37,7 +37,7 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
               )}
             </div>
             <span
-              className={`mt-2 text-sm font-medium text-center max-w-24 ${
+              className={`mt-2 text-xs font-medium text-center max-w-24 ${
                 task.status === TaskStatusEnum.Completed
                   ? "text-green-700"
                   : task.status === TaskStatusEnum.InProgress
