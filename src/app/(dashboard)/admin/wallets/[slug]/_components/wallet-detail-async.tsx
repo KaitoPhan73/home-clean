@@ -20,7 +20,6 @@ const WalletDetailAsync = async ({ id, keyProps }: WalletDetailAsyncProps) => {
   const accessToken = cookieList.get("accessToken")?.value || "";
   const response = await getWalletById(id, accessToken);
   const wallet = response.payload;
-  console.log("keyProps", keyProps);
 
   return (
     <div className="grid grid-cols-12 gap-4 p-4">
@@ -35,14 +34,14 @@ const WalletDetailAsync = async ({ id, keyProps }: WalletDetailAsyncProps) => {
             </Suspense>
           </div>
           <div className="col-span-12 md:col-span-6">
-            <Suspense fallback={<ContributionChartSkeleton />}>
+            <Suspense key={keyProps} fallback={<ContributionChartSkeleton />}>
               <ContributionPieAsync walletId={wallet.id} />
             </Suspense>
           </div>
         </>
       ) : null}
       <div className="col-span-12">
-        <Suspense fallback={<TransactionChartsSkeleton />}>
+        <Suspense key={keyProps} fallback={<TransactionChartsSkeleton />}>
           <TransactionChartsAsync walletId={wallet.id} />
         </Suspense>
       </div>

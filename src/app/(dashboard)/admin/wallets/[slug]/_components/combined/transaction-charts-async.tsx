@@ -11,12 +11,16 @@ export async function TransactionChartsAsync({
   const startDate = searchParamsCache.get("startDate");
   const endDate = searchParamsCache.get("endDate");
 
+  const startDateTime = startDate ? new Date(startDate) : undefined;
+  const endDateTime = endDate ? new Date(endDate) : undefined;
+
   const filters = {
     walletId,
     ...(timePeriod && { timePeriod }),
-    ...(startDate && { startDate }),
-    ...(endDate && { endDate }),
+    ...(startDateTime && { startDate: startDateTime.toISOString() }),
+    ...(endDateTime && { endDate: endDateTime.toISOString() }),
   };
+  console.log("filters", filters);
   const response = await getTransactionWalletStatistics(filters);
   const data = response.payload;
   return <TransactionChartsCombined data={data} />;

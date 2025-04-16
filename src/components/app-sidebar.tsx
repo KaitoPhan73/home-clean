@@ -59,7 +59,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
-        {settingItems ? <NavProjects settingItems={settingItems} /> : null}
+        {settingItems.length > 0 ? (
+          <NavProjects settingItems={settingItems} />
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

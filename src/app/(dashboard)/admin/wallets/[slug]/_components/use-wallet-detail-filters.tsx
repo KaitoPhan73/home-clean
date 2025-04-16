@@ -1,15 +1,15 @@
 "use client";
 
 import { searchParams } from "@/lib/searchparams";
+import { format } from "date-fns";
 import { useQueryState } from "nuqs";
 import { useCallback, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 
 export function useWalletDetailFilters() {
-  // Filter by days (1 day, 7 days, 14 days, 21 days, 30 days, current month)
   const [days, setDays] = useQueryState(
     "days",
-    searchParams.days.withDefault("")
+    searchParams.days.withOptions({ shallow: false }).withDefault("")
   );
 
   // Page state
@@ -18,7 +18,6 @@ export function useWalletDetailFilters() {
     searchParams.page.withDefault(1)
   );
 
-  // Date range filters
   const [startDate, setStartDate] = useQueryState(
     "startDate",
     searchParams.startDate.withDefault("")
@@ -26,9 +25,8 @@ export function useWalletDetailFilters() {
 
   const [endDate, setEndDate] = useQueryState(
     "endDate",
-    searchParams.endDate.withDefault("")
+    searchParams.endDate.withOptions({ shallow: false }).withDefault("")
   );
-
   // Search by member name
   const [searchQuery, setSearchQuery] = useQueryState(
     "q",
@@ -37,16 +35,12 @@ export function useWalletDetailFilters() {
       .withDefault("")
   );
 
-  // Handle date range selection
   const handleDateRangeChange = useCallback(
     (range: DateRange | undefined) => {
-      if (range?.from && range?.to) {
-        setStartDate(range.from.toISOString());
-        setEndDate(range.to.toISOString());
-        setPage(1);
-      }
+      setStartDate(range?.from ? format(range.from, "yyyy-MM-dd") : null);
+      setEndDate(range?.to ? format(range.to, "yyyy-MM-dd") : null);
     },
-    [setStartDate, setEndDate, setPage]
+    [setStartDate, setEndDate]
   );
 
   const currentDateRange = useMemo(() => {
