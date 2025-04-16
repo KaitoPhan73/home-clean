@@ -21,3 +21,8 @@ export interface TTransactionWalletResponse {
     failed: number;
   };
 }
+
+export interface TInviteRequest {
+  walletId: string;
+  userId: string;
+}

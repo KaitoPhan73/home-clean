@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 type Option = {
   value: string;
-  label: string;
+  label: React.ReactNode;
 };
 
 interface ResponsiveComboBoxProps {
@@ -65,12 +65,12 @@ export function ResponsiveComboBox({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={cn("w-[150px] justify-start", className)}
+            className={cn("w-full justify-start", className)}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start" portal={portal}>
+        <PopoverContent className="w-full p-0" align="start" portal={portal}>
           <OptionList
             options={options}
             onSelect={handleSelect}
@@ -92,7 +92,7 @@ export function ResponsiveComboBox({
         </Button>
       </DrawerTrigger>
       <DrawerContent>
-        <div className="mt-4 border-t">
+        <div className="mt-4 border-t w-full">
           <OptionList
             options={options}
             onSelect={handleSelect}
@@ -114,14 +114,14 @@ function OptionList({
   isLoading?: boolean;
 }) {
   return (
-    <Command>
-      <CommandInput placeholder="Tìm..." />
-      <CommandList>
+    <Command className="w-full">
+      <CommandInput placeholder="Tìm..." className="w-full" />
+      <CommandList className="w-full">
         <CommandEmpty>Không tìm thấy kết quả</CommandEmpty>
-        <CommandGroup>
+        <CommandGroup className="w-full">
           {isLoading
             ? Array.from({ length: 5 }).map((_, index) => (
-                <CommandItem key={index} value="" disabled>
+                <CommandItem key={index} value="" disabled className="w-full">
                   <Skeleton className="h-5 w-full" />
                 </CommandItem>
               ))
@@ -130,6 +130,7 @@ function OptionList({
                   key={index}
                   value={option.value}
                   onSelect={onSelect}
+                  className="w-full"
                 >
                   {option.label}
                 </CommandItem>

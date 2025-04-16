@@ -3,10 +3,13 @@ import React from "react";
 import { DataTableDateRange } from "@/components/table/data-table-date-range";
 import { useWalletDetailFilters } from "./use-wallet-detail-filters";
 const WalletFilter = () => {
-  const { currentDateRange, handleDateRangeChange, setPage } =
-    useWalletDetailFilters();
+  const {
+    currentDateRange,
 
-  console.log("currentDateRange", currentDateRange);
+    handleDateRangeChange,
+    setPage,
+  } = useWalletDetailFilters();
+
   return (
     <>
       <DataTableDateRange
