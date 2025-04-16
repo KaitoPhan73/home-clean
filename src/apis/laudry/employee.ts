@@ -2,19 +2,8 @@
 "use server";
 
 import { httpVinLaundry } from "@/lib/http";
+import { TEmployeeLaundryResponse } from "@/schema/VinLaudry/employee.schema";
 import { TTableResponse } from "@/types/Table";
-
-// export interface Employee {
-//     id: string;
-//     employeeCode: string;
-//     fullName: string;
-//     phone: string;
-//     email: string;
-//     position: string | null;
-//     role: string;
-//     status: string;
-//     hireDate: string;
-// }
 
 export interface EmployeRealTimeStatus {
     id: string;
@@ -23,6 +12,16 @@ export interface EmployeRealTimeStatus {
     staffCode: string;
     lastUpdated: string;
 }
+
+export const getAllEmployees = async (params?: any, accessToken?: string) => {
+    const response = await httpVinLaundry.get<TTableResponse<TEmployeeLaundryResponse>>("/employees", {
+      params,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return { payload: response.payload };
+  };
 
 
 export async function getEmployeesRealTimeStatus(params?: any): Promise<EmployeRealTimeStatus[]> {

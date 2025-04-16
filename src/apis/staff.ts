@@ -74,3 +74,18 @@ export const createStaff = async (data: Partial<TStaffResponse>) => {
   const response = await httpHomePlus.post<TStaffResponse>(`/auth/register-staff`, data);
   return response;
 };
+
+
+export const reloadAllStaffStatus = async (groupId: string) => {
+  if (!groupId) {
+    throw new Error("Group ID is required");
+  }
+  
+  try {
+    const response = await httpHomePlus.post(`/staffs/reload-all-staff-status/${groupId}`, {});
+    return response;
+  } catch (error) {
+    console.error("Error reloading staff status:", error);
+    throw error;
+  }
+};
