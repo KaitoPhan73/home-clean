@@ -18,7 +18,6 @@ import {
 } from "@/apis/vinwallet/wallet";
 import { handleErrorApi } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 
 interface Props {
   userId: string;
@@ -27,8 +26,6 @@ interface Props {
 }
 
 export function UsersTableActions({ userId, walletId, isOwner }: Props) {
-  const router = useRouter();
-
   const handleChangeOwner = async () => {
     try {
       await changeOwnerWallet(walletId, userId);
@@ -47,7 +44,7 @@ export function UsersTableActions({ userId, walletId, isOwner }: Props) {
   const handleRemoveUserFromWallet = async () => {
     try {
       await deleteUserFromWallet(walletId, userId);
-      router.refresh();
+      await refetchUserInWallet(walletId);
       toast({
         title: "Xóa thành công",
         description: "Đã xóa người dùng khỏi ví",
