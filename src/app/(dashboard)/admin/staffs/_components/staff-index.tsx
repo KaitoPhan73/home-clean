@@ -13,11 +13,15 @@ type Props = {
   keyProps: string;
 };
 const StaffIndex = async ({ keyProps }: Props) => {
-  const accessToken = (await cookies()).get("accessToken")?.value;  return (
+  const accessToken = (await cookies()).get("accessToken")?.value;
+  return (
     <PageContainer>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
-          <Heading title="Quản Lí" description="Nhân Viên" />
+          <Heading
+            title="Quản Lí"
+            description="Quản Lí Nhân Viên Dịch Vụ Và Giặt Sấy"
+          />
           <CredenzaCreateStaff />
         </div>
         <Separator />

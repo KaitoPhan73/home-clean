@@ -7,7 +7,7 @@ import { searchParamsCache } from "@/lib/searchparams";
 import React from "react";
 
 type StaffTableProps = {
-  accessToken?: string; // Add accessToken as a prop
+  accessToken?: string;
 };
 
 const StaffTable = async ({ accessToken }: StaffTableProps) => {
@@ -22,11 +22,9 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
     ...(search && { search }),
   };
 
-  // Get staff data for service staff
   const staffResponse = await getAllStaffs(filters);
   const staffPayload = staffResponse.payload;
 
-  // Get employee data for laundry staff if needed
   type EmployeeType = {
     status: string;
     createdAt: string;

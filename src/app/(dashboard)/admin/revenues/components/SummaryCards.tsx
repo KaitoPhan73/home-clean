@@ -1,12 +1,70 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SummaryData } from "@/app/(dashboard)/admin/revenues/chart-config/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Doughnut } from "react-chartjs-2";
 
 interface SummaryCardsProps {
   summaryData: SummaryData | null;
+  isLoading: boolean;
 }
 
-export function SummaryCards({ summaryData }: SummaryCardsProps) {
+export function SummaryCards({ summaryData, isLoading }: SummaryCardsProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        {/* Loading skeleton for key metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <Card key={index} className="shadow-sm bg-white animate-pulse">
+              <CardHeader className="border-b bg-gray-50 py-3 px-4">
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Loading skeleton for charts */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="shadow-sm bg-white md:col-span-1 animate-pulse">
+            <CardHeader className="border-b bg-gray-50 py-3 px-4">
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="h-[280px] bg-gray-100 rounded-full"></div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-sm bg-white md:col-span-2 animate-pulse">
+            <CardHeader className="border-b bg-gray-50 py-3 px-4">
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className="h-4 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate core metrics
+  const totalRevenue = summaryData?.totalRevenue || 0;
+  const totalOrders = summaryData?.totalOrders || 0;
+  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  // const completionRate = summaryData?.completionRate || 0;
+  
+  // Calculate daily average
+  const days = summaryData?.dailyTrend?.length || 1;
+  const dailyAverage = totalRevenue / days;
+
   // Prepare status data for the doughnut chart
   const statusData = {
     labels:
@@ -55,14 +113,10 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
     },
   };
 
-  // Calculate daily average
-  const days = summaryData?.dailyTrend?.length || 1;
-  const dailyAverage = (summaryData?.totalRevenue || 0) / days;
-
   return (
     <div className="grid grid-cols-1 gap-6 mb-6">
       {/* Key metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="shadow-sm bg-white">
           <CardHeader className="border-b bg-gray-50 py-3 px-4">
             <CardTitle className="text-lg text-gray-800 font-medium">
@@ -71,7 +125,7 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
           </CardHeader>
           <CardContent className="p-4">
             <p className="text-3xl font-bold text-blue-600">
-              {summaryData?.totalOrders || 0}
+              {totalOrders}
             </p>
             <p className="text-sm text-gray-500 mt-1">Đơn hàng</p>
           </CardContent>
@@ -85,9 +139,7 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
           </CardHeader>
           <CardContent className="p-4">
             <p className="text-3xl font-bold text-green-600">
-              {new Intl.NumberFormat("vi-VN").format(
-                summaryData?.totalRevenue || 0
-              )}
+              {new Intl.NumberFormat("vi-VN").format(totalRevenue)}
             </p>
             <p className="text-sm text-gray-500 mt-1">VND</p>
           </CardContent>
@@ -101,15 +153,13 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
           </CardHeader>
           <CardContent className="p-4">
             <p className="text-3xl font-bold text-purple-600">
-              {new Intl.NumberFormat("vi-VN").format(
-                Math.round(summaryData?.averageOrderValue || 0)
-              )}
+              {new Intl.NumberFormat("vi-VN").format(Math.round(averageOrderValue))}
             </p>
             <p className="text-sm text-gray-500 mt-1">VND / đơn</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm bg-white">
+        {/* <Card className="shadow-sm bg-white">
           <CardHeader className="border-b bg-gray-50 py-3 px-4">
             <CardTitle className="text-lg text-gray-800 font-medium">
               Doanh thu TB / ngày
@@ -121,7 +171,7 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
             </p>
             <p className="text-sm text-gray-500 mt-1">VND / ngày</p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Status breakdown */}
@@ -199,21 +249,14 @@ export function SummaryCards({ summaryData }: SummaryCardsProps) {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {status.count} (
-                        {Math.round(
-                          (status.count / (summaryData?.totalOrders || 1)) * 100
-                        )}
-                        %)
+                        {Math.round((status.count / totalOrders) * 100)}%)
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         {new Intl.NumberFormat("vi-VN").format(status.revenue)}{" "}
                         VND
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {Math.round(
-                          (status.revenue / (summaryData?.totalRevenue || 1)) *
-                            100
-                        )}
-                        %
+                        {Math.round((status.revenue / totalRevenue) * 100)}%
                       </td>
                     </tr>
                   ))}

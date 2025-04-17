@@ -74,7 +74,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
             ...apiTask,
             status: convertToTaskStatusEnum(apiTask.status),
             priority: String(apiTask.priority),
-            employeeName: apiTask.employeeName || "Unknown Employee",
+            employeeName: apiTask.employeeName || "Chưa phân công nhân viên",
             managerName: apiTask.managerName || "Unknown Manager",
           })
         );
