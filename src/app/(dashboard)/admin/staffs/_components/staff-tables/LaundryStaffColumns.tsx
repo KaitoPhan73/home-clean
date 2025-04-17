@@ -52,6 +52,20 @@ export const LaundryStaffColumns: ColumnDef<TEmployeeLaundryResponse>[] = [
     },
   },
   {
+    accessorKey: "role",
+    header: "Chức Vụ",
+    cell: ({ row }) => {
+      const role = row.getValue("role") as string;
+      return (
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-700 font-mono bg-red-300 px-2 py-1 rounded-md">
+            {role || 'Chưa có mã'}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "status",
     header: "Trạng Thái",
     cell: ({ row }) => {

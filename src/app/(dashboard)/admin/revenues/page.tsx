@@ -1,26 +1,23 @@
 import { getAllGroups } from "@/apis/group";
-import { getSummary, getServiceSummary, getSummaryByPeriod } from "@/apis/revenue";
+import { getSummary, getSummaryByPeriod } from "@/apis/revenue";
 import RevenuePage from "./components/RevenuePage";
 
-// Hàm định dạng ngày thành chuỗi YYYY-MM-DD
 const formatDateToString = (date: Date): string => {
   return date.toISOString().split("T")[0];
 };
 
-// Server Component
 export default async function Page() {
   try {
-    // Lấy ngày hiện tại
+    // Set initial date range to the current date
     const today = new Date();
-    const fromDateStr = formatDateToString(today); // Ngày hiện tại
-    const toDateStr = formatDateToString(today);   // Ngày hiện tại
-    const groupBy = "day";                         // Giá trị mặc định
-    const groupId = undefined;                     // Giá trị mặc định
+    const fromDateStr = formatDateToString(today);
+    const toDateStr = formatDateToString(today);   
+    const groupBy = "day";                         
+    const groupId = undefined;                    
 
-    // Gọi các API
-    const [summaryResponse, serviceSummaryResponse, periodResponse, groupsResponse] = await Promise.all([
+    // Only load essential data initially
+    const [summaryResponse, periodResponse, groupsResponse] = await Promise.all([
       getSummary(fromDateStr, toDateStr, groupId),
-      getServiceSummary(fromDateStr, toDateStr, groupId),
       getSummaryByPeriod(fromDateStr, toDateStr, groupBy, groupId),
       getAllGroups(),
     ]);
@@ -29,13 +26,13 @@ export default async function Page() {
       <div>
         <RevenuePage
           initialSummaryData={summaryResponse.payload || null}
-          initialServiceSummaryData={serviceSummaryResponse.payload || null}
+          initialServiceSummaryData={null} // Will be fetched on demand
           initialPeriodData={Array.isArray(periodResponse.payload) ? periodResponse.payload : []}
           initialGroups={groupsResponse.payload.items || []}
           initialDateFrom={fromDateStr}
           initialDateTo={toDateStr}
           initialGroupBy={groupBy}
-          initialSelectedGroupId={groupId || "all_groups"}
+          initialSelectedGroupId="all_groups"
         />
       </div>
     );

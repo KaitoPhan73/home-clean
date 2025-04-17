@@ -1,9 +1,9 @@
-// RevenuePage.tsx - Cập nhật với tab Dịch vụ bổ sung & Tùy chọn
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
+// RevenuePage.tsx - Optimized with lazy loading and debounced filtering
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,8 +36,8 @@ import { GroupComparisonData, SummaryByStaffData } from "@/apis/revenue";
 import { ServiceSummaryData, SummaryData } from "@/app/(dashboard)/admin/revenues/chart-config/types";
 import { ServiceCharts } from "@/app/(dashboard)/admin/revenues/components/SummaryByService";
 import { AdditionalServicesTab } from "@/app/(dashboard)/admin/revenues/components/OptionsAndExtraServiceChart";
+import { useDebounce } from "@/hooks/use-debounce";
 
-// Đăng ký Chart.js và plugin datalabels
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -72,13 +72,18 @@ export default function RevenuePage({
   initialGroupBy,
   initialSelectedGroupId,
 }: RevenuePageProps) {
-  // Thêm tab dịch vụ bổ sung vào giá trị của activeTab
   const [activeTab, setActiveTab] = useState<"daily" | "services" | "groupAndStaff" | "additionalServices">("daily");
   const [summaryData, setSummaryData] = useState<SummaryData | null>(initialSummaryData);
   const [serviceSummaryData, setServiceSummaryData] = useState<ServiceSummaryData | null>(initialServiceSummaryData);
   const [groupComparisonData, setGroupComparisonData] = useState<GroupComparisonData | null>(null);
   const [summaryByStaffData, setSummaryByStaffData] = useState<SummaryByStaffData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<{[key: string]: boolean}>({
+    summary: false,
+    service: false,
+    period: false,
+    group: false,
+    staff: false,
+  });
   const [error, setError] = useState<string | null>(null);
   const [groups, setGroups] = useState<TGroupResponse[]>(initialGroups);
   const [selectedGroupId, setSelectedGroupId] = useState<string>(initialSelectedGroupId);
@@ -87,6 +92,15 @@ export default function RevenuePage({
   const [periodData, setPeriodData] = useState<any[]>(initialPeriodData);
   const [dateFrom, setDateFrom] = useState<Date>(new Date(initialDateFrom));
   const [dateTo, setDateTo] = useState<Date>(new Date(initialDateTo));
+  const [filterParams, setFilterParams] = useState({
+    dateFrom,
+    dateTo,
+    selectedGroupId,
+    groupBy,
+  });
+
+  // Debounce filter parameters to avoid excessive API calls
+  const debouncedFilterParams = useDebounce(filterParams, 500);
 
   useEffect(() => {
     if (!groups.length) {
@@ -102,58 +116,95 @@ export default function RevenuePage({
     }
   }, [groups]);
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      const fromDateStr = dateFrom.toISOString().split("T")[0];
-      const toDateStr = dateTo.toISOString().split("T")[0];
-      const groupIdParam = selectedGroupId !== "all_groups" ? selectedGroupId : undefined;
-
-      const [summaryResponse, serviceSummaryResponse, periodResponse, groupComparisonResponse, summaryByStaffResponse] =
-        await Promise.all([
-          getSummary(fromDateStr, toDateStr, groupIdParam),
-          getServiceSummary(fromDateStr, toDateStr, groupIdParam),
-          getSummaryByPeriod(fromDateStr, toDateStr, groupBy, groupIdParam),
-          getGroupComparison(fromDateStr, toDateStr),
-          getSummaryByStaff(fromDateStr, toDateStr, groupIdParam),
-        ]);
-
-      setSummaryData(summaryResponse.payload);
-      setServiceSummaryData(serviceSummaryResponse.payload);
-      setGroupComparisonData(groupComparisonResponse.payload as GroupComparisonData);
-      setSummaryByStaffData(summaryByStaffResponse.payload as SummaryByStaffData);
-
-      if (periodResponse && Array.isArray(periodResponse.payload)) {
-        setPeriodData(periodResponse.payload);
-      } else {
-        console.error("Invalid period data:", periodResponse);
-        setPeriodData([]);
-      }
-
-      setError(null);
-      setSelectedServiceId("all");
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.");
-      setPeriodData([]);
-      setGroupComparisonData(null);
-      setSummaryByStaffData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
+  // Handle filter change
+  const handleFilterSubmit = useCallback(() => {
+    setFilterParams({
+      dateFrom,
+      dateTo,
+      selectedGroupId,
+      groupBy,
+    });
   }, [dateFrom, dateTo, selectedGroupId, groupBy]);
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Đang tải dữ liệu...</div>;
-  }
+  // Fetch data based on active tab and debounced filters
+  useEffect(() => {
+    const { dateFrom, dateTo, selectedGroupId, groupBy } = debouncedFilterParams;
+    const fromDateStr = dateFrom.toISOString().split("T")[0];
+    const toDateStr = dateTo.toISOString().split("T")[0];
+    const groupIdParam = selectedGroupId !== "all_groups" ? selectedGroupId : undefined;
 
-  if (error) {
-    return <div className="flex justify-center items-center h-screen text-red-600">{error}</div>;
-  }
+    // Always fetch summary and period data for the main tab
+    const fetchEssentialData = async () => {
+      try {
+        setIsLoading(prev => ({ ...prev, summary: true, period: true }));
+        
+        const [summaryResponse, periodResponse] = await Promise.all([
+          getSummary(fromDateStr, toDateStr, groupIdParam),
+          getSummaryByPeriod(fromDateStr, toDateStr, groupBy, groupIdParam),
+        ]);
+
+        setSummaryData(summaryResponse.payload);
+        if (periodResponse && Array.isArray(periodResponse.payload)) {
+          setPeriodData(periodResponse.payload);
+        } else {
+          setPeriodData([]);
+        }
+        
+        setError(null);
+      } catch (error) {
+        console.error("Error fetching essential data:", error);
+        setError("Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoading(prev => ({ ...prev, summary: false, period: false }));
+      }
+    };
+
+    fetchEssentialData();
+
+    // Fetch data for the active tab only
+    if (activeTab === "services" && !serviceSummaryData) {
+      const fetchServiceData = async () => {
+        try {
+          setIsLoading(prev => ({ ...prev, service: true }));
+          const serviceSummaryResponse = await getServiceSummary(fromDateStr, toDateStr, groupIdParam);
+          setServiceSummaryData(serviceSummaryResponse.payload);
+        } catch (error) {
+          console.error("Error fetching service data:", error);
+        } finally {
+          setIsLoading(prev => ({ ...prev, service: false }));
+        }
+      };
+      fetchServiceData();
+    } else if (activeTab === "groupAndStaff" && (!groupComparisonData || !summaryByStaffData)) {
+      const fetchGroupAndStaffData = async () => {
+        try {
+          setIsLoading(prev => ({ ...prev, group: true, staff: true }));
+          const [groupComparisonResponse, summaryByStaffResponse] = await Promise.all([
+            getGroupComparison(fromDateStr, toDateStr),
+            getSummaryByStaff(fromDateStr, toDateStr, groupIdParam),
+          ]);
+          setGroupComparisonData(groupComparisonResponse.payload as GroupComparisonData);
+          setSummaryByStaffData(summaryByStaffResponse.payload as SummaryByStaffData);
+        } catch (error) {
+          console.error("Error fetching group and staff data:", error);
+        } finally {
+          setIsLoading(prev => ({ ...prev, group: false, staff: false }));
+        }
+      };
+      fetchGroupAndStaffData();
+    }
+  }, [debouncedFilterParams, activeTab, serviceSummaryData, groupComparisonData, summaryByStaffData]);
+
+  // Tab change handler with lazy loading
+  const handleTabChange = (value: string) => {
+    const newTab = value as "daily" | "services" | "groupAndStaff" | "additionalServices";
+    setActiveTab(newTab);
+    
+    // Reset selected service when switching tabs
+    if (newTab !== "services") {
+      setSelectedServiceId("all");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 overflow-y-auto max-h-screen">
@@ -166,9 +217,10 @@ export default function RevenuePage({
           selectedGroupId={selectedGroupId}
           setSelectedGroupId={setSelectedGroupId}
           groups={groups}
+          onFilterSubmit={handleFilterSubmit}
         />
-        <SummaryCards summaryData={summaryData} />
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="w-full">
+        <SummaryCards summaryData={summaryData} isLoading={isLoading.summary} />
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-100 rounded-lg p-1">
             <TabsTrigger value="daily" className="py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
               Theo ngày
@@ -188,7 +240,10 @@ export default function RevenuePage({
               <label className="text-sm font-medium text-gray-700 block mb-2">Nhóm theo:</label>
               <select
                 value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value as "day" | "week" | "month" | "year")}
+                onChange={(e) => {
+                  setGroupBy(e.target.value as "day" | "week" | "month" | "year");
+                  handleFilterSubmit();
+                }}
                 className="border rounded-md p-2"
               >
                 <option value="day">Ngày</option>
@@ -201,17 +256,25 @@ export default function RevenuePage({
             <PeriodChart periodData={periodData} groupBy={groupBy} />
           </TabsContent>
           <TabsContent value="services">
-            <ServiceCharts
-              serviceSummaryData={serviceSummaryData}
-              selectedServiceId={selectedServiceId}
-              setSelectedServiceId={setSelectedServiceId}
-            />
+            {isLoading.service ? (
+              <div className="flex justify-center items-center h-64">Đang tải dữ liệu dịch vụ...</div>
+            ) : (
+              <ServiceCharts
+                serviceSummaryData={serviceSummaryData}
+                selectedServiceId={selectedServiceId}
+                setSelectedServiceId={setSelectedServiceId}
+              />
+            )}
           </TabsContent>
           <TabsContent value="groupAndStaff">
-            <GroupAndStaffCharts
-              groupComparisonData={groupComparisonData}
-              summaryByStaffData={summaryByStaffData}
-            />
+            {isLoading.group || isLoading.staff ? (
+              <div className="flex justify-center items-center h-64">Đang tải dữ liệu nhóm và nhân viên...</div>
+            ) : (
+              <GroupAndStaffCharts
+                groupComparisonData={groupComparisonData}
+                summaryByStaffData={summaryByStaffData}
+              />
+            )}
           </TabsContent>
           <TabsContent value="additionalServices">
             <AdditionalServicesTab

@@ -88,12 +88,12 @@ export const adminNavItems: TNavItem[] = [
         icon: "badgeDollarSign",
         shortcut: ["r", "s"],
       },
-      {
-        title: "Doanh thu Giao Dịch",
-        url: PATHS.admin.transactionRevenue,
-        icon: "handCoins",
-        shortcut: ["r", "s"],
-      },
+      // {
+      //   title: "Doanh thu Giao Dịch",
+      //   url: PATHS.admin.transactionRevenue,
+      //   icon: "handCoins",
+      //   shortcut: ["r", "s"],
+      // },
     ],
   },
 
@@ -110,7 +110,7 @@ export const adminNavItems: TNavItem[] = [
         shortcut: ["a", "m"],
       },
       {
-        title: "Nhân Viên Dịch Vụ",
+        title: "Nhân Viên",
         url: PATHS.admin.staffs,
         icon: "staff",
         shortcut: ["a", "s"],
@@ -256,20 +256,20 @@ export const adminNavItems: TNavItem[] = [
 
 export const managerNavItems: TNavItem[] = [
   {
-    title: "Quản Lí Nhóm",
+    title: "Nhóm Của Tôi",
     url: PATHS.manager.groups,
     icon: "staff",
     isActive: false,
     items: [],
   },
 
-  {
-    title: "Ca Làm Việc",
-    url: PATHS.manager.timeSlots,
-    icon: "clock",
-    isActive: false,
-    items: [],
-  },
+  // {
+  //   title: "Ca Làm Việc",
+  //   url: PATHS.manager.timeSlots,
+  //   icon: "clock",
+  //   isActive: false,
+  //   items: [],
+  // },
   {
     title: "Đơn Hàng & Phân Công",
     url: PATHS.manager.orderAssignment,
@@ -288,9 +288,16 @@ export const managerNavItems: TNavItem[] = [
 
 export const laundryNavItems: TNavItem[] = [
   {
-    title: "Giặt Ủi",
+    title: "Giặt Sấy",
     url: PATHS.laundry.orders,
     icon: "tasks",
+    isActive: false,
+    items: [],
+  },
+  {
+    title: "Nhân Viên",
+    url: PATHS.laundry.employees,
+    icon: "user",
     isActive: false,
     items: [],
   },

@@ -15,13 +15,13 @@ export interface EmployeRealTimeStatus {
 
 export const getAllEmployees = async (params?: any, accessToken?: string) => {
     const response = await httpVinLaundry.get<TTableResponse<TEmployeeLaundryResponse>>("/employees", {
-      params,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+        params,
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
     });
     return { payload: response.payload };
-  };
+};
 
 
 export async function getEmployeesRealTimeStatus(params?: any): Promise<EmployeRealTimeStatus[]> {
@@ -29,19 +29,16 @@ export async function getEmployeesRealTimeStatus(params?: any): Promise<EmployeR
         const response = await httpVinLaundry.get<any>(`/employees/real-time-status`, {
             params,
         });
-        console.log("Raw API response:", response); // Debug the raw response
-
-        // Handle flat array, payload array, or payload.items
         let fetchedEmployees: EmployeRealTimeStatus[];
         if (Array.isArray(response)) {
             fetchedEmployees = response;
         } else if (Array.isArray(response.payload)) {
-            fetchedEmployees = response.payload; // Use payload directly if it's an array
+            fetchedEmployees = response.payload;
         } else {
             fetchedEmployees = response.payload?.items || [];
         }
 
-        console.log("Processed employees:", fetchedEmployees); // Debug the processed data
+        console.log("Processed employees:", fetchedEmployees);
         return fetchedEmployees;
     } catch (error) {
         console.error("Error fetching employees:", error);
