@@ -14,6 +14,7 @@ interface FilterBarProps {
   dateRange: DateRange | undefined;
   onDateChange: (range: DateRange | undefined) => void;
   onClearFilters: () => void;
+  onSearch: () => void; // Thêm prop onSearch
   isLoading?: boolean;
   onRefresh?: () => void;
 }
@@ -24,10 +25,17 @@ const FilterBar: React.FC<FilterBarProps> = ({
   dateRange,
   onDateChange,
   onClearFilters,
+  onSearch,
   isLoading = false,
   onRefresh,
 }) => {
   const hasFilters = searchTerm || (dateRange?.from && dateRange?.to);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSearch();
+    }
+  };
 
   return (
     <div className="p-4 bg-white border-b border-gray-100">
@@ -38,6 +46,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             placeholder="Tìm theo mã đơn hàng, tên hoặc loại dịch vụ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="pl-9 h-10 border-gray-200"
           />
           {searchTerm && (

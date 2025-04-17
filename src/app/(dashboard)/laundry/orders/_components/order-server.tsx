@@ -7,7 +7,7 @@ import { searchParamsCache } from "@/lib/searchparams";
 const OrderServer = async () => {
   const page = searchParamsCache.get("page") || "1";
   const search = searchParamsCache.get("search");
-  const size = searchParamsCache.get("size") || "10";
+  const size = searchParamsCache.get("size") || "1000";
 
   const filters = {
     page,

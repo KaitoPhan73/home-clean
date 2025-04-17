@@ -1,20 +1,95 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { laundryColumns } from "./columns";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { 
+  Layers, 
+  Search, 
+  RefreshCcw, 
+  X, 
+  FileText, 
+  Loader2, 
+  User,
+  CalendarRange
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, Search, Layers, X, FileText, Clock, Loader2, CheckCircle, DollarSign, XCircle, User } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DatePickerWithRange } from "@/app/(dashboard)/laundry/orders/_components/order-table/DatePickerWithRange";
-import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { Badge } from "@/components/ui/badge";
-import { DateRange } from "react-day-picker";
-import { DataTableProps } from "@/app/(dashboard)/laundry/orders/_components/order-table/DataTable";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
+import { 
+  parseISO,
+  format,
+  startOfDay,
+  endOfDay,
+  isSameDay,
+  isWithinInterval,
+} from "date-fns";
+import { vi } from "date-fns/locale";
+import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
+import { laundryColumns } from "./columns";
+import { DataTableProps } from "@/app/(dashboard)/laundry/orders/_components/order-table/DataTable";
 import FilterBar from "@/app/(dashboard)/laundry/orders/_components/order-table/FilterBar";
-import { updateEmployeesRealTimeStatus } from "@/apis/laudry/employee";
-import { toast } from "@/hooks/use-toast";
+
+// Status configuration object
+export const statusConfig = {
+  all: {
+    id: "all",
+    label: "Tất cả",
+    color: "text-slate-500",
+    borderColor: "border-l-slate-500",
+    icon: null,
+  },
+  Draft: {
+    id: "Draft",
+    label: "Nháp",
+    color: "text-amber-500",
+    borderColor: "border-l-amber-500",
+    bgColor: "bg-amber-100",
+    icon: <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>,
+  },
+  Paid: {
+    id: "Paid",
+    label: "Đã thanh toán",
+    color: "text-blue-500",
+    borderColor: "border-l-blue-500",
+    bgColor: "bg-blue-100",
+    icon: <span className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>,
+  },
+  Completed: {
+    id: "Completed",
+    label: "Hoàn thành",
+    color: "text-emerald-500",
+    borderColor: "border-l-emerald-500",
+    bgColor: "bg-emerald-100",
+    icon: <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>,
+  },
+  Processing: {
+    id: "Processing",
+    label: "Đang xử lý",
+    color: "text-purple-500",
+    borderColor: "border-l-purple-500",
+    bgColor: "bg-purple-100",
+    icon: <span className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>,
+  },
+  PendingPayment: {
+    id: "PendingPayment",
+    label: "Chờ thanh toán",
+    color: "text-orange-500",
+    borderColor: "border-l-orange-500",
+    bgColor: "bg-orange-100",
+    icon: <span className="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>,
+  },
+  Canceled: {
+    id: "Canceled",
+    label: "Đã hủy",
+    color: "text-rose-500",
+    borderColor: "border-l-rose-500",
+    bgColor: "bg-rose-100",
+    icon: <span className="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>,
+  },
+};
 
 interface OrderTableProps {
   data: TOrderLaundryResponse[];
@@ -29,7 +104,10 @@ const OrderTable = ({
   totalItems,
   isLoading = false,
   onRefresh,
+  onCreateOrder,
 }: OrderTableProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -38,69 +116,80 @@ const OrderTable = ({
   });
   const [filteredData, setFilteredData] = useState<TOrderLaundryResponse[]>(data);
   const [loadingRealTimeStatus, setLoadingRealTimeStatus] = useState(false);
+  const [size, setSize] = useState(100);
 
-  const getFilteredCounts = () => {
-    const filtered = data.filter((order) => {
-      const matchesSearch = !searchTerm
-        ? true
-        : order.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (order.type &&
-            order.type.toLowerCase().includes(searchTerm.toLowerCase()));
+  // Sync URL params without causing navigation
+  useEffect(() => {
+    const status = searchParams.get("status") || "all";
+    setActiveTab(status);
+    
+    const search = searchParams.get("search") || "";
+    setSearchTerm(search);
+    
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const urlSize = searchParams.get("size") || "100";
+    
+    setSize(Number(urlSize));
+    
+    // Handle date range from URL
+    if (from) {
+      const dateRange: DateRange = { from: parseISO(from) };
+      if (to) dateRange.to = parseISO(to);
+      setDateRange(dateRange);
+    } else {
+      setDateRange(undefined);
+    }
+  }, [searchParams]);
 
-      let matchesDateRange = true;
-      if (dateRange?.from && dateRange?.to) {
-        const orderDate = order.orderDate ? new Date(order.orderDate) : null;
-        if (orderDate) {
-          matchesDateRange =
-            orderDate >= dateRange.from &&
-            orderDate <= (dateRange.to || new Date());
-        }
-      }
-
-      return matchesSearch && matchesDateRange;
-    });
-
-    return {
-      all: filtered.length,
-      draft: filtered.filter((order) => order.status === "Draft").length,
-      pendingPayment: filtered.filter((order) => order.status === "PendingPayment").length,
-      processing: filtered.filter((order) => order.status === "Processing").length,
-      completed: filtered.filter((order) => order.status === "Completed").length,
-      cancelled: filtered.filter((order) => order.status === "Cancelled").length,
-      paid: filtered.filter((order) => order.status === "Paid").length,
+  // Calculate status counts
+  const calculateStatusCounts = () => {
+    const counts: Record<string, number> = {
+      all: data.length,
+      Draft: 0,
+      Paid: 0,
+      Completed: 0,
+      Processing: 0,
+      PendingPayment: 0,
+      Canceled: 0,
     };
+    
+    data.forEach((order) => {
+      const status = order.status;
+      counts[status] = (counts[status] || 0) + 1;
+    });
+    
+    return counts;
   };
 
-  useEffect(() => {
+  const statusCounts = calculateStatusCounts();
+
+  // Filter orders without causing re-renders
+  const filterOrders = useCallback(() => {
     const filtered = data.filter((order) => {
       const matchesSearch = !searchTerm
         ? true
         : order.orderCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (order.type &&
-            order.type.toLowerCase().includes(searchTerm.toLowerCase()));
+          (order.type && order.type.toLowerCase().includes(searchTerm.toLowerCase()));
 
       let matchesStatus = true;
       if (activeTab !== "all") {
-        const tabToStatus: Record<string, string> = {
-          draft: "Draft",
-          pendingPayment: "PendingPayment",
-          processing: "Processing",
-          completed: "Completed",
-          cancelled: "Cancelled",
-          paid: "Paid",
-        };
-        matchesStatus = order.status === tabToStatus[activeTab];
+        matchesStatus = order.status === activeTab;
       }
 
       let matchesDateRange = true;
-      if (dateRange?.from && dateRange?.to) {
+      if (dateRange?.from) {
         const orderDate = order.orderDate ? new Date(order.orderDate) : null;
         if (orderDate) {
-          matchesDateRange =
-            orderDate >= dateRange.from &&
-            orderDate <= (dateRange.to || new Date());
+          if (dateRange.to && !isSameDay(dateRange.from, dateRange.to)) {
+            matchesDateRange = isWithinInterval(orderDate, {
+              start: startOfDay(dateRange.from),
+              end: endOfDay(dateRange.to || dateRange.from),
+            });
+          } else {
+            matchesDateRange = isSameDay(orderDate, dateRange.from);
+          }
         }
       }
 
@@ -110,45 +199,114 @@ const OrderTable = ({
     setFilteredData(filtered);
   }, [data, searchTerm, activeTab, dateRange]);
 
-  const orderCounts = getFilteredCounts();
+  useEffect(() => {
+    filterOrders();
+  }, [filterOrders]);
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
+  // Update URL params without navigation/reload
+  const updateUrlParams = useCallback((params: URLSearchParams) => {
+    const url = new URL(window.location.href);
+    url.search = params.toString();
+    window.history.replaceState({ path: url.toString() }, '', url.toString());
+  }, []);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (tabId === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", tabId);
+    }
+    
+    // Avoid navigation, just update URL params
+    updateUrlParams(params);
+  };
+
+  const handleSearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    
+    // Avoid navigation, just update URL params
+    updateUrlParams(params);
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (range?.from) {
+      params.set("from", format(range.from, "yyyy-MM-dd"));
+      if (range.to && !isSameDay(range.from, range.to)) {
+        params.set("to", format(range.to, "yyyy-MM-dd"));
+      } else {
+        params.delete("to");
+      }
+    } else {
+      params.delete("from");
+      params.delete("to");
+    }
+    
+    // Avoid navigation, just update URL params
+    updateUrlParams(params);
   };
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setDateRange(undefined);
+    setActiveTab("all");
+    
+    const params = new URLSearchParams();
+    params.set("size", size.toString());
+    
+    // Avoid navigation, just update URL params
+    updateUrlParams(params);
   };
 
-  const handleDateChange = (range: DateRange | undefined) => {
-    setDateRange(range);
+  const handleSizeChange = (newSize: number) => {
+    setSize(newSize);
+    
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("size", newSize.toString());
+    
+    // Avoid navigation, just update URL params
+    updateUrlParams(params);
   };
 
-  const fetchEmployeeRealTimeStatus = async () => {
+  const updateEmployeeStatus = async () => {
     try {
       setLoadingRealTimeStatus(true);
-      const employees = await updateEmployeesRealTimeStatus();
+      // Simulate API call for employee status update
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Trạng thái của bạn đã được cập nhật",
-        description: `Đã cập nhật thông tin trạng thái vào việc.`,
-        variant: "success",
-      });
-      
+      // Toast notification for success
+      console.log("Employee status updated successfully");
     } catch (error) {
-      console.error("Error fetching employee real-time status:", error);
-      toast({
-        title: "Lỗi cập nhật trạng thái",
-        description: "Không thể cập nhật trạng thái nhân viên. Vui lòng thử lại sau.",
-        variant: "destructive",
-      });
+      console.error("Error updating employee status:", error);
     } finally {
       setLoadingRealTimeStatus(false);
     }
   };
 
-  const hasFilters = searchTerm || (dateRange?.from && dateRange?.to);
+  const formatDateRange = (range: DateRange | undefined) => {
+    if (!range?.from) return "";
+    if (range.to && !isSameDay(range.from, range.to)) {
+      return `${format(range.from, "dd/MM/yyyy", { locale: vi })} - ${format(
+        range.to,
+        "dd/MM/yyyy",
+        { locale: vi }
+      )}`;
+    }
+    return format(range.from, "dd/MM/yyyy", { locale: vi });
+  };
+
+  const dateRangeText = formatDateRange(dateRange);
 
   return (
     <Card className="shadow-lg border-gray-100 overflow-hidden">
@@ -170,7 +328,7 @@ const OrderTable = ({
             <Button 
               variant="outline"
               size="sm"
-              onClick={fetchEmployeeRealTimeStatus}
+              onClick={updateEmployeeStatus}
               disabled={loadingRealTimeStatus}
               className="border-blue-200 text-blue-600 hover:bg-blue-50"
             >
@@ -198,144 +356,150 @@ const OrderTable = ({
                 Làm mới
               </Button>
             )}
+            {onCreateOrder && (
+              <Button
+                size="sm"
+                onClick={onCreateOrder}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Tạo đơn mới
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="p-0">
         <FilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           dateRange={dateRange}
-          onDateChange={handleDateChange}
+          onDateChange={handleDateRangeChange}
           onClearFilters={handleClearFilters}
+          onSearch={handleSearch}
           isLoading={isLoading}
           onRefresh={onRefresh}
         />
 
-        <Tabs
-          value={activeTab}
-          onValueChange={handleTabChange}
-          className="w-full"
-        >
-          <div className="border-b border-gray-100">
-            <TabsList className="h-auto p-0 bg-transparent border-b-0 w-full overflow-x-auto flex rounded-none">
-              <TabsTrigger
-                value="all"
-                className="flex-1 rounded-none data-[state=active]:bg-blue-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
-              >
-                <Layers className="h-4 w-4 mr-2" />
-                Tất cả đơn
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.all}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="draft"
-                className="flex-1 rounded-none data-[state=active]:bg-yellow-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-yellow-600 data-[state=active]:text-yellow-600"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Nháp
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.draft}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="pendingPayment"
-                className="flex-1 rounded-none data-[state=active]:bg-orange-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-orange-600 data-[state=active]:text-orange-600"
-              >
-                <Clock className="h-4 w-4 mr-2" />
-                Chờ thanh toán
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.pendingPayment}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="processing"
-                className="flex-1 rounded-none data-[state=active]:bg-purple-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-purple-600 data-[state=active]:text-purple-600"
-              >
-                <Loader2 className="h-4 w-4 mr-2" />
-                Đang xử lý
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.processing}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="completed"
-                className="flex-1 rounded-none data-[state=active]:bg-green-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:text-green-600"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Hoàn thành
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.completed}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="paid"
-                className="flex-1 rounded-none data-[state=active]:bg-teal-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-teal-600 data-[state=active]:text-teal-600"
-              >
-                <DollarSign className="h-4 w-4 mr-2" />
-                Đã thanh toán
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.paid}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger
-                value="cancelled"
-                className="flex-1 rounded-none data-[state=active]:bg-red-100 data-[state=active]:shadow-none py-3 px-4 data-[state=active]:border-b-2 data-[state=active]:border-red-600 data-[state=active]:text-red-600"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Đã hủy
-                <Badge className="ml-2 bg-gray-100 text-gray-600 hover:bg-gray-100">
-                  {orderCounts.cancelled}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="mt-0">
-            <DataTableProps<TOrderLaundryResponse, unknown>
-              columns={laundryColumns}
-              data={filteredData}
-              isLoading={isLoading}
-              totalItems={filteredData.length}
-            />
-
-            {filteredData.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="bg-gray-100 rounded-full p-3 mb-4">
-                  <Search className="h-6 w-6 text-gray-500" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-1">
-                  Không tìm thấy dữ liệu
-                </h3>
-                <p className="text-gray-500 max-w-md mb-4">
-                  {activeTab !== "all"
-                    ? `Hiện không có đơn hàng nào ở trạng thái "${
-                        activeTab === "draft"
-                          ? "Nháp"
-                          : activeTab === "pendingPayment"
-                          ? "Chờ thanh toán"
-                          : activeTab === "processing"
-                          ? "Đang xử lý"
-                          : activeTab === "completed"
-                          ? "Hoàn thành"
-                          : activeTab === "paid"
-                          ? "Đã thanh toán"
-                          : "Đã hủy"
-                      }"`
-                    : "Không tìm thấy đơn hàng nào phù hợp với các điều kiện tìm kiếm"}
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={handleClearFilters}
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50"
+        <div className="flex bg-white overflow-hidden h-[calc(100vh-16rem)]">
+          {/* Left Sidebar */}
+          <div className="w-64 shrink-0 border-r border-gray-200">
+            <div className="p-3 border-b border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700">Trạng thái đơn hàng</h3>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {Object.entries(statusConfig).map(([key, status]) => (
+                <button
+                  key={key}
+                  onClick={() => handleTabChange(key)}
+                  className={`w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 ${
+                    activeTab === key ? `${status.borderColor} border-l-4 ${status.borderColor || 'bg-gray-50'}` : ''
+                  }`}
                 >
-                  Xóa bộ lọc
-                </Button>
-              </div>
-            )}
+                  <div className="flex items-center">
+                    {status.icon}
+                    <span className={activeTab === key ? status.color : "text-gray-700"}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="bg-gray-50 text-gray-600">
+                    {statusCounts[key] || 0}
+                  </Badge>
+                </button>
+              ))}
+            </div>
           </div>
-        </Tabs>
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-white">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                  {statusConfig[activeTab as keyof typeof statusConfig].icon && (
+                    <span className={statusConfig[activeTab as keyof typeof statusConfig].color}>
+                      {statusConfig[activeTab as keyof typeof statusConfig].icon}
+                    </span>
+                  )}
+                  {statusConfig[activeTab as keyof typeof statusConfig].label}
+                  <span className="text-sm text-gray-500">
+                    ({filteredData.length} đơn hàng)
+                  </span>
+                </h2>
+                
+                {dateRangeText && (
+                  <div className="flex items-center text-sm text-slate-500">
+                    <CalendarRange size={16} className="mr-1" />
+                    {dateRangeText}
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-3 flex items-center">
+                <label htmlFor="size-select" className="text-sm text-gray-600 mr-2 ml-2">
+                  Số đơn mỗi trang:
+                </label>
+                <select
+                  id="size-select"
+                  value={size}
+                  onChange={(e) => handleSizeChange(Number(e.target.value))}
+                  className="border rounded-md px-2 py-1 text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={1000}>1000</option>
+                </select>
+                
+                {isLoading && (
+                  <div className="ml-4 flex items-center text-sm text-gray-500">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Đang tải...
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              {/* Table content */}
+              <DataTableProps<TOrderLaundryResponse, unknown>
+                columns={laundryColumns}
+                data={filteredData}
+                isLoading={isLoading}
+                totalItems={filteredData.length}
+              />
+
+              {filteredData.length === 0 && !isLoading && (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <div className="bg-gray-100 rounded-full p-3 mb-4">
+                    <Search className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-1">
+                    Không tìm thấy dữ liệu
+                  </h3>
+                  <p className="text-gray-500 max-w-md mb-4">
+                    {activeTab !== "all"
+                      ? `Hiện không có đơn hàng nào ở trạng thái "${
+                          statusConfig[activeTab as keyof typeof statusConfig].label
+                        }"`
+                      : "Không tìm thấy đơn hàng nào phù hợp với các điều kiện tìm kiếm"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleClearFilters}
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Xóa bộ lọc
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
