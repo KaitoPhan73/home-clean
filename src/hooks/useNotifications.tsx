@@ -14,7 +14,9 @@ let connectionCounter = 0;
 export const useSignalR = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connectionId, setConnectionId] = useState<string | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" | "error">("disconnected");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "error"
+  >("disconnected");
   const hasRegisteredListeners = useRef(false);
   const instanceId = useRef(++connectionCounter);
   const isTabActive = useRef(true);
@@ -36,7 +38,10 @@ export const useSignalR = () => {
     if (!isTabActive.current) return; // Không kết nối nếu tab không active
 
     try {
-      if (globalConnection && globalConnection.state === signalR.HubConnectionState.Connected) {
+      if (
+        globalConnection &&
+        globalConnection.state === signalR.HubConnectionState.Connected
+      ) {
         setConnectionId(globalConnection.connectionId || null);
         setConnectionStatus("connected");
         return;
@@ -47,8 +52,11 @@ export const useSignalR = () => {
       const newConnection = new signalR.HubConnectionBuilder()
         .withUrl("https://homeclean.vinhomesresident.com/homeCleanHub", {
           accessTokenFactory: () => accessToken,
-          transport: signalR.HttpTransportType.WebSockets,
+          transport:
+            signalR.HttpTransportType.WebSockets |
+            signalR.HttpTransportType.LongPolling,
         })
+        .configureLogging(signalR.LogLevel.Debug)
         .withAutomaticReconnect([0, 2, 1, 3]) // Giảm tần suất reconnect
         .build();
 
@@ -106,7 +114,9 @@ export const useSignalR = () => {
     const handleVisibilityChange = () => {
       isTabActive.current = !document.hidden;
       if (isTabActive.current) {
-        if (globalConnection?.state === signalR.HubConnectionState.Disconnected) {
+        if (
+          globalConnection?.state === signalR.HubConnectionState.Disconnected
+        ) {
           initializeConnection();
         }
       } else {
@@ -134,4 +144,4 @@ export const useSignalR = () => {
     connectionStatus,
     clearNotifications: () => setNotifications([]),
   };
-};  
+};
