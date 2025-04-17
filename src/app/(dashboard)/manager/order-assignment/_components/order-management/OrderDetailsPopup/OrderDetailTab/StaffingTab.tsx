@@ -17,7 +17,8 @@ interface StaffingTabProps {
   setSelectedStaffId: (value: string) => void;
   isAssigning: boolean;
   isLoading: boolean;
-  handleAssignStaff: () => void;
+  handleAssignStaff: () => Promise<boolean>;
+  onClose?: () => void;  // Add onClose prop
 }
 
 /* StaffingTab.tsx */
@@ -29,15 +30,24 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
   isAssigning,
   isLoading,
   handleAssignStaff,
+  onClose,  // Accept onClose prop
 }) => {
   const assignedStaff = availableStaffs.find((s) => s.staffId === order.employeeId);
-  const assignedStaffName = assignedStaff?.phoneNumber || "Chưa phân công";
+  const assignedStaffName = assignedStaff?.phoneNumber || assignedStaff?.fullName || "Chưa phân công";
 
   console.log("Available Staffs in StaffingTab:", availableStaffs); // Debug log
   console.log("Assigned Staff:", assignedStaff); // Debug log
 
   const isPendingAndAssigned =
     order.status.toLowerCase() === "inprogress" && order.employeeId;
+    
+  // Modified assignment handler to close popup on success
+  const handleAssignStaffAndClose = async () => {
+    const success = await handleAssignStaff();
+    if (success && onClose) {
+      onClose();
+    }
+  };
 
   return (
     <TabsContent value="staffing" className="space-y-6">
@@ -71,6 +81,10 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
           <div className="p-4 bg-white rounded-md border border-green-100">
             <h4 className="text-green-700 font-medium mb-2">Chọn nhân viên sẵn sàng</h4>
             {isPendingAndAssigned ? (
+              <div className="py-3 text-center text-gray-700 font-medium">
+                Đơn hàng này đã được phân công nhân viên
+              </div>
+            ) : order.employeeId ? (
               <div className="py-3 text-center text-gray-700 font-medium">
                 Đơn hàng này đã được phân công nhân viên
               </div>
@@ -117,7 +131,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                     isAssigning ||
                     availableStaffs.length === 0
                   }
-                  onClick={handleAssignStaff}
+                  onClick={handleAssignStaffAndClose}
                 >
                   {isAssigning ? (
                     <>

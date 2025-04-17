@@ -58,7 +58,7 @@ export const SchedulingTab: React.FC<SchedulingTabProps> = ({ order }) => {
         </div>
       </div>
 
-      <div className="bg-emerald-50 p-4 rounded-lg shadow-sm">
+      {/* <div className="bg-emerald-50 p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-emerald-800 mb-3">Chi tiết thời gian</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -90,7 +90,7 @@ export const SchedulingTab: React.FC<SchedulingTabProps> = ({ order }) => {
             <div className="font-medium">{formatDateTime(order.cancellationDeadline)}</div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-stone-50 p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">

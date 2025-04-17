@@ -277,6 +277,13 @@ export const managerNavItems: TNavItem[] = [
     isActive: false,
     items: [],
   },
+  {
+    title: "Hồ Sơ",
+    url: PATHS.manager.profile,
+    icon: "user",
+    isActive: false,
+    items: [],
+  },
 ];
 
 export const laundryNavItems: TNavItem[] = [
@@ -330,9 +337,9 @@ export const settingAdminItems: TSettingItem[] = [
     url: "/admin/time-slots",
     icon: "calendarLock",
   },
-  {
-    name: "Hồ sơ",
-    url: "/admin/profile",
-    icon: "user",
-  },
+  // {
+  //   name: "Hồ sơ",
+  //   url: "/admin/profile",
+  //   icon: "user",
+  // },
 ];

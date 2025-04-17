@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/OrderDetailsPopup/useOrderDetails.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getAllStaffStatusReady } from "@/apis/staff";
 import { assignStaffToOrder, cancelOrder } from "@/apis/order";
 import { toast } from "@/hooks/use-toast";
@@ -12,10 +12,11 @@ import { OrderSchema } from "@/schema/order.schema";
 type OrderType = z.infer<typeof OrderSchema>;
 
 interface Staff {
-  staffId: string; // Keep as staffId for internal app consistency
+  staffId: string;
   status: string;
   lastUpdated: string;
   fullName?: string;
+  phoneNumber?: string;
 }
 
 interface StaffAssignment {
@@ -42,15 +43,22 @@ export const useOrderDetails = (
   const user = getUserFromCookie();
   const effectiveGroupId = groupId || user?.groupId;
 
+  // Reset states when order changes or modal opens/closes
   useEffect(() => {
-    if (isOpen && effectiveGroupId) {
+    if (isOpen) {
+      setActiveTab("overview");
+      setCancelReason("");
+      setRefundMethod("");
+      setSelectedStaffId(order?.employeeId || "");
+    }
+  }, [isOpen, order?.id]);
+
+  // Fetch available staff when modal is open or groupId changes
+  useEffect(() => {
+    if (isOpen && effectiveGroupId && activeTab === "staffing") {
       fetchAvailableStaffs(effectiveGroupId);
     }
-  }, [isOpen, effectiveGroupId]);
-
-  useEffect(() => {
-    setSelectedStaffId(order?.employeeId || "");
-  }, [order]);
+  }, [isOpen, effectiveGroupId, activeTab]);
 
   const fetchAvailableStaffs = async (groupId: string) => {
     setIsLoading(true);
@@ -58,16 +66,31 @@ export const useOrderDetails = (
       const staffData = await getAllStaffStatusReady(groupId);
       const staffArray = Array.isArray(staffData) ? staffData : [staffData];
       
-      // Map API response with 'id' to our internal structure with 'staffId'
       const staffsWithNames = staffArray.map((staff: any) => ({
-        staffId: staff.id, // Map API's 'id' to our internal 'staffId'
+        staffId: staff.id,
         status: staff.status,
         lastUpdated: staff.lastUpdated,
         fullName: staff.fullName || `Staff ${staff.id.substring(0, 8)}`,
+        phoneNumber: staff.phoneNumber
       }));
+      
+      // Include the currently assigned staff if not included in the available list
+      if (order?.employeeId) {
+        const assignedStaffExists = staffsWithNames.some(staff => staff.staffId === order.employeeId);
+        if (!assignedStaffExists) {
+          const assignedStaff = {
+            staffId: order.employeeId,
+            status: "assigned",
+            lastUpdated: new Date().toISOString(),
+            fullName: "Nhân viên đã được phân công",
+            phoneNumber: "Không có"
+          };
+          staffsWithNames.push(assignedStaff);
+        }
+      }
+      
       setAvailableStaffs(staffsWithNames);
       
-      // Create assignments using the same staffId
       const assignments = staffsWithNames.map((staff) => ({
         orderId: order?.id || "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         staffId: staff.staffId,
@@ -85,15 +108,16 @@ export const useOrderDetails = (
     }
   };
 
-  const handleAssignStaff = async () => {
+  const handleAssignStaff = useCallback(async () => {
     if (!order || !selectedStaffId) {
       toast({
         title: "Lỗi",
         description: "Vui lòng chọn nhân viên để giao việc",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+    
     setIsAssigning(true);
     try {
       const staffAssignment = staffAssignments.find(
@@ -102,27 +126,32 @@ export const useOrderDetails = (
       const assignmentData = staffAssignment
         ? { ...staffAssignment, orderId: order.id }
         : { staffId: selectedStaffId, orderId: order.id };
+      
       await assignStaffToOrder(order.id, assignmentData);
+      
       toast({
         title: "Thành công",
         description: "Đã phân công nhân viên thành công",
         variant: "default",
       });
+      
       if (onOrderUpdate) onOrderUpdate();
+      return true;
     } catch (error) {
       console.error("Error assigning staff:", error);
       toast({
-        title: "Lỗi",
-        description: "Không thể phân công nhân viên",
+        title: "Không thể phân công nhân viên",
+        description: "Vì đơn hàng này đã được phân công rồi. Vui lòng làm mới!",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsAssigning(false);
     }
-  };
+  }, [selectedStaffId, order, onOrderUpdate, staffAssignments]);
 
-  const handleCancelOrder = async () => {
-    if (!order) return;
+  const handleCancelOrder = useCallback(async () => {
+    if (!order) return false;
 
     const canCancel = ["draft", "pending"].includes(order.status.toLowerCase());
     if (!canCancel) {
@@ -131,7 +160,7 @@ export const useOrderDetails = (
         description: "Chỉ có thể hủy đơn hàng ở trạng thái Draft hoặc Pending",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     if (!cancelReason || !refundMethod) {
@@ -140,7 +169,7 @@ export const useOrderDetails = (
         description: "Vui lòng nhập lý do hủy và phương thức hoàn tiền",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     setIsCancelling(true);
@@ -152,17 +181,19 @@ export const useOrderDetails = (
         variant: "default",
       });
       if (onOrderUpdate) onOrderUpdate();
+      return true;
     } catch (error) {
       console.error("Error cancelling order:", error);
       toast({
-        title: "Lỗi",
-        description: "Không thể hủy đơn hàng",
+        title: "Không thể hủy đơn hàng",
+        description: "Vì đơn hàng này đã được hủy rồi. Vui lòng làm mới!",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsCancelling(false);
     }
-  };
+  }, [cancelReason, refundMethod, order, onOrderUpdate]);
 
   return {
     activeTab,

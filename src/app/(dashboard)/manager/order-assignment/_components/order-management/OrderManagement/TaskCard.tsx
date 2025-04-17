@@ -52,6 +52,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     if (!isDragging) setIsPopupOpen(true);
   };
 
+  const handleClose = () => {
+    setIsPopupOpen(false);
+  };
+
   drag(ref);
 
   const statusClass = getStatusColor(order.status);
@@ -123,9 +127,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {isPopupOpen && (
         <OrderDetailsPopup
           order={order}
-          onClose={() => setIsPopupOpen(false)}
+          onClose={handleClose}
           onRefresh={onRefresh}
           isOpen={isPopupOpen}
+          groupId={groupId}
         />
       )}
     </div>

@@ -37,6 +37,7 @@ export const PATHS = {
     groups: `${RootPath.manager}/groups`,
     timeSlots: `${RootPath.manager}/time-slots`,
     orderAssignment: `${RootPath.manager}/order-assignment`,
+    profile: `${RootPath.manager}/profile`,
     // laundry: `${RootPath.manager}/laundry`,
   },
 

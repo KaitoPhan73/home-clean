@@ -1,5 +1,5 @@
-// components/OrderDetailsPopup/CancellationTab.tsx
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +26,10 @@ interface CancellationTabProps {
   refundMethod: string;
   setRefundMethod: (value: string) => void;
   isCancelling: boolean;
-  handleCancelOrder: () => void;
+  handleCancelOrder: () => Promise<boolean>;
+  onClosePopup?: () => void;
+  onRefresh?: () => void;
 }
-
-const paymentMethods = [
-  {
-    id: "233423b8-b936-472f-af5c-335934263bb6",
-    name: "Wallet",
-  },
-];
 
 // Predefined cancellation reasons
 const predefinedReasons = [
@@ -52,19 +47,37 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
   setRefundMethod,
   isCancelling,
   handleCancelOrder,
+  onClosePopup,
+  onRefresh,
 }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+
+  // Set default refund method to "Wallet"
+  useEffect(() => {
+    setRefundMethod("Wallet");
+  }, []);
 
   const handleConfirmClick = () => {
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (confirmText === "Tôi xác nhận hủy") {
-      handleCancelOrder();
+      const success = await handleCancelOrder();
+      
       setIsConfirmOpen(false);
       setConfirmText("");
+      
+      if (success) {
+        if (onClosePopup) {
+          onClosePopup();
+        }
+        
+        if (onRefresh) {
+          onRefresh();
+        }
+      }
     }
   };
 
@@ -110,18 +123,12 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
               <Label htmlFor="refundMethod" className="text-gray-700">
                 Phương thức hoàn tiền
               </Label>
-              <Select value={refundMethod} onValueChange={setRefundMethod}>
-                <SelectTrigger className="w-full mt-1">
-                  <SelectValue placeholder="Chọn phương thức hoàn tiền" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.name}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="refundMethod"
+                value="Wallet"
+                readOnly
+                className="w-full mt-1 bg-gray-100"
+              />
             </div>
             <Button
               className="w-full bg-red-600 hover:bg-red-700"
@@ -141,7 +148,6 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
         </div>
       </TabsContent>
 
-      {/* Modal xác nhận */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent>
           <DialogHeader>
