@@ -6,10 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, LucideLogOut } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import NotificationBell from "@/components/NotificationBell";
-import { LogOut } from "lucide-react";
 
 import {
   Tooltip,
@@ -65,19 +64,18 @@ const HeaderMain = ({ className }: HeaderMainProps) => {
         )}
       </div>
 
-      <div className="flex items-center gap-4 ml-auto">
+      <div className="flex items-center gap-2 ml-auto">
         <NotificationBell />
         <ModeToggle />
-
-        <div className="flex items-center gap-2 mr-1">
+        <Separator orientation="vertical" className="h-4" />
+        <div className="flex items-center gap-2 mr-0">
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => router.push("/logout")}
-            className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+            className="text-gray-700 bg-destructive/10 border border-destructive/30 hover:bg-destructive/20 hover:text-destructive transition-all duration-600 ease-in-out font-medium px-2 py-1 rounded-lg hover:shadow-sm flex items-center gap-1"
           >
-            <LogOut className="h-5 w-5" />
-            <span className="sr-only">Đăng xuất</span>
+            <LucideLogOut className="h-4 w-4" />
+            Logout
           </Button>
         </div>
       </div>

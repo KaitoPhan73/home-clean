@@ -63,12 +63,19 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
     setRefundMethod,
     isCancelling,
     handleCancelOrder,
-  } = useOrderDetails(order, isOpen, onOrderUpdate, groupId);
+  } = useOrderDetails(order, isOpen, onOrderUpdate || onRefresh, groupId);
 
   if (!order) return null;
 
   const statusClass = getStatusColor(order.status);
   const canCancel = ["draft", "pending"].includes(order.status.toLowerCase());
+
+  // Function to handle successful updates
+  const handleSuccessfulUpdate = () => {
+    if (onRefresh) onRefresh();
+    if (onOrderUpdate) onOrderUpdate();
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -83,12 +90,12 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
                 <DialogTitle className="text-xl font-semibold text-gray-800">
                   Đơn hàng #{order.code}
                 </DialogTitle>
-                <Badge className={`${statusClass} px-2 py-1 text-xs font-medium`}>
+                <Badge className={`${statusClass} px-6 py-1 text-xs font-medium`}>
                   {order.status}
                 </Badge>
                 {order.emergencyRequest && (
-                  <Badge className="bg-red-50 text-red-600 flex items-center gap-1 px-2 py-1 text-xs font-medium">
-                    <ShieldAlert size={14} />
+                  <Badge className="bg-red-50 text-red-600 flex items-center gap-1 px-2 py-1 text-xs font-semibold">
+                    <ShieldAlert size={20} />
                     Khẩn cấp
                   </Badge>
                 )}
@@ -145,6 +152,7 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
             isAssigning={isAssigning}
             isLoading={isLoading}
             handleAssignStaff={handleAssignStaff}
+            onClose={onClose} // Pass onClose function to StaffingTab
           />
           {canCancel && (
             <CancellationTab
@@ -154,30 +162,11 @@ export const OrderDetailsPopup: React.FC<OrderDetailsPopupProps> = ({
               setRefundMethod={setRefundMethod}
               isCancelling={isCancelling}
               handleCancelOrder={handleCancelOrder}
+              onClosePopup={onClose}
+              onRefresh={onRefresh}
             />
           )}
         </Tabs>
-
-        {/* <DialogFooter className="border-t pt-4 flex justify-between">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border-gray-200 hover:bg-gray-50"
-          >
-            Đóng
-          </Button>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="px-4 py-2 border-blue-300 text-blue-500 hover:bg-blue-50"
-            >
-              Chỉnh sửa
-            </Button>
-            <Button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white">
-              Cập nhật trạng thái
-            </Button>
-          </div>
-        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

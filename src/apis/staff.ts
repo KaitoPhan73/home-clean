@@ -16,6 +16,11 @@ export const getAllStaffs = async (params?: any) => {
   return response;
 };
 
+export const getStaffById = async (id: string) => {
+  const response = await httpHomePlus.get<TStaffResponse>(`/staffs/${id}`);
+  return response;
+};
+
 export const getAllStaffStatus = async (groupId: string) => {
   const response = await httpHomePlus.get(`/staffs/get-all-staff-status/${groupId}`);
   return response.payload ?? [];

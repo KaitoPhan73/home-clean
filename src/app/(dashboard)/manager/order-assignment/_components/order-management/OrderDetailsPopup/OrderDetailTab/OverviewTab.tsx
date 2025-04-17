@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/OrderDetailsPopup/OverviewTab.tsx
-import { getAllStaffs } from "@/apis/staff";
+import { getStaffById } from "@/apis/staff";
 import { getUserById } from "@/apis/vinwallet/user";
 import { formatCurrency, formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { TabsContent } from "@/components/ui/tabs";
@@ -36,13 +36,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
       setUserName("N/A");
     }
 
-    // Fetch staff data if employeeId exists
     if (order.employeeId) {
       const fetchStaff = async () => {
         try {
-          const response = await getAllStaffs({ id: order.employeeId });
-          if (response && response.payload.items && response.payload.items.length > 0) {
-            setStaffName(response.payload.items[0].fullName || response.payload.items[0].email || "Không có tên");
+          const response = await getStaffById(order.employeeId);
+          if (response && response.payload) {
+            setStaffName(response.payload.fullName || response.payload.email || "Không có tên");
           } else {
             setStaffName("Không tìm thấy");
           }
