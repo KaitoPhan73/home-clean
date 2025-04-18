@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
 import {
   Credenza,
-  CredenzaTrigger,
   CredenzaContent,
   CredenzaHeader,
   CredenzaTitle,
@@ -39,11 +40,13 @@ import { getAllGroups } from "@/apis/group";
 
 type Props = {
   className?: string;
+  onClose?: () => void;
+  isOpen?: boolean; 
 };
 
-export function CredenzaCreateStaff({ className }: Props) {
+export function CredenzaCreateServiceStaff({ className, onClose, isOpen = true }: Props) {
   const { toast } = useToast();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isCredenzaOpen, setIsCredenzaOpen] = useState(true); 
   const [groups, setGroups] = useState<TGroupResponse[]>([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
   const router = useRouter();
@@ -52,16 +55,16 @@ export function CredenzaCreateStaff({ className }: Props) {
     resolver: zodResolver(StaffCreateSchema),
     defaultValues: {
       fullName: "",
-      phoneNumber: "",
-      email: "",
+      phoneNumber: "09",
+      email: "@gmail.com",
       gender: "Male",
       dateOfBirth: "",
-      address: "",
-      hireDate: "",
-      jobPosition: "",
-      code: "",
+      address: "Hà Nội",
+      hireDate: new Date().toISOString().split('T')[0], // Today's date as default
+      jobPosition: "Dọn Dẹp Vệ Sinh",
+      code: "NV-",
       groupId: "",
-      password: "",
+      password: "123456",
     },
   });
 
@@ -90,7 +93,7 @@ export function CredenzaCreateStaff({ className }: Props) {
     };
 
     fetchGroups();
-  }, [isOpen, toast]);
+  }, [isCredenzaOpen, toast]);
 
   const onSubmit = async (data: TStaffCreateRequest) => {
     try {
@@ -102,7 +105,7 @@ export function CredenzaCreateStaff({ className }: Props) {
         });
         form.reset();
         router.refresh();
-        setIsOpen(false);
+        handleClose();
       } else {
         toast({
           title: "Lỗi",
@@ -120,11 +123,12 @@ export function CredenzaCreateStaff({ className }: Props) {
     }
   };
 
+  const handleClose = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <Credenza open={isOpen} onOpenChange={setIsOpen}>
-      <CredenzaTrigger asChild className={className}>
-        <Button variant="default">Tạo Nhân Viên</Button>
-      </CredenzaTrigger>
+    <Credenza open={isCredenzaOpen} onOpenChange={() => handleClose()}>
       <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
           <CredenzaTitle>Tạo Nhân Viên</CredenzaTitle>
@@ -132,7 +136,7 @@ export function CredenzaCreateStaff({ className }: Props) {
         </CredenzaHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-4 py-0 px-4 md:px-0 md:py-4">
+            <div className="grid grid-cols-2 gap-4 py-0 px-4 md:px-0 md:py-4 max-h-[60vh] overflow-y-auto">
               <FormField
                 control={form.control}
                 name="fullName"
@@ -141,7 +145,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                     <Label htmlFor="fullName">Họ Tên</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập họ tên..."
+                        placeholder="Nguyễn Văn A"
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -159,7 +163,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                     <Label htmlFor="code">Mã Nhân Viên</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập mã nhân viên..."
+                        placeholder="NV-001"
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -177,7 +181,26 @@ export function CredenzaCreateStaff({ className }: Props) {
                     <Label htmlFor="phoneNumber">Số Điện Thoại</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập số điện thoại..."
+                        placeholder="0987654321"
+                        {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label htmlFor="password">Mật Khẩu</Label>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Nhập mật khẩu..."
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -195,7 +218,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                     <Label htmlFor="email">Email</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập email..."
+                        placeholder="example@gmail.com"
                         {...field}
                         disabled={isSubmitting}
                         type="email"
@@ -249,13 +272,13 @@ export function CredenzaCreateStaff({ className }: Props) {
 
               <FormField
                 control={form.control}
-                name="address"
+                name="jobPosition"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <Label htmlFor="address">Địa Chỉ</Label>
+                  <FormItem>
+                    <Label htmlFor="jobPosition">Vị Trí Công Việc</Label>
                     <FormControl>
                       <Input
-                        placeholder="Nhập địa chỉ..."
+                        placeholder="Dọn Dẹp Vệ Sinh"
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -273,24 +296,6 @@ export function CredenzaCreateStaff({ className }: Props) {
                     <Label htmlFor="hireDate">Ngày Tuyển Dụng</Label>
                     <FormControl>
                       <Input type="date" {...field} disabled={isSubmitting} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="jobPosition"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="jobPosition">Vị Trí Công Việc</Label>
-                    <FormControl>
-                      <Input
-                        placeholder="Nhập vị trí công việc..."
-                        {...field}
-                        disabled={isSubmitting}
-                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -332,14 +337,13 @@ export function CredenzaCreateStaff({ className }: Props) {
 
               <FormField
                 control={form.control}
-                name="password"
+                name="address"
                 render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="password">Mật Khẩu</Label>
+                  <FormItem className="col-span-2">
+                    <Label htmlFor="address">Địa Chỉ</Label>
                     <FormControl>
                       <Input
-                        type="password"
-                        placeholder="Nhập mật khẩu..."
+                        placeholder="Số nhà, đường, phường/xã, quận/huyện, thành phố"
                         {...field}
                         disabled={isSubmitting}
                       />
@@ -357,7 +361,7 @@ export function CredenzaCreateStaff({ className }: Props) {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                 >
                   Đóng
                 </Button>
