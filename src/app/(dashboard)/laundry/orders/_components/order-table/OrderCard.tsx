@@ -1,7 +1,8 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { CalendarRange, Package2, User } from "lucide-react";
-import { LaundryOrderCellAction } from "@/app/(dashboard)/admin/laundry-orders/_components/laundry-order-tables/cell-action";
+import { Button } from "@/components/ui/button";
+import { CalendarRange, Package2, User, Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { formattedDateTime } from "@/lib/formatter";
 
@@ -51,6 +52,7 @@ const statusConfig = {
 };
 
 export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
+  const router = useRouter();
   const status = order.status as keyof typeof statusConfig;
   const statusData = statusConfig[status] || {
     color: "bg-gray-50 text-gray-700 border-gray-200",
@@ -67,14 +69,23 @@ export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
       }).format(order.totalAmount)
     : "Chưa thanh toán";
 
+  const handleViewDetails = () => {
+    router.push(`/laundry/orders/${order.id}`);
+  };
+
   return (
     <div
-      className={`relative rounded-lg p-4 border border-gray-100 hover:shadow-md transition-all duration-200 flex flex-col h-full ${statusData.bgColor}`}
+      className={`relative rounded-lg p-3 border border-gray-100 hover:shadow-md transition-all duration-200 flex flex-col h-full ${statusData.bgColor}`}
     >
-      {/* Nút Xem chi tiết luôn ở góc phải trên */}
-      <div className="absolute top-2 right-2">
-        <LaundryOrderCellAction data={order} />
-      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-3 right-3 p-1 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1"
+        onClick={handleViewDetails}
+      >
+        <Eye className="h-4 w-4 text-blue-600" />
+        <span className="text-xs text-blue-600">Xem chi tiết</span>
+      </Button>
 
       <div className="flex justify-between items-start mb-3">
         <div className="flex flex-col">

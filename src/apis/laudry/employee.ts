@@ -68,8 +68,6 @@ export async function updateEmployeesRealTimeStatus(params?: any, token?: string
 export async function getEmployeeById(employeeId: string): Promise<EmployeRealTimeStatus | null> {
     try {
         if (!employeeId) return null;
-
-        // Make sure the API endpoint is correct
         const response = await httpVinLaundry.get<{ payload: EmployeRealTimeStatus }>(
             `/employees/${employeeId}`
         );
@@ -80,3 +78,19 @@ export async function getEmployeeById(employeeId: string): Promise<EmployeRealTi
         return null;
     }
 }
+
+export const createEmployee = async (data: Partial<TEmployeeLaundryResponse> & { _token?: string }) => {
+    const { _token, ...requestData } = data;
+    const accessToken = _token;
+
+    const response = await httpVinLaundry.post<TEmployeeLaundryResponse>(
+        `/employees`,
+        requestData,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            }
+        }
+    );
+    return response;
+};

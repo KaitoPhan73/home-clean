@@ -1,33 +1,34 @@
 "use client";
 
-import * as React from "react";
+import React from "react";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { addDays, format } from "date-fns";
 import { vi } from "date-fns/locale";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DatePickerWithRangeProps {
   className?: string;
   onChange?: (date: DateRange | undefined) => void;
+  value?: DateRange | undefined;
 }
 
-export function DatePickerWithRange({
-  className,
-  onChange,
-}: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
+export function DatePickerWithRange({ className, onChange, value }: DatePickerWithRangeProps) {
+  const [date, setDate] = React.useState<DateRange | undefined>(
+    value || {
+      from: addDays(new Date(), -7),
+      to: new Date(),
+    }
+  );
+
+  React.useEffect(() => {
+    if (value) {
+      setDate(value);
+    }
+  }, [value]);
 
   const handleDateChange = (range: DateRange | undefined) => {
     setDate(range);
@@ -37,18 +38,9 @@ export function DatePickerWithRange({
   };
 
   const presets = [
-    {
-      label: "7 ngày qua",
-      days: 7,
-    },
-    {
-      label: "30 ngày qua",
-      days: 30,
-    },
-    {
-      label: "90 ngày qua",
-      days: 90,
-    }
+    { label: "7 ngày qua", days: 7 },
+    { label: "30 ngày qua", days: 30 },
+    { label: "90 ngày qua", days: 90 },
   ];
 
   return (
@@ -59,17 +51,13 @@ export function DatePickerWithRange({
             id="date"
             variant="outline"
             size="sm"
-            className={cn(
-              "justify-start text-left font-normal hover:bg-slate-50",
-              !date && "text-muted-foreground"
-            )}
+            className={cn("justify-start text-left font-normal hover:bg-slate-50", !date && "text-muted-foreground")}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "dd/MM/yyyy", { locale: vi })} -{" "}
-                  {format(date.to, "dd/MM/yyyy", { locale: vi })}
+                  {format(date.from, "dd/MM/yyyy", { locale: vi })} - {format(date.to, "dd/MM/yyyy", { locale: vi })}
                 </>
               ) : (
                 format(date.from, "dd/MM/yyyy", { locale: vi })
@@ -123,7 +111,7 @@ export function DatePickerWithRange({
                   onClick={() => {
                     if (date) {
                       handleDateChange(date);
-                      document.body.click(); // Close the popover
+                      document.body.click();
                     }
                   }}
                 >
