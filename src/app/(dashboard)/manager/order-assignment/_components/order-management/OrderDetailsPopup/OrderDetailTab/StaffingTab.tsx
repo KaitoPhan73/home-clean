@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { User, UserPlus } from "lucide-react";
+import { User, UserPlus, Star, MessageCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,10 +18,9 @@ interface StaffingTabProps {
   isAssigning: boolean;
   isLoading: boolean;
   handleAssignStaff: () => Promise<boolean>;
-  onClose?: () => void;  // Add onClose prop
+  onClose?: () => void;
 }
 
-/* StaffingTab.tsx */
 export const StaffingTab: React.FC<StaffingTabProps> = ({
   order,
   availableStaffs,
@@ -30,13 +29,17 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
   isAssigning,
   isLoading,
   handleAssignStaff,
-  onClose,  // Accept onClose prop
+  onClose,
 }) => {
-  const assignedStaff = availableStaffs.find((s) => s.staffId === order.employeeId);
-  const assignedStaffName = assignedStaff?.phoneNumber || assignedStaff?.fullName || "Chưa phân công";
-
-  console.log("Available Staffs in StaffingTab:", availableStaffs); // Debug log
-  console.log("Assigned Staff:", assignedStaff); // Debug log
+  // Fix for assigned staff display: Find by staffId that matches order.employeeId
+  const assignedStaff = order.employeeId 
+    ? availableStaffs.find(s => s.staffId === order.employeeId) 
+    : null;
+    
+  // Define a proper display name for the assigned staff
+  const assignedStaffName = assignedStaff 
+    ? (assignedStaff.fullName || assignedStaff.phoneNumber || "Nhân viên") 
+    : "Chưa phân công";
 
   const isPendingAndAssigned =
     order.status.toLowerCase() === "inprogress" && order.employeeId;
@@ -47,6 +50,30 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
     if (success && onClose) {
       onClose();
     }
+  };
+
+  // Render star rating based on employee rating
+  const renderStarRating = (rating: number | null) => {
+    if (rating === null) return null;
+    
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star 
+          key={i} 
+          size={16} 
+          fill={i <= rating ? "#FFB800" : "none"} 
+          stroke={i <= rating ? "#FFB800" : "#D1D5DB"} 
+          className={i <= rating ? "text-yellow-500" : "text-gray-300"} 
+        />
+      );
+    }
+    return (
+      <div className="flex items-center gap-1">
+        {stars}
+        <span className="ml-1 text-sm text-gray-600">{rating.toFixed(1)}</span>
+      </div>
+    );
   };
 
   return (
@@ -64,7 +91,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                   <User size={20} />
                 </div>
-                <div>
+                <div className="flex-1">
                   <div className="font-medium">{assignedStaffName}</div>
                   <div className="text-xs text-gray-500">
                     ID: {order.employeeId.substring(0, 8)}...
@@ -106,7 +133,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                   <SelectContent>
                     {availableStaffs.map((staff) => (
                       <SelectItem key={staff.staffId} value={staff.staffId}>
-                        {staff.fullName || "Tên không xác định"}
+                        {staff.fullName || staff.phoneNumber || "Tên không xác định"}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -118,6 +145,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                       <User size={16} className="text-green-600" />
                       <span className="text-gray-700">
                         {availableStaffs.find((s) => s.staffId === selectedStaffId)?.fullName ||
+                          availableStaffs.find((s) => s.staffId === selectedStaffId)?.phoneNumber ||
                           "Tên không xác định"}
                       </span>
                     </div>
@@ -149,12 +177,43 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
             )}
           </div>
 
-          <div className="p-4 bg-white rounded-md border border-gray-100">
-            <h4 className="text-gray-600 font-medium mb-2">Lịch sử phân công</h4>
-            <div className="bg-gray-50 rounded p-3 text-sm text-gray-400 italic">
-              Chức năng này đang được phát triển
+          {order.employeeId && (
+            <div className="p-4 bg-white rounded-md border border-amber-100">
+              <h4 className="text-amber-700 font-medium mb-2 flex items-center gap-2">
+                <Star size={16} className="text-amber-500" />
+                Đánh giá của khách hàng
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-600">Đánh giá:</div>
+                  <div>
+                    {order.employeeRating !== null ? (
+                      renderStarRating(order.employeeRating)
+                    ) : (
+                      <span className="text-sm text-gray-500 italic">Chưa có đánh giá</span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle size={14} className="text-gray-500" />
+                    <div className="text-sm font-medium text-gray-600">Phản hồi:</div>
+                  </div>
+                  {order.customerFeedback ? (
+                    <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700">
+                      {order.customerFeedback}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-500 italic">
+                      Khách hàng chưa để lại phản hồi
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
       </div>
     </TabsContent>

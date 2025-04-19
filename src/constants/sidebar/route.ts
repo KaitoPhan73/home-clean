@@ -94,9 +94,14 @@ export const adminNavItems: TNavItem[] = [
       //   icon: "handCoins",
       //   shortcut: ["r", "s"],
       // },
+      {
+        title: "Báo Cáo",
+        url: PATHS.admin.feedbacks,
+        icon: "feedback",
+        shortcut: ["r", "s"],
+      },
     ],
   },
-
   {
     title: "Quản Lí Tài Khoản",
     url: "#",
@@ -135,7 +140,6 @@ export const adminNavItems: TNavItem[] = [
       },
     ],
   },
-
   {
     title: "Quản lý địa điểm",
     url: "#",
@@ -224,12 +228,12 @@ export const adminNavItems: TNavItem[] = [
         "icon": "tasks",
         "shortcut": ["r", "s"]
       },
-      // {
-      //   "title": "Loại đồ dùng",
-      //   "url": PATHS.admin.itemTypes,
-      //   "icon": "product",
-      //   "shortcut": ["r", "s"]
-      // },
+      {
+        "title": "Loại đồ dùng",
+        "url": PATHS.admin.itemTypes,
+        "icon": "product",
+        "shortcut": ["r", "s"]
+      },
       {
         "title": "Loại dịch vụ",
         "url": PATHS.admin.serviceTypes,

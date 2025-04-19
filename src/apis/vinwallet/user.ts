@@ -3,7 +3,7 @@
 "use server";
 
 import { httpVinWallet } from "@/lib/http";
-import { TUserResponse } from "@/schema/user.schema";
+import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
 import { TWalletResponse } from "@/schema/wallet.schema";
 import { TTableResponse } from "@/types/Table";
 
@@ -35,5 +35,13 @@ export const getUserById = async (id: string) => {
 
 export const createUser = async (data: Partial<TUserResponse>) => {
   const response = await httpVinWallet.post<TUserResponse>(`/users`, data);
+  return response;
+};
+
+export const updateVerifyUser = async (id: string, data: TUpdateUserRequest) => {
+  const response = await httpVinWallet.put<TUpdateUserRequest>(
+    `/users/${id}/verify-user`,
+    data
+  );
   return response;
 };

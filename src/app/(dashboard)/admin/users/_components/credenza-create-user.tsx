@@ -52,6 +52,7 @@ export function CredenzaCreateUser({ className }: Props) {
       houseCode: "",
       email: "",
       phoneNumber: "",
+      citizenCode: "",
     },
   });
 
@@ -221,6 +222,25 @@ export function CredenzaCreateUser({ className }: Props) {
                       <Input
                         placeholder="example@email.com"
                         {...field}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="citizenCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <Label>Mã công dân</Label>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập mã công dân..."
+                        {...field}
+                        value={field.value || ""}
                         disabled={isSubmitting}
                       />
                     </FormControl>
