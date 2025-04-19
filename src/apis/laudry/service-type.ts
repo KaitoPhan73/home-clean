@@ -11,3 +11,8 @@ export const getAllServiceTypes = async (params?: any) => {
   });
   return { payload: response.payload };
 };
+
+export const getServiceTypeById = async (serviceTypeId: string) => {
+    const response = await httpVinLaundry.get<TServiceTypeResponse>(`/service-types/${serviceTypeId}`);
+    return response;
+};

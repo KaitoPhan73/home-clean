@@ -3,13 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./cell-action";
 import {
-  CheckCircle,
-  XCircle,
   Mail,
   Phone,
-  ShieldCheck,
   User,
   User2,
+  IdCard,
 } from "lucide-react";
 import React from "react";
 import { TUserResponse } from "@/schema/user.schema";
@@ -83,43 +81,43 @@ export const UserColumns: ColumnDef<TUserResponse>[] = [
     },
   },
   {
-    accessorKey: "role",
-    header: "Vai Trò",
+    accessorKey: "citizenCode",
+    header: "Mã Công Dân",
     cell: ({ row }) => {
-      const role = row.getValue("role") as string;
+      const citizenCode = row.getValue("citizenCode") as string | null;
       return (
         <div className="flex items-center space-x-2">
-          <ShieldCheck className="text-yellow-500 h-5 w-5" />
-          <span className="text-gray-700 bg-yellow-50 px-2 py-1 rounded-full text-sm">
-            {role || 'Chưa xác định'}
+          <IdCard className="text-indigo-500 h-5 w-5" />
+          <span className="text-gray-700">
+            {citizenCode || 'Chưa cập nhật'}
           </span>
         </div>
       );
     },
   },
-  {
-    accessorKey: "status",
-    header: "Trạng Thái",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <div className="flex items-center space-x-2">
-          {status === "Active" ? (
-            <CheckCircle className="text-green-500 h-5 w-5" />
-          ) : (
-            <XCircle className="text-red-500 h-5 w-5" />
-          )}
-          <span 
-            className={`font-medium ${
-              status === "Active" ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {status === "Active" ? "Hoạt động" : "Không hoạt động"}
-          </span>
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: "Trạng Thái",
+  //   cell: ({ row }) => {
+  //     const status = row.getValue("status") as string;
+  //     return (
+  //       <div className="flex items-center space-x-2">
+  //         {status === "Active" ? (
+  //           <CheckCircle className="text-green-500 h-5 w-5" />
+  //         ) : (
+  //           <XCircle className="text-red-500 h-5 w-5" />
+  //         )}
+  //         <span 
+  //           className={`font-medium ${
+  //             status === "Active" ? 'text-green-600' : 'text-red-600'
+  //           }`}
+  //         >
+  //           {status === "Active" ? "Hoạt động" : "Không hoạt động"}
+  //         </span>
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     id: "actions",
     header: "Thao Tác",

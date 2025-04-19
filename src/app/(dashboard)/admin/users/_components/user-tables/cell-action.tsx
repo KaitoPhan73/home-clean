@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
+import { updateVerifyUser } from "@/apis/vinwallet/user";
 import { UserDetailPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-detail";
 import { AlertModal } from "@/components/modal/alert-modal";
 import { Button } from "@/components/ui/button";
@@ -10,18 +12,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TUserResponse } from "@/schema/user.schema";
-import { Edit, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { handleErrorApi } from "@/lib/utils";
+import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
+import { Check, Eye, MoreHorizontal, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface CellActionProps {
   data: TUserResponse;
-
 }
 
-export const CellAction: React.FC<CellActionProps> = ({data}) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -37,6 +39,32 @@ export const CellAction: React.FC<CellActionProps> = ({data}) => {
 
   const onConfirm = async () => {};
 
+  const confirmResident = async () => {
+    try {
+      setLoading(true);
+
+      const updateData: TUpdateUserRequest = {
+        fullName: data.fullName,
+        username: data.username,
+        buildingCode: data.houseId,
+        houseCode: data.houseId,
+        phoneNumber: data.phoneNumber,
+        email: data.email,
+        citizenCode: data.citizenCode,
+      };
+
+      await updateVerifyUser(data.id, updateData);
+      toast.success("Xác nhận cư dân thành công!");
+      router.refresh();
+    } catch (error: any) {
+      handleErrorApi({
+        error,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <AlertModal
@@ -47,45 +75,39 @@ export const CellAction: React.FC<CellActionProps> = ({data}) => {
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost" className="h-8 w-8 p-0" disabled={loading}>
             <span className="sr-only">Mở menu</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Các hành động</DropdownMenuLabel>
-          
-          {/* Nút Xem Chi Tiết */}
-          <DropdownMenuItem 
+
+          <DropdownMenuItem
             onClick={() => setIsDetailPopupOpen(true)}
             className="cursor-pointer"
           >
             <Eye className="mr-2 h-4 w-4" /> Xem Chi Tiết
           </DropdownMenuItem>
-          
-          {/* Nút Chỉnh Sửa */}
-          <DropdownMenuItem 
-            onClick={onEdit}
-            className="cursor-pointer"
-          >
+
+          <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
             <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
           </DropdownMenuItem>
-          
-          {/* Nút Xóa */}
-          {/* <DropdownMenuItem 
-            onClick={onDelete}
-            className="cursor-pointer text-red-600"
+
+          <DropdownMenuItem
+            onClick={confirmResident}
+            className="cursor-pointer text-green-600"
+            disabled={loading}
           >
-            <Trash2 className="mr-2 h-4 w-4" /> Xóa
-          </DropdownMenuItem> */}
+            <Check className="mr-2 h-4 w-4" /> Xác Nhận Cư Dân
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Popup Chi Tiết */}
       {isDetailPopupOpen && (
-        <UserDetailPopup 
-          user={data} 
-          onClose={() => setIsDetailPopupOpen(false)} 
+        <UserDetailPopup
+          user={data}
+          onClose={() => setIsDetailPopupOpen(false)}
         />
       )}
     </>

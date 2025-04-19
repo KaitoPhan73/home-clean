@@ -11,6 +11,7 @@ import {
   MapPin,
   Check,
   XCircle,
+  IdCard,
 } from "lucide-react";
 import { getHouseById } from "@/apis/house";
 import { THouseResponse } from "@/schema/house.schema";
@@ -68,7 +69,6 @@ export const UserDetailPopup: React.FC<UserDetailPopupProps> = ({
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-6 space-y-4">
           <DetailSection
             title="Thông Tin Cá Nhân"
@@ -84,14 +84,19 @@ export const UserDetailPopup: React.FC<UserDetailPopupProps> = ({
                 value: user.username,
               },
               {
-                icon: <Mail className="text-red-500" />,
-                label: "Email",
-                value: user.email,
-              },
-              {
                 icon: <Phone className="text-purple-500" />,
                 label: "Số Điện Thoại",
                 value: user.phoneNumber,
+              },
+              {
+                icon: <IdCard className="text-purple-500" />,
+                label: "Mã Cư Dân",
+                value: user.citizenCode,
+              },
+              {
+                icon: <Mail className="text-red-500" />,
+                label: "Email",
+                value: user.email,
               },
             ]}
           />

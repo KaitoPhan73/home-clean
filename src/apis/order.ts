@@ -20,7 +20,6 @@ export const getAllOrders = async (params?: any) => {
 
 export const getOrderById = async (id: string) => {
   const response = await httpHomePlus.get<TOrderResponse>(`/orders/${id}`);
-//   console.log("Service Category Response:", response);
   return response;
 };
 
