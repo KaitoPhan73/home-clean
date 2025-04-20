@@ -15,7 +15,7 @@ const ItemTypeIndex = ({ keyProps }: Props) => {
     <PageContainer>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
-          <Heading title="Loại Đồ Dùng" description="Phân Loại Các Loại Dùng Giặt Ủi" />
+          <Heading title="Loại Đồ Dùng" description="Phân Loại Các Loại Dùng Giặt Sấy" />
           {/* <CredenzaCreateGroup /> */}
         </div>
         <Separator />

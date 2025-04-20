@@ -1,5 +1,4 @@
-"use client";
-
+// OrderHeader.tsx (unchanged)
 import { ArrowLeft, Clock } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,11 +53,10 @@ export default function OrderHeader({ order }: OrderHeaderProps) {
               </Button>
             </Link>
             <h1 className="text-lg font-semibold text-slate-800">
-              Đơn giặt ủi mã #{" "}
+              Đơn giặt sấy mã #{" "}
               <span className="text-indigo-600">{order.orderCode}</span>
             </h1>
           </div>
-
           <div className="flex items-center space-x-4">
             <span className="text-sm text-slate-500 bg-slate-50 px-2 py-1 rounded">
               ID: {order.id.substring(0, 100)}

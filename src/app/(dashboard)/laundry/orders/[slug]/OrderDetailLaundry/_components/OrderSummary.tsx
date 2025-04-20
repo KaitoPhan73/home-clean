@@ -36,7 +36,7 @@ export default function OrderSummary({ totals, order }: OrderSummaryProps) {
       <CardHeader className="bg-gradient-to-r from-purple-50 to-white pb-4">
         <CardTitle className="text-lg font-semibold flex items-center text-purple-800">
           <Receipt className="h-5 w-5 mr-2 text-purple-600" />
-          Đơn hàng giặt ủi
+          Đơn hàng giặt sấy
         </CardTitle>
         <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500 mb-0 ml-7">
           (Đây là giá khởi điểm theo món hoặc kg, truớc khi thanh toán, chưa

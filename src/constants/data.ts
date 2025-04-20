@@ -155,7 +155,7 @@ export const dataBlogs = [
       {
         id: 102,
         title: "Đa dạng dịch vụ",
-        content: "Chúng tôi cung cấp nhiều dịch vụ khác nhau như dọn dẹp nhà cửa, giặt ủi, chăm sóc cây cảnh, vệ sinh công nghiệp, vệ sinh nhà ở, vệ sinh công trình, vệ sinh sau xây dựng, vệ sinh sân vườn, vệ sinh nhà hàng, vệ sinh văn phòng, vệ sinh cửa hàng, vệ sinh trường học, vệ sinh bệnh viện, vệ sinh khách sạn, vệ sinh nhà trọ, vệ sinh chung cư, vệ sinh biệt thự, vệ sinh nhà xưởng, vệ sinh nhà máy",
+        content: "Chúng tôi cung cấp nhiều dịch vụ khác nhau như dọn dẹp nhà cửa, , chăm sóc cây cảnh, vệ sinh công nghiệp, vệ sinh nhà ở, vệ sinh công trình, vệ sinh sau xây dựng, vệ sinh sân vườn, vệ sinh nhà hàng, vệ sinh văn phòng, vệ sinh cửa hàng, vệ sinh trường học, vệ sinh bệnh viện, vệ sinh khách sạn, vệ sinh nhà trọ, vệ sinh chung cư, vệ sinh biệt thự, vệ sinh nhà xưởng, vệ sinh nhà máy",
         tags: [],
         datePublished: "",
         image: "/blog-images/1-3.jpg",

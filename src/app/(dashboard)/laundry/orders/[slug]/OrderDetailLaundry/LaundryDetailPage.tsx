@@ -1,3 +1,4 @@
+// LaundryDetailPage.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -11,18 +12,9 @@ import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLau
 import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
 import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
 import { OrderStatusEnum } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
-import { 
-  AlertCircle, 
-  ShoppingBag, 
-  FileText, 
-  Clock, 
-  User,
-  Calendar,
-  Package
-} from "lucide-react";
+import { AlertCircle, ShoppingBag, FileText, Clock, User, Calendar, Package } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
 import { OrderItems } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
@@ -68,8 +60,8 @@ export default function LaundryDetailPage() {
   useEffect(() => {
     const userCookie = document.cookie
       .split("; ")
-      .find(row => row.startsWith("user="));
-    
+      .find((row) => row.startsWith("user="));
+
     if (userCookie) {
       try {
         const userJson = decodeURIComponent(userCookie.split("=")[1]);
@@ -97,7 +89,6 @@ export default function LaundryDetailPage() {
               const foundUser = usersResponse?.payload?.items?.find(
                 (u) => u.id === orderResponse.payload.userId
               );
-              
               if (foundUser) {
                 setUser(foundUser);
                 setUserError(null);
@@ -136,6 +127,13 @@ export default function LaundryDetailPage() {
     }
   }, [orderId]);
 
+  // Callback to update order status locally
+  const updateOrderStatus = (newStatus: string) => {
+    setOrder((prevOrder) =>
+      prevOrder ? { ...prevOrder, status: newStatus } : prevOrder
+    );
+  };
+
   const calculateTotals = () => {
     if (!order) return { itemsTotal: 0, additionalServicesTotal: 0, discount: 0, grandTotal: 0 };
 
@@ -167,7 +165,7 @@ export default function LaundryDetailPage() {
 
     const itemMap = new Map();
 
-    order.orderDetailsByItem.forEach(item => {
+    order.orderDetailsByItem.forEach((item) => {
       const itemKey = item.itemTypeResponse.id;
       if (itemMap.has(itemKey)) {
         const existingItem = itemMap.get(itemKey);
@@ -188,12 +186,12 @@ export default function LaundryDetailPage() {
       }
     });
 
-    order.orderDetailsByKg.forEach(item => {
+    order.orderDetailsByKg.forEach((item) => {
       const itemKey = item.itemTypeId;
       if (itemMap.has(itemKey)) {
         const existingItem = itemMap.get(itemKey);
         existingItem.quantity += 1;
-        existingItem.subtotal += (item.subtotal || 0);
+        existingItem.subtotal += item.subtotal || 0;
       } else {
         itemMap.set(itemKey, {
           id: item.id,
@@ -221,7 +219,6 @@ export default function LaundryDetailPage() {
   return (
     <div className="container mx-auto py-4 px-1 sm:px-4 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
       <OrderHeader order={order} />
-      
       {userError && (
         <div className="mb-4 p-3 border rounded-lg border-amber-200 bg-amber-50 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
@@ -230,62 +227,53 @@ export default function LaundryDetailPage() {
           </p>
         </div>
       )}
-      
       <div className="mb-6 overflow-hidden rounded-lg shadow-md">
-        <Tabs 
-          defaultValue="overview" 
-          value={activeTab} 
-          onValueChange={setActiveTab} 
-          orientation="vertical" 
+        <Tabs
+          defaultValue="overview"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          orientation="vertical"
           className="flex h-full"
         >
           <div className="flex flex-col w-56 h-full bg-gray-50 border-r border-gray-200 rounded-l-lg flex-shrink-0">
             <div className="bg-white px-5 py-3 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-800">Chi tiết</h2>
+              <h2 className="text-lg font-semibold text-gray-800">Chi tiết</h2>
             </div>
-            
             <div className="px-5 py-4 bg-gray-50 border-b border-gray-200">
               <div className="flex items-center mb-3 text-sm text-gray-600">
                 <Calendar className="h-4 w-4 mr-2" />
                 <span>Tạo lúc: {formatDate(order.createdAt)}</span>
               </div>
-              
               <div className="flex items-center mb-3 text-sm text-gray-600">
                 <User className="h-4 w-4 mr-2" />
-                <span>Khách hàng: {user?.fullName || 'Không xác định'}</span>
+                <span>Khách hàng: {user?.fullName || "Không xác định"}</span>
               </div>
-              
               <div className="flex items-center text-sm text-gray-600">
                 <Package className="h-4 w-4 mr-2" />
                 <span>Số lượng: {consolidatedItems.length} sản phẩm</span>
               </div>
             </div>
-            
-            {/* Tab Navigation */}
             <TabsList className="flex flex-col w-full h-auto p-0 bg-transparent">
               <div className="px-3 py-3 border-b border-gray-200">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-1 ml-2">
                   Thông tin đơn hàng
                 </p>
-
-                <TabsTrigger 
-                  value="overview" 
+                <TabsTrigger
+                  value="overview"
                   className="justify-start w-full py-2.5 px-3 mb-1 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:font-medium rounded text-gray-700 text-sm transition-all hover:bg-gray-100"
                 >
                   <ShoppingBag className="h-4 w-4 mr-2.5" />
                   Tổng quan
                 </TabsTrigger>
-                
-                <TabsTrigger 
-                  value="details" 
+                <TabsTrigger
+                  value="details"
                   className="justify-start w-full py-2.5 px-3 mb-1 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:font-medium rounded text-gray-700 text-sm transition-all hover:bg-gray-100"
                 >
                   <FileText className="h-4 w-4 mr-2.5" />
                   Chi tiết đơn hàng
                 </TabsTrigger>
-                
-                <TabsTrigger 
-                  value="tasks" 
+                <TabsTrigger
+                  value="tasks"
                   className="justify-start w-full py-2.5 px-3 data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 data-[state=active]:font-medium rounded text-gray-700 text-sm transition-all hover:bg-gray-100"
                 >
                   <Clock className="h-4 w-4 mr-2.5" />
@@ -294,7 +282,6 @@ export default function LaundryDetailPage() {
               </div>
             </TabsList>
           </div>
-          
           <div className="p-6 bg-white flex-grow rounded-r-lg border-t border-r border-b border-gray-200">
             <TabsContent value="overview" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -306,23 +293,25 @@ export default function LaundryDetailPage() {
                 </div>
               </div>
             </TabsContent>
-            
             <TabsContent value="details" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <OrderItems items={consolidatedItems} additionalServices={order.orderAdditionalServicesResponse} />
+                  <OrderItems
+                    items={consolidatedItems}
+                    additionalServices={order.orderAdditionalServicesResponse}
+                  />
                 </div>
                 <div className="lg:col-span-1">
                   <OrderSummary totals={totals} order={order} />
                 </div>
               </div>
             </TabsContent>
-            
             <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">
               <OrderTasks
                 orderId={order.id}
                 currentUser={currentUser}
                 orderStatusOverride={mapApiStatusToEnum(order.status)}
+                updateOrderStatus={updateOrderStatus}
               />
             </TabsContent>
           </div>

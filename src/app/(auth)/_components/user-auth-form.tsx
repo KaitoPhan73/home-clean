@@ -168,12 +168,12 @@ const CombinedManagerAuthForm = () => {
         dispatch(setUser(positionUserData));
 
         let redirectUrl = "/laundry/orders";
-        let message = "Đang chuyển đến trang quản lý dịch vụ giặt ủi";
+        let message = "Đang chuyển đến trang quản lý dịch vụ giặt sấy";
 
         // Set redirect based on role for laundry service
         if (userData.role?.toLowerCase() === "admin") {
           redirectUrl = "/admin/laundry";
-          message = "Đang chuyển đến trang quản lí giặt ủi";
+          message = "Đang chuyển đến trang quản lí giặt sấy";
         }
 
         toast({

@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ShoppingBag, Scale, Tag } from "lucide-react";
+import { ShoppingBag, Scale, Tag, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
@@ -62,6 +62,7 @@ interface OrderItem {
   weight?: number;
   pricePerKg?: number;
   pricePerItem?: number;
+  serviceType?: string;
 }
 
 interface AdditionalService {
@@ -115,15 +116,16 @@ const mapOrderDetailByKgToOrderItem = (detail: OrderDetailByKg): OrderItem => ({
   },
 });
 
-// Original OrderItems component
+// Updated OrderItems component
 export function OrderItems({
   items,
   additionalServices,
   orderCode,
   status,
-  orderDetailsByItem,
-  orderDetailsByKg,
+  orderDetailsByItem = [],
+  orderDetailsByKg = [],
   orderAdditionalServicesResponse,
+  totalAmount,
 }: OrderItemsProps) {
   // Process items from different sources
   const processedItems: OrderItem[] = [];
@@ -171,6 +173,11 @@ export function OrderItems({
     );
   };
 
+  const isEmpty =
+    (!items || items.length === 0) &&
+    (!orderDetailsByItem || orderDetailsByItem.length === 0) &&
+    (!orderDetailsByKg || orderDetailsByKg.length === 0);
+
   return (
     <Card className="shadow-sm border-gray-200 mb-6">
       <CardHeader className="mb-6 bg-gradient-to-r from-blue-100 to-red-50 border-b border-gray-100 py-4">
@@ -186,75 +193,94 @@ export function OrderItems({
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          {processedItems.length > 0 && (
-            <div className="mb-6">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-gray-500 text-sm border-b">
-                    <th className="pb-2">Mặt hàng</th>
-                    <th className="pb-2 text-center">Số lượng</th>
-                    <th className="pb-2 text-right">Đơn giá</th>
-                    <th className="pb-2 text-right">Thành tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {processedItems.map((item) => {
-                    const isWeightBased = !!item.weight && item.weight > 0;
-                    const displayedPrice = isWeightBased
-                      ? item.pricePerKg || item.unitPrice
-                      : item.pricePerItem || item.unitPrice;
-
-                    return (
-                      <tr key={item.id} className="border-b border-gray-100">
-                        <td className="py-3">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                              {isWeightBased ? (
-                                <Scale className="h-4 w-4" />
-                              ) : (
-                                <Tag className="h-4 w-4" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-medium">{item.name}</div>
-                              <div className="text-xs text-gray-500">
-                                Mã: {item.itemType.itemCode}
-                                {isWeightBased && (
-                                  <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs">
-                                    Tính theo kg
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 text-center">
-                          {isWeightBased
-                            ? `${(item.weight ?? 0).toFixed(2)} kg`
-                            : item.quantity}
-                        </td>
-                        <td className="py-3 text-right">
-                          {displayedPrice ? (
-                            `${formatCurrency(displayedPrice)} /kg`
-                          ) : (
-                            <span className="text-xs italic text-gray-500">
-                              Không tính theo kg
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3 text-right font-medium">
-                          {formatCurrency(item.subtotal)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {isEmpty ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Đơn hàng đang được xử lý
+              </h3>
+              <p className="text-gray-500 max-w-md">
+                Hiện tại đơn hàng này đang được đặt giặt theo kg. Hãy đợi nhân
+                viên phân loại và update quần áo để list ra thông tin nhé!
+              </p>
             </div>
+          ) : (
+            <>
+              {processedItems.length > 0 && (
+                <div className="mb-6">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-gray-500 text-sm border-b">
+                        <th className="pb-2">Mặt hàng</th>
+                        <th className="pb-2 text-center">Số lượng</th>
+                        {/* <th className="pb-2 text-right">Đơn giá</th> */}
+                        <th className="pb-2 text-right">Thành điểm</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {processedItems.map((item) => {
+                        const isWeightBased = !!item.weight && item.weight > 0;
+                        const displayedPrice = isWeightBased
+                          ? item.pricePerKg || item.unitPrice
+                          : item.pricePerItem || item.unitPrice;
+
+                        return (
+                          <tr
+                            key={item.id}
+                            className="border-b border-gray-100"
+                          >
+                            <td className="py-3">
+                              <div className="flex items-center">
+                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                  {isWeightBased ? (
+                                    <Scale className="h-4 w-4" />
+                                  ) : (
+                                    <Tag className="h-4 w-4" />
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{item.name}</div>
+                                  <div className="text-xs text-gray-500">
+                                    Mã: {item.itemType.itemCode}
+                                    {isWeightBased ? (
+                                      <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs">
+                                        Tính theo kg
+                                      </span>
+                                    ) : (
+                                      <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                                        Tính theo Item
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 text-center">
+                              {isWeightBased
+                                ? `${(item.weight ?? 0).toFixed(2)} kg`
+                                : item.quantity}
+                            </td>
+                            {/* <td className="py-3 text-right">
+                              {isWeightBased
+                                ? `${item.pricePerKg} Point / kg`
+                                : `${item.pricePerItem} Point / item`}
+                            </td> */}
+                            <td className="py-3 text-right font-medium">
+                              {item.subtotal} Point
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Additional services */}
+          {/* Additional services - always show if present, regardless of item status */}
           {displayServices.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center mb-3">
@@ -308,6 +334,16 @@ export function OrderItems({
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Show total amount if provided */}
+          {totalAmount !== undefined && totalAmount !== null && (
+            <div className="border-t border-gray-200 pt-4 mt-2">
+              <div className="flex justify-between items-center text-lg font-medium">
+                <span>Tổng cộng:</span>
+                <span>{formatCurrency(totalAmount)}</span>
+              </div>
             </div>
           )}
         </div>
