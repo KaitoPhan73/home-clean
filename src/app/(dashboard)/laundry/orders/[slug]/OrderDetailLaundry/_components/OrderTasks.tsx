@@ -17,12 +17,12 @@ import TaskProgress from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLau
 import TaskCard from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskCard";
 import ProcessGuide from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/ProcessGuide";
 import TaskCheckoutDialog from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskCheckoutDialog";
-import { getOrderTasks, ApiTask } from "@/apis/laudry/task";
 import {
   assignTask,
   getNextTaskStatus,
   convertToTaskStatusEnum,
 } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/taskService";
+import { getOrderTasks, ApiTask } from "@/apis/laudry/task";
 import PaymentStatusNotification from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/PaymentNotification";
 import WeightSubmissionDialog from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/WeightSubmissionDialog";
 
@@ -30,19 +30,21 @@ interface OrderTasksProps {
   orderId: string;
   currentUser: any;
   orderStatusOverride?: OrderStatusEnum;
+  updateOrderStatus: (newStatus: string) => void;
 }
 
 const OrderTasks: React.FC<OrderTasksProps> = ({
   orderId,
   currentUser,
   orderStatusOverride,
+  updateOrderStatus,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingTask, setProcessingTask] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatusEnum>(
-    OrderStatusEnum.Processing
+    orderStatusOverride || OrderStatusEnum.Processing
   );
   const [checkoutTaskInfo, setCheckoutTaskInfo] = useState<{
     taskId: string;
@@ -68,7 +70,9 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       try {
         setLoading(true);
         const response = await getOrderTasks(orderId);
-
+        if (!response?.payload?.items || !Array.isArray(response.payload.items)) {
+          throw new Error("Dữ liệu công việc không hợp lệ hoặc không tồn tại.");
+        }
         const convertedTasks: Task[] = response.payload.items.map(
           (apiTask: ApiTask) => ({
             ...apiTask,
@@ -78,21 +82,27 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
             managerName: apiTask.managerName || "Unknown Manager",
           })
         );
-
-        const sortedTasks = convertedTasks.sort(
-          (a: Task, b: Task) => Number(a.priority) - Number(b.priority)
-        );
-
+        const sortedTasks = convertedTasks.sort((a: Task, b: Task) => {
+          const priorityA = isNaN(Number(a.priority)) ? 0 : Number(a.priority);
+          const priorityB = isNaN(Number(b.priority)) ? 0 : Number(b.priority);
+          return priorityA - priorityB;
+        });
         setTasks(sortedTasks);
-
         if (orderStatusOverride === undefined) {
           updateOrderStatusFromTasks(sortedTasks);
         }
-
         setError(null);
-      } catch (err) {
-        console.error("Error fetching tasks:", err);
-        setError("Không thể tải danh sách công việc. Vui lòng thử lại sau.");
+      } catch (err: any) {
+        console.error("Error fetching tasks:", {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+        });
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Không thể tải danh sách công việc. Vui lòng thử lại sau."
+        );
       } finally {
         setLoading(false);
       }
@@ -101,6 +111,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     if (orderId) {
       fetchTasks();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, orderStatusOverride]);
 
   const updateOrderStatusFromTasks = (taskList: Task[]) => {
@@ -112,25 +123,26 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       (task) => task.status === TaskStatusEnum.Completed
     );
 
+    let newStatus: OrderStatusEnum;
     if (allTasksCompleted) {
-      setOrderStatus(OrderStatusEnum.Completed);
+      newStatus = OrderStatusEnum.Completed;
     } else if (
       step2Completed &&
       !allTasksCompleted &&
       orderStatus !== OrderStatusEnum.Paid
     ) {
-      setOrderStatus(OrderStatusEnum.PendingPayment);
-      if (!loading && !weightSubmitted) {
-        setShowWeightDialog(true);
-      }
+      newStatus = OrderStatusEnum.PendingPayment;
     } else if (
       step1Completed ||
       taskList.some((task) => task.status === TaskStatusEnum.InProgress)
     ) {
-      setOrderStatus(OrderStatusEnum.Processing);
+      newStatus = OrderStatusEnum.Processing;
     } else {
-      setOrderStatus(OrderStatusEnum.Draft);
+      newStatus = OrderStatusEnum.Draft;
     }
+
+    setOrderStatus(newStatus);
+    updateOrderStatus(newStatus.toString()); // Sync with parent
   };
 
   const handleTaskCheckout = async (employeeId: string) => {
@@ -158,26 +170,24 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           : "complete";
       await assignTask(checkoutTaskInfo.taskId, employeeId, action);
 
-      const response = await getOrderTasks(orderId);
-
-      const convertedTasks: Task[] = response.payload.items.map(
-        (apiTask: ApiTask) => ({
-          ...apiTask,
-          status: convertToTaskStatusEnum(apiTask.status),
-          priority: String(apiTask.priority),
-        })
+      // Optimistically update tasks
+      const updatedTasks = tasks.map((task) =>
+        task.id === checkoutTaskInfo.taskId
+          ? {
+              ...task,
+              status: getNextTaskStatus(checkoutTaskInfo.currentStatus),
+              employeeId,
+              employeeName: currentUser?.fullName || "Unknown",
+              updatedAt: new Date().toISOString(),
+            }
+          : task
       );
+      setTasks(updatedTasks);
 
-      const sortedTasks = convertedTasks.sort(
-        (a: Task, b: Task) => Number(a.priority) - Number(b.priority)
-      );
-
-      setTasks(sortedTasks);
-
-      const taskIndex = sortedTasks.findIndex(
+      const taskIndex = updatedTasks.findIndex(
         (task) => task.id === checkoutTaskInfo.taskId
       );
-      const updatedTask = sortedTasks[taskIndex];
+      const updatedTask = updatedTasks[taskIndex];
       const nextStatus = getNextTaskStatus(checkoutTaskInfo.currentStatus);
 
       if (nextStatus === TaskStatusEnum.InProgress) {
@@ -194,31 +204,16 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         });
       }
 
+      // Only show weight dialog when Task 1 is completed and weight not yet submitted
       if (
-        taskIndex === 1 &&
-        sortedTasks[1].status === TaskStatusEnum.Completed &&
-        orderStatus !== OrderStatusEnum.Paid
+        taskIndex === 0 &&
+        updatedTasks[0].status === TaskStatusEnum.Completed &&
+        !weightSubmitted
       ) {
-        setOrderStatus(OrderStatusEnum.PendingPayment);
-        setShowWeightDialog(true); // Show weight dialog when task 2 is completed
+        setShowWeightDialog(true);
       }
 
-      if (
-        taskIndex === 2 &&
-        sortedTasks[2].status === TaskStatusEnum.Completed
-      ) {
-        setOrderStatus(OrderStatusEnum.Completed);
-        toast({
-          title: "Đơn hàng hoàn thành",
-          description:
-            "Tất cả các công việc đã hoàn thành. Đơn hàng đã hoàn tất.",
-          duration: 5000,
-        });
-      }
-
-      if (orderStatus !== OrderStatusEnum.Paid) {
-        updateOrderStatusFromTasks(sortedTasks);
-      }
+      updateOrderStatusFromTasks(updatedTasks);
     } catch (err: any) {
       console.error("Error updating task:", err);
       const errorMessage =
@@ -226,7 +221,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         err.response?.data?.message ||
         "Không thể cập nhật trạng thái công việc. Vui lòng thử lại sau.";
       setError(errorMessage);
-
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -239,43 +233,29 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     }
   };
 
-  const handleWeightSubmit = async () => {
-    // Simulate API for weight update
-    try {
-      setWeightSubmitted(true);
-      setShowWeightDialog(false);
-      setOrderStatus(OrderStatusEnum.PendingPayment);
-      toast({
-        title: "Đã cập nhật trọng lượng",
-        description: "Trọng lượng đã được cập nhật. Vui lòng chờ thanh toán.",
-        duration: 5000,
-      });
-    } catch (err: any) {
-      console.error("Error updating weight:", err);
-      setError("Không thể cập nhật trọng lượng. Vui lòng thử lại sau.");
-      toast({
-        variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể cập nhật trọng lượng.",
-        duration: 5000,
-      });
-    }
+  const handleWeightSubmit = () => {
+    setWeightSubmitted(true);
+    setShowWeightDialog(false);
+    setOrderStatus(OrderStatusEnum.PendingPayment);
+    updateOrderStatus("PendingPayment"); // Sync with parent
+    toast({
+      title: "Đã cập nhật trọng lượng",
+      description: "Trọng lượng đã được cập nhật thành công.",
+      duration: 5000,
+    });
   };
 
   const handleWeightEdit = () => {
-    // Only show the dialog if the order is not already paid
-    if (orderStatus !== OrderStatusEnum.Paid) {
-      setShowWeightDialog(true);
-    }
+    setShowWeightDialog(true);
   };
 
   const handlePaymentComplete = () => {
-    // Simulate payment completion
     setOrderStatus(OrderStatusEnum.Paid);
     setWeightSubmitted(false);
+    updateOrderStatus("Paid"); // Sync with parent
     toast({
       title: "Thanh toán hoàn tất",
-      description: "Đơn hàng đã được thanh toán. Task 3 đã được mở khóa.",
+      description: "Đơn hàng đã được thanh toán. Task 2 đã được mở khóa.",
       duration: 5000,
     });
   };
@@ -283,18 +263,22 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   const canCheckoutTask = (task: Task, index: number) => {
     if (!hasManagerRole) return false;
 
+    if (isTaskLocked(index)) return false;
+
     if (index === 0) return task.status !== TaskStatusEnum.Completed;
     if (index === 1) {
       return (
         tasks[0].status === TaskStatusEnum.Completed &&
+        (orderStatus === OrderStatusEnum.Processing ||
+          orderStatus === OrderStatusEnum.Paid) &&
         task.status !== TaskStatusEnum.Completed
       );
     }
     if (index === 2) {
       return (
-        orderStatus === OrderStatusEnum.Paid &&
+        tasks[0]?.status === TaskStatusEnum.Completed &&
         tasks[1]?.status === TaskStatusEnum.Completed &&
-        task.status !== TaskStatusEnum.Pending &&
+        orderStatus === OrderStatusEnum.Processing &&
         task.status !== TaskStatusEnum.Completed
       );
     }
@@ -302,16 +286,31 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   };
 
   const isTaskLocked = (index: number) => {
-    if (index === 0) return false;
+    if (index === 0) return false; // Task 1 always unlocked
+
     if (index === 1) {
-      return tasks[0]?.status !== TaskStatusEnum.Completed;
+      if (tasks[0]?.status === TaskStatusEnum.Completed) {
+        if (
+          orderStatus === OrderStatusEnum.Paid ||
+          (orderStatus === OrderStatusEnum.Processing &&
+            tasks[1]?.status === TaskStatusEnum.InProgress)
+        ) {
+          return false;
+        }
+        return true;
+      }
+      return true;
     }
+
     if (index === 2) {
-      return (
-        orderStatus !== OrderStatusEnum.Paid ||
-        tasks[1]?.status !== TaskStatusEnum.Completed
+      return !(
+        tasks[0]?.status === TaskStatusEnum.Completed &&
+        tasks[1]?.status === TaskStatusEnum.Completed &&
+        tasks[2]?.status === TaskStatusEnum.Pending &&
+        orderStatus === OrderStatusEnum.Processing
       );
     }
+
     return true;
   };
 
@@ -381,7 +380,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           />
         )}
 
-        {showWeightDialog && orderStatus !== OrderStatusEnum.Paid && (
+        {showWeightDialog && (
           <WeightSubmissionDialog
             open={showWeightDialog}
             onOpenChange={setShowWeightDialog}
@@ -394,14 +393,17 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           <PaymentStatusNotification
             orderId={orderId}
             orderStatus={orderStatus}
-            onWeightSubmitted={handlePaymentComplete} // Simulate payment completion
+            onWeightSubmitted={handlePaymentComplete}
           />
         )}
 
         <OrderStatusHeader orderStatus={orderStatus} />
 
-        <TaskProgress tasks={tasks} isTaskLocked={isTaskLocked} />
-
+        <TaskProgress
+          tasks={tasks}
+          isTaskLocked={isTaskLocked}
+          orderStatus={orderStatus}
+        />
         <div className="space-y-6">
           {tasks.map((task, index) => (
             <TaskCard
@@ -414,18 +416,23 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
               canCheckoutTask={canCheckoutTask}
               isTaskLocked={isTaskLocked}
               onCheckout={() => handleCheckoutClick(task)}
-              onWeightEdit={index === 1 && task.status === TaskStatusEnum.Completed
-                ? handleWeightEdit
-                : undefined}
-              tasks={tasks} staff={null}            />
+              onWeightEdit={
+                index === 0 &&
+                task.status === TaskStatusEnum.Completed &&
+                !weightSubmitted
+                  ? handleWeightEdit
+                  : undefined
+              }
+              tasks={tasks}
+              staff={null}
+            />
           ))}
         </div>
 
         {!hasManagerRole && (
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg mt-4">
             <p className="text-sm text-gray-600 text-center">
-              Chỉ người dùng có vai trò Manager mới có thể cập nhật trạng thái
-              công việc.
+              Chỉ người dùng có vai trò Manager mới có thể cập nhật trạng thái công việc.
             </p>
           </div>
         )}

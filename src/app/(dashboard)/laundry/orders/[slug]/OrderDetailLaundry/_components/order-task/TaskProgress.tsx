@@ -1,13 +1,15 @@
+// TaskProgress.tsx
 import React from "react";
-import { Task, TaskStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, Lock } from "lucide-react";
+import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
+import { CheckCircle, Clock, Lock, Unlock } from "lucide-react";
 
 interface TaskProgressProps {
   tasks: Task[];
   isTaskLocked: (index: number) => boolean;
+  orderStatus: OrderStatusEnum;
 }
 
-const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
+const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderStatus }) => {
   return (
     <div
       className="sticky top-0 z-10 flex items-center justify-between my-8 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border border-gray-200 bg-gray-50 transition-all duration-300 ease-in-out hover:shadow-md"
@@ -23,6 +25,12 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
                   ? "bg-blue-500 scale-105"
                   : isTaskLocked(index)
                   ? "bg-gray-400 opacity-60"
+                  : orderStatus === OrderStatusEnum.PendingPayment && index === 1
+                  ? "bg-yellow-500"
+                  : index === 2 &&
+                    orderStatus === OrderStatusEnum.Processing &&
+                    tasks[1]?.status === TaskStatusEnum.Completed
+                  ? "bg-blue-500"
                   : "bg-gray-400"
               }`}
             >
@@ -33,7 +41,7 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
               ) : isTaskLocked(index) ? (
                 <Lock className="h-6 w-6" />
               ) : (
-                <span className="text-lg">{index + 1}</span>
+                <Unlock className="h-6 w-6" />
               )}
             </div>
             <span
@@ -44,13 +52,16 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked }) => {
                   ? "text-blue-700"
                   : isTaskLocked(index)
                   ? "text-gray-500"
+                  : index === 2 &&
+                    orderStatus === OrderStatusEnum.Processing &&
+                    tasks[1]?.status === TaskStatusEnum.Completed
+                  ? "text-blue-700"
                   : "text-gray-700"
               }`}
             >
               {task.taskName}
             </span>
           </div>
-
           {index < tasks.length - 1 && (
             <div className="flex-1 h-1.5 mx-2 bg-gray-200 rounded-full relative">
               <div

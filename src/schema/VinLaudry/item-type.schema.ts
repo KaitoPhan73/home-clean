@@ -38,6 +38,14 @@ export const ItemTypeCreateSchema = BaseSchema.extend({
   serviceType: z.string().min(1, { message: "Loại dịch vụ không được trống." }),
 });
 
+export interface ItemTypeResponsePayload {
+  items: TItemTypeResponse[];
+  page: number;
+  size: number;
+  total: number;
+  totalPages: number;
+}
+
 export type TItemTypeResponse = z.infer<typeof ItemTypeSchema>;
 export type TItemTypeRequest = z.infer<typeof ItemTypeSchema>;
 export type TItemTypeCreateRequest = z.infer<typeof ItemTypeCreateSchema>;
