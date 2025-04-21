@@ -1,11 +1,10 @@
-// TaskCard.tsx
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale } from "lucide-react";
+import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale, XCircle } from "lucide-react";
 import { EmployeRealTimeStatus, getEmployeeById } from "@/apis/laudry/employee";
 import EmployeeDetail from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/EmployeeDetail";
 
@@ -98,6 +97,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
+    if (task.status === TaskStatusEnum.Canceled) {
+      return (
+        <span className="flex items-center gap-2">
+          <XCircle className="h-4 w-4" />
+          Đã hủy
+        </span>
+      );
+    }
+
     if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
       return (
         <span className="flex items-center gap-2">
@@ -147,7 +155,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
       return (
         <span className="flex items-center gap-2">
           <Lock className="h-4 w-4" />
-          {index === 1 && orderStatus !== OrderStatusEnum.Paid ? "Chờ thanh toán" : "Đang khóa"}
+          {orderStatus === OrderStatusEnum.Cancelled
+            ? "Đã hủy"
+            : index === 1 && orderStatus !== OrderStatusEnum.Paid
+            ? "Chờ thanh toán"
+            : "Đang khóa"}
         </span>
       );
     }
@@ -163,6 +175,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const getButtonColor = (task: Task, index: number) => {
     if (task.status === TaskStatusEnum.Completed) {
       return "border-green-300 text-green-600";
+    }
+
+    if (task.status === TaskStatusEnum.Canceled) {
+      return "border-red-300 text-red-600";
     }
 
     if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
@@ -193,6 +209,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       return "border-green-200 bg-green-50";
     }
 
+    if (task.status === TaskStatusEnum.Canceled) {
+      return "border-red-200 bg-red-50";
+    }
+
     if (task.status === TaskStatusEnum.InProgress) {
       return "bg-blue-50";
     }
@@ -217,7 +237,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const showWeightEditButton =
-    index === 0 && task.status === TaskStatusEnum.Completed && onWeightEdit;
+    index === 0 &&
+    task.status === TaskStatusEnum.Completed &&
+    onWeightEdit &&
+    orderStatus !== OrderStatusEnum.Cancelled;
 
   return (
     <Card
@@ -230,6 +253,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
               className={`px-2 py-1 text-xs font-medium rounded-full ${
                 task.status === TaskStatusEnum.Completed
                   ? "bg-green-100 text-green-800"
+                  : task.status === TaskStatusEnum.Canceled
+                  ? "bg-red-100 text-red-800"
                   : task.status === TaskStatusEnum.InProgress
                   ? "bg-blue-100 text-blue-800"
                   : isStep3Unlocked && task.status === TaskStatusEnum.Pending
@@ -245,6 +270,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
             >
               {task.status === TaskStatusEnum.Completed
                 ? "Hoàn thành"
+                : task.status === TaskStatusEnum.Canceled
+                ? "Đã hủy"
                 : task.status === TaskStatusEnum.InProgress
                 ? "Đang thực hiện"
                 : isStep3Unlocked && task.status === TaskStatusEnum.Pending
@@ -254,7 +281,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 : isStep2Unlocked && task.status === TaskStatusEnum.Pending
                 ? "Sẵn sàng"
                 : isTaskLocked(index)
-                ? "Đang khóa"
+                ? orderStatus === OrderStatusEnum.Cancelled
+                  ? "Đã hủy"
+                  : "Đang khóa"
                 : "Chờ xử lý"}
             </span>
             <h3
@@ -299,7 +328,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
               <p className="text-sm">{task.notes}</p>
             </div>
           )}
-          {isStep2Unlocked && task.status !== TaskStatusEnum.Completed && (
+          {task.status === TaskStatusEnum.Canceled && (
+            <p className="text-sm text-red-600 font-medium mt-4">
+              <XCircle className="h-4 w-4 inline mr-1" />
+              Công việc này đã bị hủy do đơn hàng bị hủy.
+            </p>
+          )}
+          {isStep2Unlocked && task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled && (
             <p className="text-sm text-blue-600 font-medium mt-4">
               Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
             </p>
@@ -310,7 +345,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               Cần thanh toán trước khi tiếp tục công việc này!
             </p>
           )}
-          {isStep3Unlocked && task.status !== TaskStatusEnum.Completed && (
+          {isStep3Unlocked && task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled && (
             <p className="text-sm text-blue-600 font-medium mt-4">
               Quá trình giặt sấy đã hoàn thành. Bạn có thể tiến hành giao nhân viên trả đồ ngay bây giờ.
             </p>
@@ -319,11 +354,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <div className="ml-4 flex flex-col gap-2">
           <Button
             variant={
-              task.status === TaskStatusEnum.Completed ? "outline" : "default"
+              task.status === TaskStatusEnum.Completed || task.status === TaskStatusEnum.Canceled ? "outline" : "default"
             }
             size="sm"
             disabled={
               task.status === TaskStatusEnum.Completed ||
+              task.status === TaskStatusEnum.Canceled ||
               (!canCheckoutTask(task, index) &&
                 !isStep3Unlocked &&
                 !(isStep2Unlocked && task.status === TaskStatusEnum.Pending)) ||

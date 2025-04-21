@@ -39,6 +39,8 @@ const mapApiStatusToEnum = (apiStatus: string): OrderStatusEnum => {
       return OrderStatusEnum.Paid;
     case "Completed":
       return OrderStatusEnum.Completed;
+    case "Cancelled":
+      return OrderStatusEnum.Cancelled;
     default:
       return OrderStatusEnum.Processing;
   }
@@ -133,11 +135,20 @@ export default function LaundryDetailPage() {
         setOrder((prevOrder) =>
           prevOrder ? { ...prevOrder, status } : prevOrder
         );
-        toast({
-          title: "Cập nhật trạng thái",
-          description: `Đơn hàng ${orderId} đã được cập nhật thành ${status}`,
-          variant: "default",
-        });
+        if (status === "Cancelled") {
+          toast({
+            variant: "destructive",
+            title: "Đơn hàng đã bị hủy",
+            description: "Tất cả các công việc liên quan đã bị hủy.",
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Cập nhật trạng thái",
+            description: `Đơn hàng ${orderId} đã được cập nhật thành ${status}`,
+            variant: "default",
+          });
+        }
       }
     };
 
@@ -267,6 +278,14 @@ export default function LaundryDetailPage() {
           </p>
         </div>
       )}
+      {order.status === "Cancelled" && (
+        <div className="mb-4 p-3 border rounded-lg border-red-200 bg-red-50 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          <p className="text-red-800">
+            Đơn hàng đã bị hủy. Tất cả các công việc liên quan đã bị khóa.
+          </p>
+        </div>
+      )}
       <div className="mb-6 overflow-hidden rounded-lg shadow-md">
         <Tabs
           defaultValue="overview"
@@ -328,9 +347,6 @@ export default function LaundryDetailPage() {
                 <div>
                   <OrderInfo order={order} user={user} isLoading={userLoading} />
                 </div>
-                {/* <div className="lg:col-span-1">
-                  <OrderSummary totals={totals} order={order} />
-                </div> */}
               </div>
             </TabsContent>
             <TabsContent value="details" className="mt-0 animate-in fade-in-50 duration-300">
@@ -347,9 +363,6 @@ export default function LaundryDetailPage() {
                     totalAmount={totals.grandTotal}
                   />
                 </div>
-                {/* <div className="lg:col-span-1">
-                  <OrderSummary totals={totals} order={order} />
-                </div> */}
               </div>
             </TabsContent>
             <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">

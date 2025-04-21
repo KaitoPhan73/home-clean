@@ -11,7 +11,6 @@ import {
 } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import OrderStatusHeader from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/OrderStatusHeader";
 import TaskProgress from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskProgress";
 import TaskCard from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskCard";
 import ProcessGuide from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/ProcessGuide";
@@ -125,9 +124,14 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     const allTasksCompleted = taskList.every(
       (task) => task.status === TaskStatusEnum.Completed
     );
+    const anyTaskCanceled = taskList.some(
+      (task) => task.status === TaskStatusEnum.Canceled
+    );
 
     let newStatus: OrderStatusEnum;
-    if (allTasksCompleted) {
+    if (anyTaskCanceled && orderStatus === OrderStatusEnum.Cancelled) {
+      newStatus = OrderStatusEnum.Cancelled;
+    } else if (allTasksCompleted) {
       newStatus = OrderStatusEnum.Completed;
     } else if (
       step2Completed &&
@@ -151,11 +155,14 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   const handleTaskCheckout = async (employeeId: string) => {
     if (!checkoutTaskInfo) return;
 
-    if (checkoutTaskInfo.currentStatus === TaskStatusEnum.Completed) {
+    if (
+      checkoutTaskInfo.currentStatus === TaskStatusEnum.Completed ||
+      checkoutTaskInfo.currentStatus === TaskStatusEnum.Canceled
+    ) {
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: "Công việc đã hoàn thành, không thể cập nhật thêm.",
+        description: "Công việc đã hoàn thành hoặc bị hủy, không thể cập nhật thêm.",
         duration: 5000,
       });
       setDialogOpen(false);
@@ -271,15 +278,18 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   const canCheckoutTask = (task: Task, index: number) => {
     if (!hasManagerRole) return false;
 
+    if (orderStatus === OrderStatusEnum.Cancelled) return false;
+
     if (isTaskLocked(index)) return false;
 
-    if (index === 0) return task.status !== TaskStatusEnum.Completed;
+    if (index === 0) return task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled;
     if (index === 1) {
       return (
         tasks[0].status === TaskStatusEnum.Completed &&
         (orderStatus === OrderStatusEnum.Processing ||
           orderStatus === OrderStatusEnum.Paid) &&
-        task.status !== TaskStatusEnum.Completed
+        task.status !== TaskStatusEnum.Completed &&
+        task.status !== TaskStatusEnum.Canceled
       );
     }
     if (index === 2) {
@@ -287,13 +297,16 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         tasks[0]?.status === TaskStatusEnum.Completed &&
         tasks[1]?.status === TaskStatusEnum.Completed &&
         orderStatus === OrderStatusEnum.Processing &&
-        task.status !== TaskStatusEnum.Completed
+        task.status !== TaskStatusEnum.Completed &&
+        task.status !== TaskStatusEnum.Canceled
       );
     }
     return false;
   };
 
   const isTaskLocked = (index: number) => {
+    if (orderStatus === OrderStatusEnum.Cancelled) return true;
+
     if (index === 0) return false;
 
     if (index === 1) {
@@ -403,8 +416,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           />
         )}
 
-        <OrderStatusHeader orderStatus={orderStatus} />
-
         <TaskProgress
           tasks={tasks}
           isTaskLocked={isTaskLocked}
@@ -425,7 +436,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
               onWeightEdit={
                 index === 0 &&
                 task.status === TaskStatusEnum.Completed &&
-                !weightSubmitted
+                !weightSubmitted &&
+                orderStatus !== OrderStatusEnum.Cancelled
                   ? handleWeightEdit
                   : undefined
               }

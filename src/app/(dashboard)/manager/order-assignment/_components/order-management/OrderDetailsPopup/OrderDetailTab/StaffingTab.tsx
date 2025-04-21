@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { User, UserPlus, Star, MessageCircle } from "lucide-react";
+import { User, UserPlus, Star, MessageCircle, CheckCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,6 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { updateApproveReOrder } from "@/apis/order";
+import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/utils";
 
 interface StaffingTabProps {
   order: any;
@@ -32,18 +35,24 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
   onClose,
 }) => {
   // Fix for assigned staff display: Find by staffId that matches order.employeeId
-  const assignedStaff = order.employeeId 
-    ? availableStaffs.find(s => s.staffId === order.employeeId) 
+  const assignedStaff = order.employeeId
+    ? availableStaffs.find((s) => s.staffId === order.employeeId)
     : null;
-    
+
   // Define a proper display name for the assigned staff
-  const assignedStaffName = assignedStaff 
-    ? (assignedStaff.fullName || assignedStaff.phoneNumber || "Nhân viên") 
+  const assignedStaffName = assignedStaff
+    ? assignedStaff.fullName || assignedStaff.phoneNumber || "Nhân viên"
     : "Chưa phân công";
 
   const isPendingAndAssigned =
     order.status.toLowerCase() === "inprogress" && order.employeeId;
-    
+
+  // Add check for re-order that needs approval
+  const isReOrderToApprove =
+    order.status.toLowerCase() === "pending" &&
+    order.employeeId &&
+    order.code.startsWith("RE");
+
   // Modified assignment handler to close popup on success
   const handleAssignStaffAndClose = async () => {
     const success = await handleAssignStaff();
@@ -52,19 +61,50 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
     }
   };
 
+  // Handle approve re-order with toast notifications
+  const handleApproveReOrder = async () => {
+    try {
+      // Kiểm tra trạng thái đơn hàng trước khi phê duyệt
+      if (order.status.toLowerCase() !== "pending" || !order.code.startsWith("RE")) {
+        toast.error("Đơn hàng này đã được phê duyệt hoặc không phải đơn đặt lại. Vui lòng làm mới!", {
+          position: "top-right",
+        });
+        return false;
+      }
+
+      const response = await updateApproveReOrder(order.id, order);
+      if (response) {
+        toast.success("Phê duyệt đơn đặt lại thành công!", {
+          position: "bottom-right",
+        });
+        if (onClose) {
+          onClose();
+        }
+        return true;
+      } else {
+        toast.error("Có lỗi khi phê duyệt đơn đặt lại. Vui lòng thử lại!", {
+          position: "bottom-right",
+        });
+        return false;
+      }
+    } catch (error : any) {
+      handleErrorApi({ error });
+    }
+  };
+
   // Render star rating based on employee rating
   const renderStarRating = (rating: number | null) => {
     if (rating === null) return null;
-    
+
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        <Star 
-          key={i} 
-          size={16} 
-          fill={i <= rating ? "#FFB800" : "none"} 
-          stroke={i <= rating ? "#FFB800" : "#D1D5DB"} 
-          className={i <= rating ? "text-yellow-500" : "text-gray-300"} 
+        <Star
+          key={i}
+          size={16}
+          fill={i <= rating ? "#FFB800" : "none"}
+          stroke={i <= rating ? "#FFB800" : "#D1D5DB"}
+          className={i <= rating ? "text-yellow-500" : "text-gray-300"}
         />
       );
     }
@@ -104,6 +144,28 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
               </div>
             )}
           </div>
+
+          {/* Re-Order Approval Button for specific case */}
+          {isReOrderToApprove && (
+            <div className="p-4 bg-green-50 rounded-md border border-green-200">
+              <h4 className="text-green-700 font-medium mb-2 flex items-center gap-2">
+                <CheckCircle size={18} className="text-green-600" />
+                Phê duyệt đơn đặt lại
+              </h4>
+              <div className="space-y-3">
+                <div className="text-sm text-gray-700">
+                  Đơn hàng đặt lại này đã có nhân viên được chỉ định và đang chờ phê duyệt.
+                </div>
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  onClick={handleApproveReOrder}
+                >
+                  <CheckCircle size={16} className="mr-2" />
+                  Phê duyệt đơn đặt lại
+                </Button>
+              </div>
+            </div>
+          )}
 
           <div className="p-4 bg-white rounded-md border border-green-100">
             <h4 className="text-green-700 font-medium mb-2">Chọn nhân viên sẵn sàng</h4>
@@ -194,7 +256,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                     )}
                   </div>
                 </div>
-                
+
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex items-center gap-2 mb-2">
                     <MessageCircle size={14} className="text-gray-500" />
@@ -213,7 +275,6 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
               </div>
             </div>
           )}
-
         </div>
       </div>
     </TabsContent>

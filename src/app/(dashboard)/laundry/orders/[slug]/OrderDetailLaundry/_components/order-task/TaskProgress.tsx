@@ -1,7 +1,6 @@
-// TaskProgress.tsx
 import React from "react";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, Lock, Unlock } from "lucide-react";
+import { CheckCircle, Clock, Lock, Unlock, XCircle } from "lucide-react";
 
 interface TaskProgressProps {
   tasks: Task[];
@@ -12,7 +11,7 @@ interface TaskProgressProps {
 const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderStatus }) => {
   return (
     <div
-      className="sticky top-0 z-10 flex items-center justify-between my-8 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border border-gray-200 bg-gray-50 transition-all duration-300 ease-in-out hover:shadow-md"
+      className="sticky top-0 z-10 flex items-center justify-between my-1 px-4 py-3 rounded-lg shadow-sm backdrop-blur-sm backdrop-filter bg-opacity-90 border border-gray-200 bg-gray-50 transition-all duration-300 ease-in-out hover:shadow-md"
     >
       {tasks.map((task, index) => (
         <React.Fragment key={task.id}>
@@ -21,6 +20,8 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderS
               className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 ${
                 task.status === TaskStatusEnum.Completed
                   ? "bg-green-500 scale-110"
+                  : task.status === TaskStatusEnum.Canceled
+                  ? "bg-red-500 scale-110"
                   : task.status === TaskStatusEnum.InProgress
                   ? "bg-blue-500 scale-105"
                   : isTaskLocked(index)
@@ -36,6 +37,8 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderS
             >
               {task.status === TaskStatusEnum.Completed ? (
                 <CheckCircle className="h-7 w-7" />
+              ) : task.status === TaskStatusEnum.Canceled ? (
+                <XCircle className="h-7 w-7" />
               ) : task.status === TaskStatusEnum.InProgress ? (
                 <Clock className="h-7 w-7" />
               ) : isTaskLocked(index) ? (
@@ -48,6 +51,8 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderS
               className={`mt-2 text-xs font-medium text-center max-w-24 ${
                 task.status === TaskStatusEnum.Completed
                   ? "text-green-700"
+                  : task.status === TaskStatusEnum.Canceled
+                  ? "text-red-700"
                   : task.status === TaskStatusEnum.InProgress
                   ? "text-blue-700"
                   : isTaskLocked(index)
@@ -68,11 +73,15 @@ const TaskProgress: React.FC<TaskProgressProps> = ({ tasks, isTaskLocked, orderS
                 className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ease-in-out ${
                   task.status === TaskStatusEnum.Completed
                     ? "bg-green-500"
+                    : task.status === TaskStatusEnum.Canceled
+                    ? "bg-red-500"
                     : "bg-gray-200"
                 }`}
                 style={{
                   width:
-                    task.status === TaskStatusEnum.Completed ? "100%" : "0%",
+                    task.status === TaskStatusEnum.Completed || task.status === TaskStatusEnum.Canceled
+                      ? "100%"
+                      : "0%",
                 }}
               />
             </div>
