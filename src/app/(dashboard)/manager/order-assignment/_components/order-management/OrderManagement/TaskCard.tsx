@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { TOrderResponse } from "@/schema/order.schema";
 import OrderDetailsPopup from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/OrderDetailsPopup";
-import { User, MapPin, Clock, DollarSign, Tag, Coins } from "lucide-react";
+import { User, MapPin, Clock, DollarSign, Tag, Coins, Hash, RefreshCw } from "lucide-react";
 import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { useSignalRContext } from "@/context/signalr-provider";
 import { toast } from "sonner";
@@ -40,6 +40,27 @@ const getPriorityColor = (priority: string): string => {
   }
 };
 
+// Function to format order codes consistently
+const formatOrderCode = (code: string): string => {
+  // Check if it's a reorder code (starts with RE)
+  if (code.startsWith("RE")) {
+    return code;
+  }
+  
+  // For regular codes, extract the last 12 characters if longer than 12
+  if (code.length > 12) {
+    const shortCode = code.slice(-12);
+    return shortCode;
+  }
+  
+  return code;
+};
+
+// Function to check if an order is a reorder
+const isReorderCode = (code: string): boolean => {
+  return code.startsWith("RE");
+};
+
 interface TaskCardProps {
   order: TOrderResponse & { userFullName?: string; houseNo?: string };
   onRefresh?: () => void;
@@ -55,6 +76,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
   const { connection } = useSignalRContext();
+  const isReorder = order.code ? isReorderCode(order.code) : false;
 
   const [{ isDragging }, drag] = useDrag({
     type: "ORDER",
@@ -74,6 +96,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const statusClass = getStatusColor(order.status);
   const priorityClass = getPriorityColor(order.priorityLevel || "medium");
+  
+  // Generate the formatted code
+  const displayCode = order.code ? formatOrderCode(order.code) : "N/A";
 
   useEffect(() => {
     if (isUpdated) {
@@ -88,11 +113,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const handleOrderStatusChanged = (event: CustomEvent) => {
       const { orderId, status } = event.detail;
       if (orderId === order.id && status !== order.status) {
-        // Hiển thị toast thông báo
         toast.success(`Đơn hàng ${order.id} đã được cập nhật sang trạng thái ${status}`);
-        // Highlight card
         setIsUpdated(true);
-        // Refresh data nếu cần
         if (onRefresh) onRefresh();
       }
     };
@@ -108,11 +130,32 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     <div
       ref={ref}
       onClick={handleClick}
-      className={`p-4 border rounded-lg ${statusClass} hover:shadow-lg transition-shadow cursor-pointer flex flex-col min-h-[180px] w-full`}
+      className={`p-4 border rounded-lg ${statusClass} hover:shadow-lg transition-shadow cursor-pointer flex flex-col min-h-[200px] w-full ${isUpdated ? 'ring-2 ring-blue-400 animate-pulse' : ''} ${
+        isReorder ? 'reorder-card relative overflow-hidden' : ''
+      }`}
       style={{ opacity: isDragging ? 0.5 : 1 }}
     >
-      {/* Header */}
+      {/* Add the glowing animation elements for reorder items */}
+      {isReorder && (
+        <>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-300 to-transparent reorder-glow-top"></div>
+          <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-blue-300 to-transparent reorder-glow-right"></div>
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-300 to-transparent reorder-glow-bottom"></div>
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-blue-300 to-transparent reorder-glow-left"></div>
+        </>
+      )}
+      
       <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          {isReorder ? (
+            <RefreshCw className="h-4 w-4 text-blue-500" />
+          ) : (
+            <Hash className="h-4 w-4 text-gray-500" />
+          )}
+          <span className={`font-bold ${isReorder ? 'text-blue-600' : 'text-gray-700'}`}>
+            {displayCode}
+          </span>
+        </div>
         <div
           className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityClass}`}
         >
@@ -120,45 +163,43 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </div>
 
-      {/* Main Info */}
-      <div className="flex-1 space-y-2 text-sm text-gray-800">
-        {/* Khách hàng */}
+      <div className="h-px bg-gray-200 w-full my-2"></div>
+
+      <div className="flex-1 space-y-2.5 text-sm text-gray-800">
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-gray-500" />
-          <span className="text-gray-500 min-w-[90px]">Khách hàng:</span>
-          <span className="font-medium">
+          <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Khách hàng:</span>
+          <span className="font-medium truncate">
             {order.userFullName || "Không xác định"}
           </span>
         </div>
 
-        {/* Địa chỉ */}
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-gray-500" />
-          <span className="text-gray-500 min-w-[90px]">Địa chỉ:</span>
+          <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Địa chỉ:</span>
           <span className="font-medium truncate">
             {order.houseNo || order.address || "Không có địa chỉ"}
           </span>
         </div>
 
-        {/* Thời gian */}
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-gray-500" />
-          <span className="text-gray-500 min-w-[90px]">Thời gian:</span>
-          <span className="font-medium">{formatDateTime(order.createdAt)}</span>
+          <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Thời gian:</span>
+          <span className="font-medium truncate">{formatDateTime(order.createdAt)}</span>
         </div>
 
-        {/* Dịch vụ */}
         {order.serviceType && (
           <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-500 min-w-[90px]">Dịch vụ:</span>
-            <span className="font-medium">{order.serviceType}</span>
+            <Tag className="h-4 w-4 text-gray-500 flex-shrink-0" />
+            <span className="text-gray-500 min-w-[80px] flex-shrink-0">Dịch vụ:</span>
+            <span className="font-medium truncate">{order.serviceType}</span>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="mt-3 pt-2 border-t border-gray-200 flex items-center justify-between">
+      <div className="h-px bg-gray-200 w-full mt-3 mb-2"></div>
+
+      <div className="mt-1 pt-1 flex items-center justify-between">
         <span className="text-xs font-medium text-gray-600 bg-gray-200 px-2 py-1 rounded">
           {order.status}
         </span>
@@ -170,7 +211,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         )}
       </div>
 
-      {/* Popup */}
       {isPopupOpen && (
         <OrderDetailsPopup
           order={order}
@@ -180,6 +220,41 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           groupId={groupId}
         />
       )}
+
+      <style jsx>{`
+        @keyframes glowTop {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes glowRight {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
+        }
+        @keyframes glowBottom {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        @keyframes glowLeft {
+          0% { transform: translateY(100%); }
+          100% { transform: translateY(-100%); }
+        }
+        
+        .reorder-glow-top {
+          animation: glowTop 3s infinite;
+        }
+        .reorder-glow-right {
+          animation: glowRight 3s infinite;
+          animation-delay: 0.75s;
+        }
+        .reorder-glow-bottom {
+          animation: glowBottom 3s infinite;
+          animation-delay: 1.5s;
+        }
+        .reorder-glow-left {
+          animation: glowLeft 3s infinite;
+          animation-delay: 2.25s;
+        }
+      `}</style>
     </div>
   );
 };
