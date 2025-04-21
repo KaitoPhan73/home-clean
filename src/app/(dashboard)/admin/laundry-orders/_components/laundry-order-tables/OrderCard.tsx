@@ -41,7 +41,7 @@ const statusConfig = {
     label: "Chờ thanh toán",
     bgColor: "bg-orange-50",
   },
-  Canceled: {
+  Cancelled: {
     color: "bg-rose-50 text-rose-700 border-rose-200",
     iconColor: "text-rose-600",
     icon: <span className="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>,

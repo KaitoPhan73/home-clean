@@ -1,3 +1,5 @@
+import { CheckCircle, Clipboard, Clock, DollarSign, Loader, XCircle } from "lucide-react";
+
 export const statusConfig = {
   all: {
     color: "text-gray-700",  // Màu chữ khi không active
@@ -13,8 +15,8 @@ export const statusConfig = {
   Draft: {
     color: "text-amber-700",
     iconColor: "text-amber-600",
-    icon: null,
-    label: "Nháp",
+    icon: <Clipboard size={18} />,
+    label: "Đơn mới",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-400",
     activeBgColor: "bg-amber-100",
@@ -24,7 +26,7 @@ export const statusConfig = {
   Processing: {
     color: "text-purple-700",
     iconColor: "text-purple-600",
-    icon: null,
+    icon: <Loader size={18} />,
     label: "Đang xử lý",
     bgColor: "bg-purple-50",
     borderColor: "border-purple-400",
@@ -35,7 +37,7 @@ export const statusConfig = {
   PendingPayment: {
     color: "text-orange-700",
     iconColor: "text-orange-600",
-    icon: null,
+    icon: <Clock size={18} />,
     label: "Chờ thanh toán",
     bgColor: "bg-orange-50",
     borderColor: "border-orange-400",
@@ -46,7 +48,7 @@ export const statusConfig = {
   Paid: {
     color: "text-blue-700",
     iconColor: "text-blue-600",
-    icon: null,
+    icon: <DollarSign size={18} />,
     label: "Đã thanh toán",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-400",
@@ -57,7 +59,7 @@ export const statusConfig = {
   Completed: {
     color: "text-emerald-700",
     iconColor: "text-emerald-600",
-    icon: null,
+    icon: <CheckCircle size={18} />,
     label: "Hoàn thành",
     bgColor: "bg-emerald-50",
     borderColor: "border-emerald-400",
@@ -65,10 +67,10 @@ export const statusConfig = {
     activeTextColor: "text-emerald-800",
     activeBorderColor: "border-l-4 border-emerald-600",
   },
-  Canceled: {
+  Cancelled: {
     color: "text-rose-700",
     iconColor: "text-rose-600",
-    icon: null,
+    icon: <XCircle size={18} />,
     label: "Đã hủy",
     bgColor: "bg-rose-50",
     borderColor: "border-rose-400",

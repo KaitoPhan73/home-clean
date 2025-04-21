@@ -66,8 +66,8 @@ export const statusConfig = {
     borderColor: "border-l-orange-500",
     icon: <span className="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>,
   },
-  Canceled: {
-    id: "Canceled",
+  Cancelled: {
+    id: "Cancelled",
     label: "Đã hủy",
     color: "text-rose-500",
     borderColor: "border-l-rose-500",
@@ -174,7 +174,7 @@ export default function LaundryOrderManagement({
       Completed: 0,
       Processing: 0,
       PendingPayment: 0,
-      Canceled: 0,
+      Cancelled: 0,
     };
     
     allOrders.forEach((order) => {

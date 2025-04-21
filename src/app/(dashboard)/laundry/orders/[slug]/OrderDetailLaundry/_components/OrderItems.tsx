@@ -1,12 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
-import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ShoppingBag, Scale, Tag, AlertCircle } from "lucide-react";
-import { formatCurrency } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
-import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
+import { ShoppingBag, Scale, Tag, AlertCircle, Package, Star } from "lucide-react";
 
 interface ItemTypeResponse {
   id: string;
@@ -38,7 +31,7 @@ interface OrderDetailByKg {
   itemTypeId: string;
   quantity?: number;
   weight: number;
-  unitPrice: number;
+  unitPrice: number | null;
   subtotal: number | null;
   notes: string | null;
   actualWeight: number | null;
@@ -56,13 +49,14 @@ interface OrderItem {
   id: string;
   name: string;
   quantity: number;
-  unitPrice: number;
+  unitPrice: number | null;
   subtotal: number;
   itemType: ItemType;
   weight?: number;
   pricePerKg?: number;
   pricePerItem?: number;
   serviceType?: string;
+  defaultPrice?: number;
 }
 
 interface AdditionalService {
@@ -84,7 +78,6 @@ interface OrderItemsProps {
   totalAmount?: number;
 }
 
-// Transforms OrderDetailByItem to OrderItem format
 const mapOrderDetailByItemToOrderItem = (
   detail: OrderDetailByItem
 ): OrderItem => ({
@@ -95,13 +88,13 @@ const mapOrderDetailByItemToOrderItem = (
   subtotal: detail.subtotal,
   weight: detail.weight,
   pricePerItem: detail.itemTypeResponse.pricePerItem || detail.unitPrice,
+  defaultPrice: detail.itemTypeResponse.defaultPrice,
   itemType: {
     name: detail.itemTypeResponse.name,
     itemCode: detail.itemTypeResponse.itemCode,
   },
 });
 
-// Transforms OrderDetailByKg to OrderItem format
 const mapOrderDetailByKgToOrderItem = (detail: OrderDetailByKg): OrderItem => ({
   id: detail.id,
   name: detail.itemTypeResponse?.name || "Unknown Item",
@@ -109,14 +102,23 @@ const mapOrderDetailByKgToOrderItem = (detail: OrderDetailByKg): OrderItem => ({
   unitPrice: detail.unitPrice,
   subtotal: detail.subtotal || 0,
   weight: detail.weight,
-  pricePerKg: detail.unitPrice,
+  pricePerKg: detail.itemTypeResponse?.pricePerKg || detail.unitPrice || 0,
+  defaultPrice: detail.itemTypeResponse?.defaultPrice || 0,
   itemType: {
     name: detail.itemTypeResponse?.name || "Unknown Item",
     itemCode: detail.itemTypeResponse?.itemCode || "Không tính theo kg",
   },
 });
 
-// Updated OrderItems component
+const formatNumber = (value: number): string => {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+// Component để hiển thị icon
+const PointIcon = () => (
+  <Star className="h-4 w-4 inline-block text-yellow-500 ml-1" />
+);
+
 export function OrderItems({
   items,
   additionalServices,
@@ -125,62 +127,77 @@ export function OrderItems({
   orderDetailsByItem = [],
   orderDetailsByKg = [],
   orderAdditionalServicesResponse,
-  totalAmount,
 }: OrderItemsProps) {
-  // Process items from different sources
   const processedItems: OrderItem[] = [];
 
-  // Add items if directly provided
-  if (items && items.length > 0) {
-    processedItems.push(...items);
-  }
-
-  // Add items from orderDetailsByItem
+  // Ưu tiên dữ liệu từ orderDetailsByKg và orderDetailsByItem
   if (orderDetailsByItem && orderDetailsByItem.length > 0) {
     processedItems.push(
       ...orderDetailsByItem.map(mapOrderDetailByItemToOrderItem)
     );
   }
 
-  // Add items from orderDetailsByKg
   if (orderDetailsByKg && orderDetailsByKg.length > 0) {
     processedItems.push(...orderDetailsByKg.map(mapOrderDetailByKgToOrderItem));
   }
 
-  // Process services
+  // Chỉ thêm items nếu không có dữ liệu từ orderDetailsByKg và orderDetailsByItem
+  if (processedItems.length === 0 && items && items.length > 0) {
+    processedItems.push(...items);
+  }
+
+  // Loại bỏ trùng lặp dựa trên id (để đảm bảo an toàn)
+  const uniqueItems = Array.from(
+    new Map(processedItems.map((item) => [item.id, item])).values()
+  );
+
+  const kgBasedItems = uniqueItems.filter(item => !!item.weight && item.weight > 0);
+  const itemBasedItems = uniqueItems.filter(item => !item.weight || item.weight === 0);
+
   const displayServices =
     additionalServices || orderAdditionalServicesResponse || [];
+
+  const mapStatusToVietnamese = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      PendingPayment: "Đang Chờ Thanh Toán",
+      Processing: "Đang Xử Lý",
+      Completed: "Hoàn Thành",
+      Cancelled: "Đã Hủy",
+      Delivered: "Đã Giao Hàng",
+      Paid: "Đã Thanh Toán",
+      Draft: "Đơn Mới",
+    };
+    return statusMap[status] || status;
+  };
 
   const renderStatusBadge = (status: string) => {
     if (!status) return null;
 
     const statusColors: Record<string, string> = {
-      PendingPayment: "bg-yellow-100 text-yellow-800",
-      Processing: "bg-blue-100 text-blue-800",
-      Completed: "bg-green-100 text-green-800",
-      Cancelled: "bg-red-100 text-red-800",
-      Delivered: "bg-purple-100 text-purple-800",
-      Paid: "bg-green-100 text-green-800",
-      Draft: "bg-gray-100 text-gray-800",
+      ĐangChờThanhToán: "bg-yellow-100 text-yellow-800",
+      ĐangXửLý: "bg-blue-100 text-blue-800",
+      HoànThành: "bg-green-100 text-green-800",
+      ĐãHủy: "bg-red-100 text-red-800",
+      ĐãGiaoHàng: "bg-purple-100 text-purple-800",
+      ĐãThanhToán: "bg-green-100 text-green-800",
+      Nháp: "bg-gray-100 text-gray-800",
     };
 
-    const color = statusColors[status] || "bg-gray-100 text-gray-800";
+    const vietnameseStatus = mapStatusToVietnamese(status);
+    const color = statusColors[vietnameseStatus] || "bg-gray-100 text-gray-800";
 
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>
-        {status}
+        {vietnameseStatus}
       </span>
     );
   };
 
-  const isEmpty =
-    (!items || items.length === 0) &&
-    (!orderDetailsByItem || orderDetailsByItem.length === 0) &&
-    (!orderDetailsByKg || orderDetailsByKg.length === 0);
+  const isEmpty = uniqueItems.length === 0;
 
   return (
     <Card className="shadow-sm border-gray-200 mb-6">
-      <CardHeader className="mb-6 bg-gradient-to-r from-blue-100 to-red-50 border-b border-gray-100 py-4">
+      <CardHeader className="mb-2 bg-gradient-to-r from-blue-100 to-red-50 border-b border-gray-100 py-4 sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-lg">Chi tiết đơn hàng</CardTitle>
@@ -191,162 +208,190 @@ export function OrderItems({
           {status && <div>{renderStatusBadge(status)}</div>}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          {isEmpty ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Đơn hàng đang được xử lý
-              </h3>
-              <p className="text-gray-500 max-w-md">
-                Hiện tại đơn hàng này đang được đặt giặt theo kg. Hãy đợi nhân
-                viên phân loại và update quần áo để list ra thông tin nhé!
-              </p>
+      <CardContent className="overflow-y-auto max-h-96">
+        {isEmpty ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+              <AlertCircle className="h-6 w-6" />
             </div>
-          ) : (
-            <>
-              {processedItems.length > 0 && (
-                <div className="mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Đơn hàng đang được xử lý
+            </h3>
+            <p className="text-gray-500 max-w-md">
+              Hiện tại đơn hàng này đang được đặt giặt theo kg. Hãy đợi nhân
+              viên phân loại và update quần áo để list ra thông tin nhé!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {kgBasedItems.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center mb-3 bg-green-50 p-2 rounded-lg">
+                  <Scale className="h-5 w-5 text-green-600 mr-2" />
+                  <h3 className="text-md font-medium text-green-700">Đồ giặt tính theo kg</h3>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-gray-500 text-sm border-b">
+                        <th className="pb-2">Mặt hàng</th>
+                        <th className="pb-2 text-center">Khối lượng</th>
+                        <th className="pb-2 text-center">Đơn giá/kg</th>
+                        <th className="pb-2 text-center">Giá mặc định</th>
+                        <th className="pb-2 text-right">Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {kgBasedItems.map((item) => (
+                        <tr key={item.id} className="border-b border-gray-100">
+                          <td className="py-3">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                <Scale className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <div className="font-medium">{item.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  Mã: {item.itemType.itemCode}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 text-center">
+                            {item.weight?.toFixed(2)} kg
+                          </td>
+                          <td className="py-3 text-center">
+                            {formatNumber(item.pricePerKg || 0)} <PointIcon />
+                          </td>
+                          <td className="py-3 text-center">
+                            {formatNumber(item.defaultPrice || 0)} <PointIcon />
+                          </td>
+                          <td className="py-3 text-right font-medium">
+                            {formatNumber(item.subtotal)} <PointIcon />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {itemBasedItems.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center mb-3 bg-blue-50 p-2 rounded-lg">
+                  <Package className="h-5 w-5 text-blue-600 mr-2" />
+                  <h3 className="text-md font-medium text-blue-700">Đồ giặt tính theo món</h3>
+                </div>
+                
+                <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="text-left text-gray-500 text-sm border-b">
                         <th className="pb-2">Mặt hàng</th>
                         <th className="pb-2 text-center">Số lượng</th>
-                        {/* <th className="pb-2 text-right">Đơn giá</th> */}
-                        <th className="pb-2 text-right">Thành điểm</th>
+                        <th className="pb-2 text-center">Đơn giá/món</th>
+                        <th className="pb-2 text-center">Giá mặc định</th>
+                        <th className="pb-2 text-right">Thành tiền</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {processedItems.map((item) => {
-                        const isWeightBased = !!item.weight && item.weight > 0;
-                        const displayedPrice = isWeightBased
-                          ? item.pricePerKg || item.unitPrice
-                          : item.pricePerItem || item.unitPrice;
-
-                        return (
-                          <tr
-                            key={item.id}
-                            className="border-b border-gray-100"
-                          >
-                            <td className="py-3">
-                              <div className="flex items-center">
-                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
-                                  {isWeightBased ? (
-                                    <Scale className="h-4 w-4" />
-                                  ) : (
-                                    <Tag className="h-4 w-4" />
-                                  )}
-                                </div>
-                                <div>
-                                  <div className="font-medium">{item.name}</div>
-                                  <div className="text-xs text-gray-500">
-                                    Mã: {item.itemType.itemCode}
-                                    {isWeightBased ? (
-                                      <span className="ml-2 px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs">
-                                        Tính theo kg
-                                      </span>
-                                    ) : (
-                                      <span className="ml-2 px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
-                                        Tính theo Item
-                                      </span>
-                                    )}
-                                  </div>
+                      {itemBasedItems.map((item) => (
+                        <tr key={item.id} className="border-b border-gray-100">
+                          <td className="py-3">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                <Tag className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <div className="font-medium">{item.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  Mã: {item.itemType.itemCode}
                                 </div>
                               </div>
-                            </td>
-                            <td className="py-3 text-center">
-                              {isWeightBased
-                                ? `${(item.weight ?? 0).toFixed(2)} kg`
-                                : item.quantity}
-                            </td>
-                            {/* <td className="py-3 text-right">
-                              {isWeightBased
-                                ? `${item.pricePerKg} Point / kg`
-                                : `${item.pricePerItem} Point / item`}
-                            </td> */}
-                            <td className="py-3 text-right font-medium">
-                              {item.subtotal} Point
-                            </td>
-                          </tr>
-                        );
-                      })}
+                            </div>
+                          </td>
+                          <td className="py-3 text-center">
+                            {item.quantity}
+                          </td>
+                          <td className="py-3 text-center">
+                            {formatNumber(item.pricePerItem || item.unitPrice || 0)} <PointIcon />
+                          </td>
+                          <td className="py-3 text-center">
+                            {formatNumber(item.defaultPrice || 0)} <PointIcon />
+                          </td>
+                          <td className="py-3 text-right font-medium">
+                            {formatNumber(item.subtotal)} <PointIcon />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
-              )}
-            </>
-          )}
-
-          {/* Additional services - always show if present, regardless of item status */}
-          {displayServices.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center mb-3">
-                <ShoppingBag className="h-5 w-5 text-purple-600 mr-2" />
-                <h3 className="text-md font-medium">Dịch vụ bổ sung</h3>
               </div>
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-gray-500 text-sm border-b">
-                    <th className="pb-2">Dịch vụ</th>
-                    <th className="pb-2 text-center">Mã</th>
-                    <th className="pb-2 text-right">Giá</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayServices.map((service) => (
-                    <tr key={service.id} className="border-b border-gray-100">
-                      <td className="py-3">
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </div>
-                          <div>
-                            <div className="font-medium">{service.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {service.description}
+            )}
+
+            {displayServices.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center mb-3 bg-purple-50 p-2 rounded-lg">
+                  <ShoppingBag className="h-5 w-5 text-purple-600 mr-2" />
+                  <h3 className="text-md font-medium text-purple-700">Dịch vụ bổ sung</h3>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-gray-500 text-sm border-b">
+                        <th className="pb-2">Dịch vụ</th>
+                        <th className="pb-2 text-center">Mã</th>
+                        <th className="pb-2 text-right">Giá</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayServices.map((service) => (
+                        <tr key={service.id} className="border-b border-gray-100">
+                          <td className="py-3">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <div className="font-medium">{service.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  {service.description}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 text-center">
-                        {service.serviceCode || "-"}
-                      </td>
-                      <td className="py-3 text-right font-medium">
-                        {formatCurrency(service.price)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Show total amount if provided */}
-          {totalAmount !== undefined && totalAmount !== null && (
-            <div className="border-t border-gray-200 pt-4 mt-2">
-              <div className="flex justify-between items-center text-lg font-medium">
-                <span>Tổng cộng:</span>
-                <span>{formatCurrency(totalAmount)}</span>
+                          </td>
+                          <td className="py-3 text-center">
+                            {service.serviceCode || "-"}
+                          </td>
+                          <td className="py-3 text-right font-medium">
+                            {formatNumber(service.price)} <PointIcon />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

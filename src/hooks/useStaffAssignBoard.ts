@@ -16,7 +16,7 @@ import { TOrderResponse } from "@/schema/order.schema";
 interface OrdersData {
   items: TOrderResponse[];
   totalPages: number;
-  total?: number; // Add the 'total' property to match the object structure
+  total?: number;
 }
 
 export const useStaffAssignBoard = () => {
@@ -38,7 +38,7 @@ export const useStaffAssignBoard = () => {
   const [toDate, setToDate] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   );
-  
+
   // Function to safely parse dates with fallback
   const safeParseDate = (dateString: string | null | undefined) => {
     if (!dateString) return null;
@@ -59,15 +59,14 @@ export const useStaffAssignBoard = () => {
     }
 
     try {
-      // If filter mode is "all", return all orders
       if (filterMode === "all") {
         console.log("Showing all orders:", ordersData.items.length);
         setFilteredOrders(ordersData.items);
         return;
       }
-      
+
       let filtered: TOrderResponse[] = [];
-      
+
       if (filterMode === "single") {
         const selected = safeParseDate(selectedDate);
         if (!selected) {
@@ -75,30 +74,30 @@ export const useStaffAssignBoard = () => {
           setFilteredOrders([]);
           return;
         }
-        
+
         filtered = ordersData.items.filter((order) => {
           const orderDate = safeParseDate(order.createdAt);
           return orderDate && isSameDay(orderDate, selected);
         });
-      } else { // range mode
+      } else {
+        // range mode
         const from = safeParseDate(fromDate);
         const to = safeParseDate(toDate);
-        
+
         if (!from || !to) {
           console.log("Invalid date range:", fromDate, toDate);
           setFilteredOrders([]);
           return;
         }
-        
-        // Add one day to 'to' date to include the full day in the range
+
         const toDateInclusive = addDays(to, 1);
-        
+
         filtered = ordersData.items.filter((order) => {
           const orderDate = safeParseDate(order.createdAt);
           return orderDate && isAfter(orderDate, from) && isBefore(orderDate, toDateInclusive);
         });
       }
-      
+
       console.log(`Filtered ${filtered.length} orders out of ${ordersData.items.length}`);
       setFilteredOrders(filtered);
     } catch (error) {
@@ -128,25 +127,22 @@ export const useStaffAssignBoard = () => {
         totalPages: 0,
       };
 
-      // Process and enhance the items as in your original code
       const enhancedItems = orderPayload.items.map((item: any) => ({
         ...item,
         id: item.id || `temp-${Math.random().toString(36).substring(2, 10)}`,
-        code:
-          item.code ||
-          `ORD-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+        code: item.code || `ORD-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
         totalAmount: typeof item.totalAmount === "number" ? item.totalAmount : 0,
         createdAt: item.createdAt || new Date().toISOString(),
         updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
         status: standardizeStatus(item.status),
-        // Rest of your fields as in original code
       }));
 
       console.log("Processed", enhancedItems.length, "orders");
       setOrdersData({
         items: enhancedItems,
         total: orderPayload.total || 0,
-        totalPages: orderPayload.totalPages || 0,});
+        totalPages: orderPayload.totalPages || 0,
+      });
     } catch (error) {
       console.error("Error loading data:", error);
       setError("An error occurred while loading order data");
@@ -186,7 +182,27 @@ export const useStaffAssignBoard = () => {
 
     fetchInitialData();
   }, []);
-  
+
+  // Handle order status changes via SignalR
+  useEffect(() => {
+    const handleOrderStatusChanged = (event: CustomEvent) => {
+      const { orderId, status } = event.detail;
+      console.log(`Received orderStatusChanged: orderId=${orderId}, status=${status}`);
+
+      setOrdersData((prevOrders) => ({
+        ...prevOrders,
+        items: prevOrders.items.map((order: TOrderResponse) =>
+          order.id === orderId ? { ...order, status } : order
+        ),
+      }));
+    };
+
+    window.addEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    return () => {
+      window.removeEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     if (groupId) {
       loadData();
@@ -200,12 +216,12 @@ export const useStaffAssignBoard = () => {
 
   const handleRefresh = useCallback(() => {
     const today = format(new Date(), "yyyy-MM-dd");
-    
-    setFilterMode("all"); // Reset to "all" mode
+
+    setFilterMode("all");
     setSelectedDate(today);
     setFromDate(today);
     setToDate(today);
-    
+
     loadData();
   }, [loadData]);
 
@@ -218,8 +234,7 @@ export const useStaffAssignBoard = () => {
     const newDate = e.target.value;
     console.log("From date changed:", newDate);
     setFromDate(newDate);
-    
-    // Ensure 'to' date is not before 'from' date
+
     const from = parseISO(newDate);
     const to = parseISO(toDate);
     if (isValid(from) && isValid(to) && isAfter(from, to)) {
@@ -231,8 +246,7 @@ export const useStaffAssignBoard = () => {
     const newDate = e.target.value;
     console.log("To date changed:", newDate);
     setToDate(newDate);
-    
-    // Ensure 'from' date is not after 'to' date
+
     const from = parseISO(fromDate);
     const to = parseISO(newDate);
     if (isValid(from) && isValid(to) && isBefore(to, from)) {
@@ -261,7 +275,7 @@ export const useStaffAssignBoard = () => {
 const standardizeStatus = (status: string | undefined): string => {
   if (!status) return "Draft";
   const normalizedStatus = status.toLowerCase().replace(/\s+/g, "");
-  
+
   switch (normalizedStatus) {
     case "draft":
     case "new":

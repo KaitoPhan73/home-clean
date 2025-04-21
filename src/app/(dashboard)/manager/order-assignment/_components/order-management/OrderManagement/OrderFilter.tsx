@@ -23,6 +23,7 @@ import { getHouseById } from "@/apis/house";
 import { getCookie } from "cookies-next";
 import { TOrderResponse } from "@/schema/order.schema";
 import { TaskBoard } from "./TaskBoard";
+import { useSignalRContext } from "@/context/signalr-provider";
 
 interface EnhancedOrder extends TOrderResponse {
   userFullName?: string;
@@ -37,7 +38,6 @@ const useStaffAssignBoard = () => {
   const [filteredOrders, setFilteredOrders] = useState<EnhancedOrder[]>([]);
   const [displayedItems, setDisplayedItems] = useState<EnhancedOrder[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_LIMIT);
-  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string | null>(null);
@@ -48,13 +48,11 @@ const useStaffAssignBoard = () => {
   const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [toDate, setToDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [filterApplied, setFilterApplied] = useState(false);
-  const [userDataCache, setUserDataCache] = useState<Record<string, string>>(
-    {}
-  );
-  const [houseDataCache, setHouseDataCache] = useState<Record<string, string>>(
-    {}
-  );
+  const [userDataCache, setUserDataCache] = useState<Record<string, string>>({});
+  const [houseDataCache, setHouseDataCache] = useState<Record<string, string>>({});
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const { connectionStatus } = useSignalRContext();
 
   const extractHouseId = useCallback((address: string): string => {
     if (!address) return "";
@@ -96,23 +94,75 @@ const useStaffAssignBoard = () => {
     }
   }, [filterMode, selectedDate, fromDate, toDate, ordersData]);
 
+  // Xử lý sự kiện orderStatusChanged
+  useEffect(() => {
+    const handleOrderStatusChanged = (event: CustomEvent) => {
+      const { orderId, status } = event.detail;
+      setOrdersData((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, status } : order
+        )
+      );
+    };
+  
+    window.addEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    return () => {
+      window.removeEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    };
+  }, []);
+
+  // Xử lý sự kiện orderCreated
+  useEffect(() => {
+    const handleOrderCreated = async (event: CustomEvent) => {
+      const { order } = event.detail;
+      const houseId = extractHouseId(order.address);
+
+      let userFullName = userDataCache[order.userId] || "Không xác định";
+      let houseNo = houseDataCache[houseId] || order.address;
+
+      if (!userDataCache[order.userId]) {
+        try {
+          const userResponse = await getUserById(order.userId);
+          userFullName = userResponse.payload.fullName;
+          setUserDataCache((prev) => ({ ...prev, [order.userId]: userFullName }));
+        } catch {
+          userFullName = "Không xác định";
+        }
+      }
+
+      if (houseId && !houseDataCache[houseId]) {
+        try {
+          const houseResponse = await getHouseById(houseId);
+          houseNo = houseResponse.payload.no;
+          setHouseDataCache((prev) => ({ ...prev, [houseId]: houseNo }));
+        } catch {
+          houseNo = order.address;
+        }
+      }
+
+      const newOrder: EnhancedOrder = {
+        ...order,
+        userFullName,
+        houseNo,
+      };
+
+      setOrdersData((prevOrders) => [...prevOrders, newOrder]);
+    };
+
+    window.addEventListener("orderCreated", handleOrderCreated as unknown as EventListener);
+    return () => {
+      window.removeEventListener("orderCreated", handleOrderCreated as unknown as EventListener);
+    };
+  }, [userDataCache, houseDataCache, extractHouseId]);
+
   useEffect(() => {
     if (filterApplied) {
       const filtered = filterOrders();
       setFilteredOrders(filtered);
-      // Reset visible count when filter changes
       setVisibleCount(INITIAL_LOAD_LIMIT);
       setDisplayedItems(filtered.slice(0, INITIAL_LOAD_LIMIT));
     }
-  }, [
-    filterMode,
-    selectedDate,
-    fromDate,
-    toDate,
-    ordersData,
-    filterApplied,
-    filterOrders,
-  ]);
+  }, [filterMode, selectedDate, fromDate, toDate, ordersData, filterApplied, filterOrders]);
 
   useEffect(() => {
     setDisplayedItems(filteredOrders.slice(0, visibleCount));
@@ -149,7 +199,6 @@ const useStaffAssignBoard = () => {
 
   const loadData = useCallback(async () => {
     if (!groupId) return setError("Không tìm thấy thông tin nhóm");
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -161,7 +210,6 @@ const useStaffAssignBoard = () => {
         setFilteredOrders([]);
         setDisplayedItems([]);
         setFilterApplied(true);
-        setIsLoading(false);
         return;
       }
 
@@ -172,7 +220,6 @@ const useStaffAssignBoard = () => {
       }));
 
       setOrdersData(initialItems);
-      setIsLoading(false);
       setFilterApplied(true);
 
       const userIds = [
@@ -240,7 +287,6 @@ const useStaffAssignBoard = () => {
     } catch (error) {
       setError("Lỗi khi tải dữ liệu đơn hàng");
       console.error(error);
-      setIsLoading(false);
     } finally {
       setIsInitialLoad(false);
     }
@@ -253,6 +299,12 @@ const useStaffAssignBoard = () => {
   ]);
 
   useEffect(() => {
+    if (connectionStatus === "connected" && groupId && isInitialLoad) {
+      loadData();
+    }
+  }, [connectionStatus, groupId, loadData, isInitialLoad]);
+
+  useEffect(() => {
     const userRaw = getCookie("user");
     if (!userRaw) return setError("Không tìm thấy thông tin người dùng");
     try {
@@ -260,15 +312,8 @@ const useStaffAssignBoard = () => {
       setGroupId(user.groupId);
     } catch {
       setError("Lỗi khi tải dữ liệu người dùng");
-      setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (groupId && isInitialLoad) {
-      loadData();
-    }
-  }, [groupId, loadData, isInitialLoad]);
 
   const handleDateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,7 +352,6 @@ const useStaffAssignBoard = () => {
   return {
     filteredOrders,
     displayedItems,
-    isLoading,
     isLoadingMore,
     error,
     groupId,
@@ -322,6 +366,7 @@ const useStaffAssignBoard = () => {
     handleToDateChange,
     loadMoreItems,
     applyFilter,
+    connectionStatus,
   };
 };
 
@@ -350,7 +395,7 @@ const DateFilter = ({
         </TabsList>
         <TabsContent value="single" className="mt-0">
           <div className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4" />
+            <Calendar className="mr|mr-2 h-4 w-4" />
             <Input
               type="date"
               value={selectedDate}
@@ -399,7 +444,6 @@ const OrderFilter = () => {
   const {
     filteredOrders,
     displayedItems,
-    isLoading,
     isLoadingMore,
     error,
     groupId,
@@ -415,14 +459,6 @@ const OrderFilter = () => {
     loadMoreItems,
     applyFilter,
   } = useStaffAssignBoard();
-
-  if (isLoading)
-    return (
-      <div className="flex flex-col items-center justify-center p-12">
-        <RefreshCw className="animate-spin h-10 w-10 mb-4 text-blue-500" />
-        <p className="text-gray-600">Đang tải dữ liệu đơn hàng...</p>
-      </div>
-    );
 
   if (error)
     return (
@@ -505,8 +541,7 @@ const OrderFilter = () => {
                 ) : (
                   <>
                     <ChevronDown className="mr-2 h-4 w-4" />
-                    Tải thêm ({filteredOrders.length -
-                      displayedItems.length}{" "}
+                    Tải thêm ({filteredOrders.length - displayedItems.length}{" "}
                     đơn hàng còn lại)
                   </>
                 )}

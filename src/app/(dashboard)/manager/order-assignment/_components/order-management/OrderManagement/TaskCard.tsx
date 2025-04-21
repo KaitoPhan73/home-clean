@@ -1,30 +1,42 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { TOrderResponse } from "@/schema/order.schema";
 import OrderDetailsPopup from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/OrderDetailsPopup";
 import { User, MapPin, Clock, DollarSign, Tag, Coins } from "lucide-react";
 import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
+import { useSignalRContext } from "@/context/signalr-provider";
+import { toast } from "sonner";
 
 const getStatusColor = (status: string): string => {
   switch (status) {
-    case "Draft": return "bg-gray-100 border-gray-300";
-    case "Pending": return "bg-yellow-50 border-yellow-300";
-    case "Accepted": return "bg-blue-50 border-blue-300";
-    case "Completed": return "bg-green-50 border-green-300";
-    case "Cancelled": return "bg-red-50 border-red-300";
-    default: return "bg-gray-100 border-gray-300";
+    case "Draft":
+      return "bg-gray-100 border-gray-300";
+    case "Pending":
+      return "bg-yellow-50 border-yellow-300";
+    case "Accepted":
+      return "bg-blue-50 border-blue-300";
+    case "Completed":
+      return "bg-green-50 border-green-300";
+    case "Cancelled":
+      return "bg-red-50 border-red-300";
+    default:
+      return "bg-gray-100 border-gray-300";
   }
 };
 
 const getPriorityColor = (priority: string): string => {
   switch (priority?.toLowerCase()) {
-    case "high": return "text-white bg-red-500";
-    case "medium": return "text-white bg-orange-500";
-    case "low": return "text-white bg-green-500";
-    default: return "text-white bg-gray-500";
+    case "high":
+      return "text-white bg-red-500";
+    case "medium":
+      return "text-white bg-orange-500";
+    case "low":
+      return "text-white bg-green-500";
+    default:
+      return "text-white bg-gray-500";
   }
 };
 
@@ -41,6 +53,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
+  const { connection } = useSignalRContext();
 
   const [{ isDragging }, drag] = useDrag({
     type: "ORDER",
@@ -61,6 +75,35 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const statusClass = getStatusColor(order.status);
   const priorityClass = getPriorityColor(order.priorityLevel || "medium");
 
+  useEffect(() => {
+    if (isUpdated) {
+      const timer = setTimeout(() => {
+        setIsUpdated(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isUpdated]);
+
+  useEffect(() => {
+    const handleOrderStatusChanged = (event: CustomEvent) => {
+      const { orderId, status } = event.detail;
+      if (orderId === order.id && status !== order.status) {
+        // Hiển thị toast thông báo
+        toast.success(`Đơn hàng ${order.id} đã được cập nhật sang trạng thái ${status}`);
+        // Highlight card
+        setIsUpdated(true);
+        // Refresh data nếu cần
+        if (onRefresh) onRefresh();
+      }
+    };
+  
+    window.addEventListener('orderStatusChanged', handleOrderStatusChanged as EventListener);
+    
+    return () => {
+      window.removeEventListener('orderStatusChanged', handleOrderStatusChanged as EventListener);
+    };
+  }, [order.id, order.status, onRefresh]);
+
   return (
     <div
       ref={ref}
@@ -70,7 +113,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        <div className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityClass}`}>
+        <div
+          className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityClass}`}
+        >
           {order.priorityLevel || "Trung bình"}
         </div>
       </div>
@@ -81,7 +126,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-gray-500" />
           <span className="text-gray-500 min-w-[90px]">Khách hàng:</span>
-          <span className="font-medium">{order.userFullName || "Không xác định"}</span>
+          <span className="font-medium">
+            {order.userFullName || "Không xác định"}
+          </span>
         </div>
 
         {/* Địa chỉ */}

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { OrderCard } from "@/app/(dashboard)/laundry/orders/_components/order-table/OrderCard";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface OrderGridProps {
   filteredOrders: TOrderLaundryResponse[];
@@ -140,9 +141,19 @@ const OrderGrid = ({
           </div>
         ) : filteredOrders.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
+            <AnimatePresence>
+  {filteredOrders.map((order) => (
+    <motion.div
+      key={order.id}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <OrderCard order={order} />
+    </motion.div>
+  ))}
+</AnimatePresence>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center h-full">

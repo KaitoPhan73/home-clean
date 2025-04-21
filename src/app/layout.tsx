@@ -8,6 +8,7 @@ import NextTopLoader from "nextjs-toploader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cookies } from "next/headers";
 import AppProvider from "@/app/AppProvider";
+import { ConnectionStatusIndicator } from "@/components/ui/connection-status-indicator";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -47,6 +48,9 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <AppProvider initialSessionToken={accessToken?.value}>
+              <div className="fixed top-4 right-52 z-50">
+                <ConnectionStatusIndicator />
+              </div>
               {children}
             </AppProvider>
           </ThemeProvider>

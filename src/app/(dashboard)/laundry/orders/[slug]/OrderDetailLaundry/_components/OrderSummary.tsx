@@ -23,13 +23,6 @@ interface OrderSummaryProps {
   order: TOrderLaundryResponse;
 }
 
-// Utility function to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
-    .format(amount)
-    .replace(/\s/g, "");
-};
-
 export default function OrderSummary({ totals, order }: OrderSummaryProps) {
   return (
     <Card className="shadow-md border-gray-200 overflow-hidden bg-white">
