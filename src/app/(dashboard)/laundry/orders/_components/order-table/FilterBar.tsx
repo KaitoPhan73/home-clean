@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import { Search, RefreshCw, Plus, X, Wifi, WifiOff } from "lucide-react";
+import { Search, RefreshCw, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "./DatePickerWithRange";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 
 interface FilterBarProps {
   searchTerm: string;
@@ -36,9 +35,6 @@ const FilterBar = ({
   onRefresh,
   onCreateOrder,
   totalItems,
-  realtimeEnabled = true,
-  onToggleRealtime,
-  connectionStatus = "disconnected"
 }: FilterBarProps) => {
   // Function to handle instant page refresh
   const handleQuickRefresh = () => {
@@ -54,26 +50,6 @@ const FilterBar = ({
             <span className="text-sm font-medium text-gray-500">Tổng cộng: </span>
             <span className="ml-1 text-sm font-bold text-blue-600">{totalItems} đơn hàng</span>
           </div>
-          
-          {connectionStatus && (
-            <div className="ml-3">
-              <Badge 
-                variant="outline" 
-                className={`text-xs ${
-                  connectionStatus === "connected" 
-                    ? "bg-green-50 text-green-700 border-green-200" 
-                    : connectionStatus === "connecting" 
-                    ? "bg-yellow-50 text-yellow-700 border-yellow-200" 
-                    : "bg-gray-50 text-gray-700 border-gray-200"
-                }`}
-              >
-                {connectionStatus === "connected" && "Đã kết nối SignalR"}
-                {connectionStatus === "connecting" && "Đang kết nối SignalR"}
-                {connectionStatus === "disconnected" && "Đã ngắt kết nối SignalR"}
-                {connectionStatus === "error" && "Lỗi kết nối SignalR"}
-              </Badge>
-            </div>
-          )}
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -87,7 +63,7 @@ const FilterBar = ({
             </Button>
           )}
           
-          {onToggleRealtime && (
+          {/* {onToggleRealtime && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -114,7 +90,7 @@ const FilterBar = ({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          )}
+          )} */}
           
           {/* New Quick Refresh Button */}
           <TooltipProvider>

@@ -3,7 +3,7 @@
 "use server";
 
 import { httpHomePlus } from "@/lib/http";
-import { TAssignStaffToOrderRequest, TOrderResponse } from "@/schema/order.schema";
+import { TApproveReOrderUpdateRequest, TAssignStaffToOrderRequest, TOrderResponse } from "@/schema/order.schema";
 import { TTableResponse } from "@/types/Table";
 import { cookies } from "next/headers";
 
@@ -59,6 +59,14 @@ export const cancelOrder = async (
       refundMethod: data.refundMethod,
       cancelledBy,
     }
+  );
+  return response;
+};
+
+export const updateApproveReOrder = async (id: string, data: TApproveReOrderUpdateRequest) => {
+  const response = await httpHomePlus.put<TOrderResponse>(
+    `/orders/${id}/approve-re-order`,
+    data
   );
   return response;
 };

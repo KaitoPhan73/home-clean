@@ -11,6 +11,7 @@ export enum OrderStatusEnum {
     Pending = "Pending",
     InProgress = "InProgress",
     Completed = "Completed",
+    Canceled = "Canceled"
   }
   
   export interface Task {

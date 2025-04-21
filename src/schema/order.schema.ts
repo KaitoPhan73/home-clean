@@ -49,4 +49,5 @@ export const AssignStaffToOrderSchema = BaseSchema.extend({
 export type TOrderRequest = z.TypeOf<typeof OrderSchema>;
 export type TOrderResponse = z.TypeOf<typeof OrderSchema>;
 export type TAssignStaffToOrderRequest = z.TypeOf<typeof AssignStaffToOrderSchema>;
+export type TApproveReOrderUpdateRequest = z.infer<typeof OrderSchema>;
 

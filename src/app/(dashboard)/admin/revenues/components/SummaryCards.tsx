@@ -79,6 +79,8 @@ export function SummaryCards({ summaryData, isLoading }: SummaryCardsProps) {
           ? "Chờ xử lý"
           : item.status === "Accepted"
           ? "Đã nhận"
+          : item.status === "Canceled"
+          ? "Đã hủy"
           : item.status
       ) || [],
     datasets: [
