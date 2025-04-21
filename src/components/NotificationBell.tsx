@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { Avatar } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 
 // Define the different notification types
 interface BaseNotification {
@@ -50,6 +51,7 @@ const NotificationComponent = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Parse notifications with proper types
   const parsedNotifications = useMemo(() => {
@@ -100,6 +102,9 @@ const NotificationComponent = () => {
   useEffect(() => {
     if (notifications.length > unreadCount) {
       playNotificationSound();
+      // Kích hoạt animation khi có thông báo mới
+      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(false), 2000);
     }
     setUnreadCount(unreadNotifications.length);
   }, [notifications.length, unreadNotifications.length]);
@@ -284,14 +289,40 @@ const NotificationComponent = () => {
   return (
     <Popover open={isOpen} onOpenChange={handlePopoverOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <div className="relative">
+          <motion.div
+            animate={isAnimating ? {
+              rotate: [0, -10, 10, -10, 10, -5, 5, 0]
+            } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className={`relative ${unreadCount > 0 ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-100' : ''}`}
+            >
+              <Bell className="h-5 w-5" />
+            </Button>
+          </motion.div>
+          
           {unreadCount > 0 && (
-            <Badge className="absolute -right-1 -top-1 h-5 w-5 p-0 flex items-center justify-center">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </Badge>
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ 
+                scale: isAnimating ? [1, 1.2, 1] : 1, 
+                opacity: 1 
+              }}
+              transition={{ duration: 0.3 }}
+              className="absolute -right-1 -top-1"
+            >
+              <Badge 
+                className="h-5 min-w-5 p-0 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-md"
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </Badge>
+            </motion.div>
           )}
-        </Button>
+        </div>
       </PopoverTrigger>
       <PopoverContent className="w-80 md:w-96 p-0 shadow-lg rounded-xl" align="end">
         {selectedNotification ? (

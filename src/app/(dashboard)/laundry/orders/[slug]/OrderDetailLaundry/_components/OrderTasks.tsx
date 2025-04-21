@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
 import { ToastProvider, ToastViewport } from "@/components/ui/toast";
@@ -10,7 +9,7 @@ import {
   Task,
   TaskStatusEnum,
 } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
-import { AlertCircle, CreditCard } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrderStatusHeader from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/OrderStatusHeader";
 import TaskProgress from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskProgress";
@@ -31,6 +30,7 @@ interface OrderTasksProps {
   currentUser: any;
   orderStatusOverride?: OrderStatusEnum;
   updateOrderStatus: (newStatus: string) => void;
+  onWeightSubmitted?: () => void;
 }
 
 const OrderTasks: React.FC<OrderTasksProps> = ({
@@ -38,6 +38,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   currentUser,
   orderStatusOverride,
   updateOrderStatus,
+  onWeightSubmitted,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,10 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       try {
         setLoading(true);
         const response = await getOrderTasks(orderId);
-        if (!response?.payload?.items || !Array.isArray(response.payload.items)) {
+        if (
+          !response?.payload?.items ||
+          !Array.isArray(response.payload.items)
+        ) {
           throw new Error("Dữ liệu công việc không hợp lệ hoặc không tồn tại.");
         }
         const convertedTasks: Task[] = response.payload.items.map(
@@ -111,7 +115,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     if (orderId) {
       fetchTasks();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, orderStatusOverride]);
 
   const updateOrderStatusFromTasks = (taskList: Task[]) => {
@@ -142,7 +145,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     }
 
     setOrderStatus(newStatus);
-    updateOrderStatus(newStatus.toString()); // Sync with parent
+    updateOrderStatus(newStatus.toString());
   };
 
   const handleTaskCheckout = async (employeeId: string) => {
@@ -170,7 +173,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           : "complete";
       await assignTask(checkoutTaskInfo.taskId, employeeId, action);
 
-      // Optimistically update tasks
       const updatedTasks = tasks.map((task) =>
         task.id === checkoutTaskInfo.taskId
           ? {
@@ -189,7 +191,11 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       );
       const updatedTask = updatedTasks[taskIndex];
       const nextStatus = getNextTaskStatus(checkoutTaskInfo.currentStatus);
-
+      if (taskIndex === 1 && nextStatus === TaskStatusEnum.Completed) {
+        setOrderStatus(OrderStatusEnum.Processing);
+        updateOrderStatus("Processing");
+        setTasks([...updatedTasks]);
+      }
       if (nextStatus === TaskStatusEnum.InProgress) {
         toast({
           title: "Bắt đầu công việc",
@@ -204,7 +210,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         });
       }
 
-      // Only show weight dialog when Task 1 is completed and weight not yet submitted
       if (
         taskIndex === 0 &&
         updatedTasks[0].status === TaskStatusEnum.Completed &&
@@ -237,12 +242,15 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     setWeightSubmitted(true);
     setShowWeightDialog(false);
     setOrderStatus(OrderStatusEnum.PendingPayment);
-    updateOrderStatus("PendingPayment"); // Sync with parent
+    updateOrderStatus("PendingPayment");
     toast({
       title: "Đã cập nhật trọng lượng",
       description: "Trọng lượng đã được cập nhật thành công.",
       duration: 5000,
     });
+    if (onWeightSubmitted) {
+      onWeightSubmitted();
+    }
   };
 
   const handleWeightEdit = () => {
@@ -252,7 +260,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   const handlePaymentComplete = () => {
     setOrderStatus(OrderStatusEnum.Paid);
     setWeightSubmitted(false);
-    updateOrderStatus("Paid"); // Sync with parent
+    updateOrderStatus("Paid");
     toast({
       title: "Thanh toán hoàn tất",
       description: "Đơn hàng đã được thanh toán. Task 2 đã được mở khóa.",
@@ -286,7 +294,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   };
 
   const isTaskLocked = (index: number) => {
-    if (index === 0) return false; // Task 1 always unlocked
+    if (index === 0) return false;
 
     if (index === 1) {
       if (tasks[0]?.status === TaskStatusEnum.Completed) {
@@ -297,17 +305,15 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         ) {
           return false;
         }
-        return true;
+        return orderStatus === OrderStatusEnum.PendingPayment;
       }
       return true;
     }
 
     if (index === 2) {
       return !(
-        tasks[0]?.status === TaskStatusEnum.Completed &&
         tasks[1]?.status === TaskStatusEnum.Completed &&
-        tasks[2]?.status === TaskStatusEnum.Pending &&
-        orderStatus === OrderStatusEnum.Processing
+        tasks[2]?.status === TaskStatusEnum.Pending
       );
     }
 
@@ -432,7 +438,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         {!hasManagerRole && (
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg mt-4">
             <p className="text-sm text-gray-600 text-center">
-              Chỉ người dùng có vai trò Manager mới có thể cập nhật trạng thái công việc.
+              Chỉ người dùng có vai trò Manager mới có thể cập nhật trạng thái
+              công việc.
             </p>
           </div>
         )}

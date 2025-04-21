@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
-import { Search, RefreshCw, Plus, X } from "lucide-react";
+import { Search, RefreshCw, Plus, X, Wifi, WifiOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "./DatePickerWithRange";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 interface FilterBarProps {
   searchTerm: string;
@@ -18,6 +20,9 @@ interface FilterBarProps {
   onRefresh?: () => void;
   onCreateOrder?: () => void;
   totalItems: number;
+  realtimeEnabled?: boolean;
+  onToggleRealtime?: () => void;
+  connectionStatus?: "connecting" | "connected" | "disconnected" | "error";
 }
 
 const FilterBar = ({
@@ -31,7 +36,15 @@ const FilterBar = ({
   onRefresh,
   onCreateOrder,
   totalItems,
+  realtimeEnabled = true,
+  onToggleRealtime,
+  connectionStatus = "disconnected"
 }: FilterBarProps) => {
+  // Function to handle instant page refresh
+  const handleQuickRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="p-6 border-b border-gray-200 bg-white rounded-t-lg">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
@@ -41,6 +54,26 @@ const FilterBar = ({
             <span className="text-sm font-medium text-gray-500">Tổng cộng: </span>
             <span className="ml-1 text-sm font-bold text-blue-600">{totalItems} đơn hàng</span>
           </div>
+          
+          {connectionStatus && (
+            <div className="ml-3">
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  connectionStatus === "connected" 
+                    ? "bg-green-50 text-green-700 border-green-200" 
+                    : connectionStatus === "connecting" 
+                    ? "bg-yellow-50 text-yellow-700 border-yellow-200" 
+                    : "bg-gray-50 text-gray-700 border-gray-200"
+                }`}
+              >
+                {connectionStatus === "connected" && "Đã kết nối SignalR"}
+                {connectionStatus === "connecting" && "Đang kết nối SignalR"}
+                {connectionStatus === "disconnected" && "Đã ngắt kết nối SignalR"}
+                {connectionStatus === "error" && "Lỗi kết nối SignalR"}
+              </Badge>
+            </div>
+          )}
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -54,15 +87,73 @@ const FilterBar = ({
             </Button>
           )}
           
+          {onToggleRealtime && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={realtimeEnabled ? "default" : "outline"}
+                    onClick={onToggleRealtime}
+                    className={realtimeEnabled 
+                      ? "bg-green-600 text-white hover:bg-green-700" 
+                      : "border-gray-300 text-gray-700"
+                    }
+                  >
+                    {realtimeEnabled ? (
+                      <Wifi className="h-4 w-4 mr-1" />
+                    ) : (
+                      <WifiOff className="h-4 w-4 mr-1" />
+                    )}
+                    {realtimeEnabled ? "Real-time Bật" : "Real-time Tắt"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{realtimeEnabled 
+                    ? "Tự động cập nhật đơn hàng mới và trạng thái đơn hàng" 
+                    : "Đơn hàng sẽ không tự động cập nhật"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
+          {/* New Quick Refresh Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleQuickRefresh}
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Làm mới trang
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Làm mới toàn bộ trang ngay lập tức</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          {/* Keep the original refresh data button if needed */}
           {onRefresh && (
-            <Button
-              variant="outline"
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="border-gray-300"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onRefresh}
+                    disabled={isLoading}
+                    className="border-gray-300"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Làm mới dữ liệu</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>

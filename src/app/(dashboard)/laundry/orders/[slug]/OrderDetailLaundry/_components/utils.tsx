@@ -14,7 +14,7 @@ export const getStatusBadge = (status?: string): React.ReactNode => {
       return <Badge className="bg-yellow-100 text-yellow-800">Đang xử lý</Badge>;
     case "Completed":
       return <Badge className="bg-green-100 text-green-800">Hoàn thành</Badge>;
-    case "Canceled":
+    case "Cancelled":
       return <Badge className="bg-red-100 text-red-800">Đã hủy</Badge>;
     default:
       return <Badge>{status}</Badge>;

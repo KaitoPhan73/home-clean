@@ -80,7 +80,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   const isStep3Unlocked =
     index === 2 &&
-    orderStatus === OrderStatusEnum.Processing &&
     tasks[0]?.status === TaskStatusEnum.Completed &&
     tasks[1]?.status === TaskStatusEnum.Completed;
 
@@ -126,11 +125,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
-    if (isStep3Unlocked && task.status === TaskStatusEnum.Pending) {
+    if (isStep3Unlocked && task.status === TaskStatusEnum.InProgress) {
       return (
         <span className="flex items-center gap-2">
           <Unlock className="h-4 w-4" />
-          Sẵn sàng bắt đầu
+          Hoàn thành công việc
         </span>
       );
     }

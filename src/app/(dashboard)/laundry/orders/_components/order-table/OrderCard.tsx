@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarRange, Package2, User, Eye } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { formattedDateTime } from "@/lib/formatter";
+import { TUserResponse } from "@/schema/user.schema";
+import { getUserById } from "@/apis/vinwallet/user";
 
 const statusConfig = {
   Draft: {
@@ -42,7 +44,7 @@ const statusConfig = {
     label: "Chờ thanh toán",
     bgColor: "bg-orange-50",
   },
-  Canceled: {
+  Cancelled: {
     color: "bg-rose-50 text-rose-700 border-rose-200",
     iconColor: "text-rose-600",
     icon: <span className="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>,
@@ -53,6 +55,9 @@ const statusConfig = {
 
 export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
   const router = useRouter();
+  const [userData, setUserData] = useState<TUserResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const status = order.status as keyof typeof statusConfig;
   const statusData = statusConfig[status] || {
     color: "bg-gray-50 text-gray-700 border-gray-200",
@@ -61,6 +66,24 @@ export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
     label: order.status,
     bgColor: "bg-gray-50",
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (order.userId) {
+        setIsLoading(true);
+        try {
+          const response = await getUserById(order.userId);
+          setUserData(response.payload);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [order.userId]);
 
   const formattedAmount = order.totalAmount
     ? new Intl.NumberFormat("vi-VN", {
@@ -108,7 +131,11 @@ export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
         </div>
         <div className="flex items-center">
           <User size={14} className="text-gray-400 mr-2 flex-shrink-0" />
-          <span className="text-xs text-gray-700 truncate">{order.userId}</span>
+          <span className="text-xs text-gray-700 truncate">
+            Khách Hàng: {isLoading 
+              ? "Đang tải..."
+              : userData?.fullName || "Không có thông tin"}
+          </span>
         </div>
       </div>
 

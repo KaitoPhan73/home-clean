@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/role-supports-aria-props */
@@ -9,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "./TaskCard";
 import { TOrderResponse } from "@/schema/order.schema";
+import { useSignalRContext } from "@/context/signalr-provider";
 
 // Định nghĩa các trạng thái có sẵn
 export type BoardStatus = "Draft" | "Pending" | "Accepted" | "Completed" | "Cancelled";
@@ -65,6 +67,17 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
     setBoardData(newBoardData);
     setIsLoading(false);
   }, [orders]);
+
+  const { connectionStatus } = useSignalRContext();
+
+// Thêm effect để khi connectionStatus thay đổi sang connected, refresh data
+useEffect(() => {
+  if (connectionStatus === 'connected') {
+    // Không load data nếu đang trong initialLoad để tránh duplicate calls
+    console.log('SignalR connected, refreshing order data');
+    // loadData();
+  }
+}, [connectionStatus]);
   
   const moveOrder = useCallback((orderId: string, fromStatus: BoardStatus, toStatus: BoardStatus) => {
     console.log(`Moving order ${orderId} from ${fromStatus} to ${toStatus}`);
@@ -139,6 +152,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
       </div>
     );
   }
+  
   
   return (
     <div className="flex bg-white rounded-lg border border-gray-200 shadow-sm h-[calc(100vh-12rem)] overflow-hidden">

@@ -65,15 +65,15 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
   const handleConfirmCancel = async () => {
     if (confirmText === "Tôi xác nhận hủy") {
       const success = await handleCancelOrder();
-      
+
       setIsConfirmOpen(false);
       setConfirmText("");
-      
+
       if (success) {
+        // Không gọi router.refresh(), dựa vào SignalR để cập nhật realtime
         if (onClosePopup) {
           onClosePopup();
         }
-        
         if (onRefresh) {
           onRefresh();
         }
@@ -96,8 +96,14 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
               </Label>
               <div className="flex gap-2 mt-1">
                 <Select
-                  value={predefinedReasons.includes(cancelReason) ? cancelReason : "Khác"}
-                  onValueChange={(value) => setCancelReason(value === "Khác" ? "" : value)}
+                  value={
+                    predefinedReasons.includes(cancelReason)
+                      ? cancelReason
+                      : "Khác"
+                  }
+                  onValueChange={(value) =>
+                    setCancelReason(value === "Khác" ? "" : value)
+                  }
                 >
                   <SelectTrigger className="w-1/3">
                     <SelectValue placeholder="Chọn lý do" />
@@ -155,7 +161,8 @@ export const CancellationTab: React.FC<CancellationTabProps> = ({
           </DialogHeader>
           <div className="py-4">
             <p className="text-gray-600 mb-2">
-              Để xác nhận hủy, vui lòng nhập: <strong>Tôi xác nhận hủy</strong>
+              Để xác nhận hủy, vui lòng nhập:{" "}
+              <strong>Tôi xác nhận hủy</strong>
             </p>
             <Input
               value={confirmText}

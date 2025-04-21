@@ -25,7 +25,7 @@ export const StatusSidebar = ({
   onTabChange,
   statusConfig,
 }: StatusSidebarProps) => {
-  const allStatuses = ["all", "Draft", "Paid", "Completed", "Processing", "PendingPayment", "Canceled"];
+  const allStatuses = ["all", "Draft", "Paid", "Completed", "Processing", "PendingPayment", "Cancelled"];
 
   return (
     <div className="w-64 border-r border-gray-200 flex flex-col bg-gray-50">

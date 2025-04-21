@@ -1,4 +1,3 @@
-// LaundryDetailPage.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -8,7 +7,6 @@ import LoadingSkeleton from "@/app/(dashboard)/laundry/orders/Loading";
 import NotFoundMessage from "@/app/(dashboard)/laundry/orders/NotFound";
 import OrderHeader from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderHeader";
 import OrderInfo from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderInfo";
-import OrderSummary from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderSummary";
 import OrderTasks from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderTasks";
 import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
 import { OrderStatusEnum } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
@@ -18,6 +16,7 @@ import { AlertCircle, ShoppingBag, FileText, Clock, User, Calendar, Package } fr
 import { toast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
 import { OrderItems } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
+import { getOrderById } from "@/apis/laudry/order";
 
 interface UserDetail {
   id: string;
@@ -127,11 +126,46 @@ export default function LaundryDetailPage() {
     }
   }, [orderId]);
 
-  // Callback to update order status locally
+  useEffect(() => {
+    const handleOrderStatusChanged = (event: CustomEvent) => {
+      const { orderId: changedOrderId, status } = event.detail;
+      if (changedOrderId === orderId) {
+        setOrder((prevOrder) =>
+          prevOrder ? { ...prevOrder, status } : prevOrder
+        );
+        toast({
+          title: "Cập nhật trạng thái",
+          description: `Đơn hàng ${orderId} đã được cập nhật thành ${status}`,
+          variant: "default",
+        });
+      }
+    };
+
+    window.addEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+
+    return () => {
+      window.removeEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    };
+  }, [orderId]);
+
   const updateOrderStatus = (newStatus: string) => {
     setOrder((prevOrder) =>
       prevOrder ? { ...prevOrder, status: newStatus } : prevOrder
     );
+  };
+
+  const refreshOrderDetails = async () => {
+    try {
+      const orderResponse = await getOrderById(orderId as string);
+      setOrder(orderResponse);
+    } catch (error) {
+      console.error("Error refreshing order details:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể làm mới thông tin đơn hàng",
+        variant: "destructive",
+      });
+    }
   };
 
   const calculateTotals = () => {
@@ -182,6 +216,8 @@ export default function LaundryDetailPage() {
             name: item.itemTypeResponse.name,
             itemCode: item.itemTypeResponse.itemCode,
           },
+          pricePerItem: item.itemTypeResponse.pricePerItem,
+          defaultPrice: item.itemTypeResponse.defaultPrice,
         });
       }
     });
@@ -192,6 +228,7 @@ export default function LaundryDetailPage() {
         const existingItem = itemMap.get(itemKey);
         existingItem.quantity += 1;
         existingItem.subtotal += item.subtotal || 0;
+        existingItem.weight = (existingItem.weight || 0) + (item.weight || 0);
       } else {
         itemMap.set(itemKey, {
           id: item.id,
@@ -203,6 +240,9 @@ export default function LaundryDetailPage() {
             name: item.itemTypeResponse?.name || "Không xác định",
             itemCode: item.itemTypeResponse?.itemCode || "",
           },
+          weight: item.weight,
+          pricePerKg: item.unitPrice,
+          defaultPrice: item.itemTypeResponse?.defaultPrice || 0,
         });
       }
     });
@@ -284,26 +324,32 @@ export default function LaundryDetailPage() {
           </div>
           <div className="p-6 bg-white flex-grow rounded-r-lg border-t border-r border-b border-gray-200">
             <TabsContent value="overview" className="mt-0 animate-in fade-in-50 duration-300">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 gap-6">
+                <div>
                   <OrderInfo order={order} user={user} isLoading={userLoading} />
                 </div>
-                <div className="lg:col-span-1">
+                {/* <div className="lg:col-span-1">
                   <OrderSummary totals={totals} order={order} />
-                </div>
+                </div> */}
               </div>
             </TabsContent>
             <TabsContent value="details" className="mt-0 animate-in fade-in-50 duration-300">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 gap-6">
+                <div>
                   <OrderItems
                     items={consolidatedItems}
                     additionalServices={order.orderAdditionalServicesResponse}
+                    orderCode={order.orderCode}
+                    status={order.status}
+                    orderDetailsByItem={order.orderDetailsByItem}
+                    orderDetailsByKg={order.orderDetailsByKg}
+                    orderAdditionalServicesResponse={order.orderAdditionalServicesResponse}
+                    totalAmount={totals.grandTotal}
                   />
                 </div>
-                <div className="lg:col-span-1">
+                {/* <div className="lg:col-span-1">
                   <OrderSummary totals={totals} order={order} />
-                </div>
+                </div> */}
               </div>
             </TabsContent>
             <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">
@@ -312,6 +358,7 @@ export default function LaundryDetailPage() {
                 currentUser={currentUser}
                 orderStatusOverride={mapApiStatusToEnum(order.status)}
                 updateOrderStatus={updateOrderStatus}
+                onWeightSubmitted={refreshOrderDetails}
               />
             </TabsContent>
           </div>
