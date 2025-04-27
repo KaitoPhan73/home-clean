@@ -180,7 +180,7 @@ export function OrderItems({
       ĐãHủy: "bg-red-100 text-red-800",
       ĐãGiaoHàng: "bg-purple-100 text-purple-800",
       ĐãThanhToán: "bg-green-100 text-green-800",
-      Nháp: "bg-gray-100 text-gray-800",
+      ĐơnMới: "bg-gray-100 text-gray-800",
     };
 
     const vietnameseStatus = mapStatusToVietnamese(status);

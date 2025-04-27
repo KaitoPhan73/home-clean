@@ -17,7 +17,7 @@ export const handleErrorApi = ({
 }) => {
   const parseError = JSON.parse(error.message);
   toast({
-    title: "Uh oh! Có lỗi xảy ra rồi",
+    title: "Oh no! Đã có lỗi xảy ra",
     description: parseError.description ?? "Lỗi không xác định",
     variant: "destructive",
     duration: duration ?? 5000,

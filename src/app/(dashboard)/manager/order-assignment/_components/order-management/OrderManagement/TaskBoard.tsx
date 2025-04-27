@@ -5,17 +5,15 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Clipboard, Clock, CheckCircle, XCircle, Loader, ChevronDown, RefreshCw } from "lucide-react";
+import { Clipboard, Clock, CheckCircle, XCircle, Loader, ChevronDown, RefreshCw, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "./TaskCard";
 import { TOrderResponse } from "@/schema/order.schema";
 import { useSignalRContext } from "@/context/signalr-provider";
 
-// Định nghĩa các trạng thái có sẵn
-export type BoardStatus = "Draft" | "Pending" | "Accepted" | "Completed" | "Cancelled";
+export type BoardStatus = "Draft" | "Pending" | "Accepted" | "InProgress" | "Completed" | "Cancelled";
 
-// Pre-load users and houses caching để tăng tốc
 const userCache = new Map();
 const houseCache = new Map();
 
@@ -24,18 +22,19 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
     Draft: [],
     Pending: [],
     Accepted: [],
+    InProgress: [],
     Completed: [],
     Cancelled: [],
   });
   const [isLoading, setIsLoading] = useState(false);
   
-  // Sử dụng useEffect để tính toán board data khi orders thay đổi
   useEffect(() => {
     if (orders.length === 0) {
       setBoardData({
         Draft: [],
         Pending: [],
         Accepted: [],
+        InProgress: [],
         Completed: [],
         Cancelled: [],
       });
@@ -44,11 +43,11 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
     
     setIsLoading(true);
     
-    // Xử lý phân loại đơn hàng theo trạng thái
     const newBoardData: Record<BoardStatus, TOrderResponse[]> = {
       Draft: [],
       Pending: [],
       Accepted: [],
+      InProgress: [],
       Completed: [],
       Cancelled: [],
     };
@@ -58,22 +57,18 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
       if (newBoardData[status]) {
         newBoardData[status].push(order);
       } else {
-        // Fallback nếu trạng thái không khớp
         newBoardData.Draft.push(order);
       }
     });
     
-    // Cập nhật state
     setBoardData(newBoardData);
     setIsLoading(false);
   }, [orders]);
 
   const { connectionStatus } = useSignalRContext();
 
-// Thêm effect để khi connectionStatus thay đổi sang connected, refresh data
 useEffect(() => {
   if (connectionStatus === 'connected') {
-    // Không load data nếu đang trong initialLoad để tránh duplicate calls
     console.log('SignalR connected, refreshing order data');
     // loadData();
   }
@@ -81,13 +76,11 @@ useEffect(() => {
   
   const moveOrder = useCallback((orderId: string, fromStatus: BoardStatus, toStatus: BoardStatus) => {
     console.log(`Moving order ${orderId} from ${fromStatus} to ${toStatus}`);
-    // Trong ứng dụng thực tế, bạn sẽ gọi API để cập nhật trạng thái
   }, []);
   
   return { boardData, moveOrder, isLoading };
 };
 
-// Cấu hình hiển thị cho mỗi trạng thái
 const statusConfig: Record<
   BoardStatus,
   { label: string; icon: React.ReactNode; color: string; borderColor: string }
@@ -105,10 +98,16 @@ const statusConfig: Record<
     borderColor: "border-yellow-500"
   },
   Accepted: { 
-    label: "Đang thực hiện", 
+    label: "Đã chấp nhận", 
     icon: <Loader size={18} />, 
     color: "text-blue-600",
     borderColor: "border-blue-500"
+  },
+  InProgress: { 
+    label: "Đang thực hiện", 
+    icon: <Play size={18} />, 
+    color: "text-purple-600",
+    borderColor: "border-purple-500"
   },
   Completed: { 
     label: "Hoàn thành", 
@@ -134,17 +133,15 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
   const [activeStatus, setActiveStatus] = useState<BoardStatus>("Draft");
   const [displayCount, setDisplayCount] = useState<number>(9);
   
-  // Tất cả các trạng thái có thể có
-  const allStatuses: BoardStatus[] = ["Draft", "Pending", "Accepted", "Completed", "Cancelled"];
+  const allStatuses: BoardStatus[] = ["Draft", "Pending", "Accepted", "InProgress", "Completed", "Cancelled"];
   
   const handleLoadMore = () => {
     setDisplayCount(prev => prev + 9);
   };
 
-  // Hiển thị trạng thái loading khi đang tải dữ liệu
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex justify-center items-center h-64 rounded-lg border border-gray-200 shadow-sm">
         <div className="flex flex-col items-center">
           <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mb-2" />
           <p className="text-gray-600">Đang tải dữ liệu...</p>
@@ -155,9 +152,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
   
   
   return (
-    <div className="flex bg-white rounded-lg border border-gray-200 shadow-sm h-[calc(100vh-12rem)] overflow-hidden">
-      {/* Sidebar with tabs */}
-      <div className="w-64 border-r border-gray-200 flex flex-col bg-gray-50">
+    <div className="flex rounded-lg border border-gray-200 shadow-sm h-[calc(100vh-12rem)] overflow-hidden">
+      <div className="w-64 border-r border-gray-200 flex flex-col">
         {allStatuses.map((status) => {
           const config = statusConfig[status];
           const count = boardData[status]?.length || 0;
@@ -191,9 +187,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
         })}
       </div>
       
-      {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-white">
+        <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-800 flex items-center gap-2">
             <span className={statusConfig[activeStatus].color}>
               {statusConfig[activeStatus].icon}
@@ -205,7 +200,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
           </h2>
         </div>
         
-        {/* Orders grid */}
         <div className="flex-1 overflow-y-auto p-4">
           {!boardData[activeStatus] || boardData[activeStatus].length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">

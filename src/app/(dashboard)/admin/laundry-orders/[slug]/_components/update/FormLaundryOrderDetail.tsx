@@ -60,7 +60,7 @@ const FormLaundryOrderDetail: React.FC<FormLaundryOrderDetailProps> = ({ initial
   // Get status badge with appropriate styling
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "outline" | "secondary" | "destructive" | "success" }> = {
-      Draft: { label: "Nháp", variant: "outline" },
+      Draft: { label: "Đơn mới", variant: "outline" },
       Paid: { label: "Đã thanh toán", variant: "success" },
       Completed: { label: "Hoàn thành", variant: "secondary" },
       Processing: { label: "Đang xử lý", variant: "default" },

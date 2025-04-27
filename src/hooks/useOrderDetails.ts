@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// components/OrderDetailsPopup/useOrderDetails.ts
 import { useState, useEffect, useCallback } from "react";
-import { getAllStaffStatusReady } from "@/apis/staff";
+import { getAllStaffStatusReady, getStaffById } from "@/apis/staff"; // Added getStaffById
 import { assignStaffToOrder, cancelOrder } from "@/apis/order";
 import { toast } from "@/hooks/use-toast";
 import { getUserFromCookie } from "@/lib/user";
@@ -53,7 +52,7 @@ export const useOrderDetails = (
     }
   }, [isOpen, order?.id]);
 
-  // Fetch available staff when modal is open or groupId changes
+  // Fetch available staff and assigned staff when modal is open or groupId changes
   useEffect(() => {
     if (isOpen && effectiveGroupId && activeTab === "staffing") {
       fetchAvailableStaffs(effectiveGroupId);
@@ -63,34 +62,44 @@ export const useOrderDetails = (
   const fetchAvailableStaffs = async (groupId: string) => {
     setIsLoading(true);
     try {
+      // Fetch available staff
       const staffData = await getAllStaffStatusReady(groupId);
       const staffArray = Array.isArray(staffData) ? staffData : [staffData];
-      
+
       const staffsWithNames = staffArray.map((staff: any) => ({
         staffId: staff.id,
         status: staff.status,
         lastUpdated: staff.lastUpdated,
         fullName: staff.fullName || `Staff ${staff.id.substring(0, 8)}`,
-        phoneNumber: staff.phoneNumber
+        phoneNumber: staff.phoneNumber,
       }));
-      
-      // Include the currently assigned staff if not included in the available list
+
+      // Fetch assigned staff if order.employeeId exists
       if (order?.employeeId) {
-        const assignedStaffExists = staffsWithNames.some(staff => staff.staffId === order.employeeId);
+        const assignedStaffExists = staffsWithNames.some(
+          (staff) => staff.staffId === order.employeeId
+        );
         if (!assignedStaffExists) {
-          const assignedStaff = {
-            staffId: order.employeeId,
-            status: "assigned",
-            lastUpdated: new Date().toISOString(),
-            fullName: "Nhân viên đã được phân công",
-            phoneNumber: "Không có"
-          };
-          staffsWithNames.push(assignedStaff);
+          try {
+            const response = await getStaffById(order.employeeId);
+            if (response && response.payload) {
+              staffsWithNames.push({
+                staffId: order.employeeId,
+                status: "assigned",
+                lastUpdated: new Date().toISOString(),
+                fullName: response.payload.fullName || `Staff ${order.employeeId.substring(0, 8)}`,
+                phoneNumber: response.payload.phoneNumber || "Không có",
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching assigned staff:", error);
+            // Optionally handle error (e.g., add a placeholder or skip)
+          }
         }
       }
-      
+
       setAvailableStaffs(staffsWithNames);
-      
+
       const assignments = staffsWithNames.map((staff) => ({
         orderId: order?.id || "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         staffId: staff.staffId,
@@ -117,7 +126,7 @@ export const useOrderDetails = (
       });
       return false;
     }
-    
+
     setIsAssigning(true);
     try {
       const staffAssignment = staffAssignments.find(
@@ -126,15 +135,15 @@ export const useOrderDetails = (
       const assignmentData = staffAssignment
         ? { ...staffAssignment, orderId: order.id }
         : { staffId: selectedStaffId, orderId: order.id };
-      
+
       await assignStaffToOrder(order.id, assignmentData);
-      
+
       toast({
         title: "Thành công",
         description: "Đã phân công nhân viên thành công",
         variant: "default",
       });
-      
+
       if (onOrderUpdate) onOrderUpdate();
       return true;
     } catch (error) {

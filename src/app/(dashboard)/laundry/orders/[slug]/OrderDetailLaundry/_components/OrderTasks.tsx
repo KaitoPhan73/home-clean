@@ -23,6 +23,7 @@ import {
 import { getOrderTasks, ApiTask } from "@/apis/laudry/task";
 import PaymentStatusNotification from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/PaymentNotification";
 import WeightSubmissionDialog from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/WeightSubmissionDialog";
+import { getEmployeeById } from "@/apis/laudry/employee";
 
 interface OrderTasksProps {
   orderId: string;
@@ -180,13 +181,16 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           : "complete";
       await assignTask(checkoutTaskInfo.taskId, employeeId, action);
 
+      const employeeDetails = await getEmployeeById(employeeId);
+      const employeeName = employeeDetails?.staffName || currentUser?.fullName || "Unknown";
+
       const updatedTasks = tasks.map((task) =>
         task.id === checkoutTaskInfo.taskId
           ? {
               ...task,
               status: getNextTaskStatus(checkoutTaskInfo.currentStatus),
               employeeId,
-              employeeName: currentUser?.fullName || "Unknown",
+              employeeName: employeeName,
               updatedAt: new Date().toISOString(),
             }
           : task

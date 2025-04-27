@@ -44,9 +44,6 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
     ? assignedStaff.fullName || assignedStaff.phoneNumber || "Nhân viên"
     : "Chưa phân công";
 
-  const isPendingAndAssigned =
-    order.status.toLowerCase() === "inprogress" && order.employeeId;
-
   // Add check for re-order that needs approval
   const isReOrderToApprove =
     order.status.toLowerCase() === "pending" &&
@@ -87,7 +84,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
         });
         return false;
       }
-    } catch (error : any) {
+    } catch (error: any) {
       handleErrorApi({ error });
     }
   };
@@ -134,7 +131,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
                 <div className="flex-1">
                   <div className="font-medium">{assignedStaffName}</div>
                   <div className="text-xs text-gray-500">
-                    ID: {order.employeeId.substring(0, 8)}...
+                    Số điện thoại: {assignedStaff?.phoneNumber || "Không có số điện thoại"}
                   </div>
                 </div>
               </div>
@@ -167,77 +164,72 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
             </div>
           )}
 
-          <div className="p-4 bg-white rounded-md border border-green-100">
-            <h4 className="text-green-700 font-medium mb-2">Chọn nhân viên sẵn sàng</h4>
-            {isPendingAndAssigned ? (
-              <div className="py-3 text-center text-gray-700 font-medium">
-                Đơn hàng này đã được phân công nhân viên
-              </div>
-            ) : order.employeeId ? (
-              <div className="py-3 text-center text-gray-700 font-medium">
-                Đơn hàng này đã được phân công nhân viên
-              </div>
-            ) : isLoading ? (
-              <div className="py-3 text-center text-gray-500">
-                <div className="inline-block animate-spin w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full mr-2"></div>
-                Đang tải danh sách nhân viên...
-              </div>
-            ) : availableStaffs.length === 0 ? (
-              <div className="py-3 text-center text-gray-500 italic">
-                Không có nhân viên sẵn sàng
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="Chọn nhân viên sẵn sàng" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableStaffs.map((staff) => (
-                      <SelectItem key={staff.staffId} value={staff.staffId}>
-                        {staff.fullName || staff.phoneNumber || "Tên không xác định"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedStaffId && selectedStaffId !== order.employeeId && (
-                  <div className="p-3 bg-green-50 rounded-md border border-green-200">
-                    <div className="text-sm text-green-700 font-medium">Sẽ giao việc cho:</div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <User size={16} className="text-green-600" />
-                      <span className="text-gray-700">
-                        {availableStaffs.find((s) => s.staffId === selectedStaffId)?.fullName ||
-                          availableStaffs.find((s) => s.staffId === selectedStaffId)?.phoneNumber ||
-                          "Tên không xác định"}
-                      </span>
+          {/* Only show "Chọn nhân viên sẵn sàng" if no staff is assigned */}
+          {!order.employeeId && (
+            <div className="p-4 bg-white rounded-md border border-green-100">
+              <h4 className="text-green-700 font-medium mb-2">Chọn nhân viên sẵn sàng</h4>
+              {isLoading ? (
+                <div className="py-3 text-center text-gray-500">
+                  <div className="inline-block animate-spin w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full mr-2"></div>
+                  Đang tải danh sách nhân viên...
+                </div>
+              ) : availableStaffs.length === 0 ? (
+                <div className="py-3 text-center text-gray-500 italic">
+                  Không có nhân viên sẵn sàng
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+                    <SelectTrigger className="w-full bg-white">
+                      <SelectValue placeholder="Chọn nhân viên sẵn sàng" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStaffs.map((staff) => (
+                        <SelectItem key={staff.staffId} value={staff.staffId}>
+                          {staff.fullName || staff.phoneNumber || "Tên không xác định"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedStaffId && selectedStaffId !== order.employeeId && (
+                    <div className="p-3 bg-green-50 rounded-md border border-green-200">
+                      <div className="text-sm text-gray-700 font-medium">Sẽ giao việc cho:</div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <User size={16} className="text-green-600" />
+                        <span className="text-gray-700">
+                          {availableStaffs.find((s) => s.staffId === selectedStaffId)?.fullName ||
+                            availableStaffs.find((s) => s.staffId === selectedStaffId)?.phoneNumber ||
+                            "Tên không xác định"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
-                <Button
-                  className="w-full mt-4 bg-green-600 hover:bg-green-700"
-                  disabled={
-                    !selectedStaffId ||
-                    selectedStaffId === order.employeeId ||
-                    isAssigning ||
-                    availableStaffs.length === 0
-                  }
-                  onClick={handleAssignStaffAndClose}
-                >
-                  {isAssigning ? (
-                    <>
-                      <span className="inline-block animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-                      Đang phân công...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus size={16} className="mr-2" />
-                      Phân công nhân viên
-                    </>
                   )}
-                </Button>
-              </div>
-            )}
-          </div>
+                  <Button
+                    className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                    disabled={
+                      !selectedStaffId ||
+                      selectedStaffId === order.employeeId ||
+                      isAssigning ||
+                      availableStaffs.length === 0
+                    }
+                    onClick={handleAssignStaffAndClose}
+                  >
+                    {isAssigning ? (
+                      <>
+                        <span className="inline-block animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                        Đang phân công...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={16} className="mr-2" />
+                        Phân công nhân viên
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           {order.employeeId && (
             <div className="p-4 bg-white rounded-md border border-amber-100">

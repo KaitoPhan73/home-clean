@@ -13,7 +13,7 @@ export const getStatusBadge = (status: string) => {
     case "Cancelled":
       return <Badge className="bg-red-500 hover:bg-red-600">Đã hủy</Badge>;
     case "Draft":
-      return <Badge className="bg-gray-500 hover:bg-gray-600">Bản nháp</Badge>;
+      return <Badge className="bg-gray-500 hover:bg-gray-600">Đơn mới</Badge>;
     default:
       return <Badge className="bg-gray-500 hover:bg-gray-600">{status}</Badge>;
   }

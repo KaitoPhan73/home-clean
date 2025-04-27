@@ -339,7 +339,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
             </p>
           )}
-          {isStep2PendingPayment && (
+          {isStep2PendingPayment && task.status != TaskStatusEnum.Completed && (
             <p className="text-sm text-yellow-600 font-medium mt-4 animate-pulse">
               <CreditCard className="h-4 w-4 inline mr-1" />
               Cần thanh toán trước khi tiếp tục công việc này!

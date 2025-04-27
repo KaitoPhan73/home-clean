@@ -61,9 +61,12 @@ const OrderTable = ({
   const [filteredOrders, setFilteredOrders] = useState<TOrderLaundryResponse[]>(data);
   const [shouldUpdateUrl, setShouldUpdateUrl] = useState(false);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
+  const [isQuickRefreshing, setIsQuickRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     try {
+      setIsQuickRefreshing(true);
+      
       const params = new URLSearchParams({
         page: page.toString(),
         size: pageSize.toString(),
@@ -95,8 +98,35 @@ const OrderTable = ({
         description: "Không thể làm mới dữ liệu. Vui lòng thử lại.",
         variant: "destructive",
       });
+    } finally {
+      setIsQuickRefreshing(false);
     }
   }, [page, pageSize, searchTerm, activeTab, dateRange]);
+
+  // Add this effect to listen for manual refresh events from FilterBar
+  useEffect(() => {
+    const handleManualRefresh = async (event: CustomEvent) => {
+      try {
+        setIsQuickRefreshing(true);
+        
+        // If the event provides data directly, use it
+        if (event.detail?.items) {
+          setData(event.detail.items);
+        } else {
+          // Otherwise fetch data manually
+          await handleRefresh();
+        }
+      } finally {
+        setIsQuickRefreshing(false);
+      }
+    };
+
+    window.addEventListener('manualDataRefresh', handleManualRefresh as unknown as EventListener);
+    
+    return () => {
+      window.removeEventListener('manualDataRefresh', handleManualRefresh as unknown as EventListener);
+    };
+  }, [handleRefresh]);
 
   // Listen for orderStatusChanged event
   useEffect(() => {
@@ -312,24 +342,33 @@ const OrderTable = ({
         realtimeEnabled={realtimeEnabled}
         onToggleRealtime={toggleRealtime}
         connectionStatus={connectionStatus}
+        activeTab={activeTab}
       />
       <div className="flex bg-white overflow-hidden h-[calc(100vh-16rem)]">
-        <StatusSidebar
-          activeTab={activeTab}
-          statusCounts={statusCounts}
-          onTabChange={handleTabChange}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <OrderGrid
-            filteredOrders={filteredOrders}
-            activeTab={activeTab}
-            dateRangeText={dateRangeText}
-            isLoading={isLoading}
-            pageSize={size}
-            onSizeChange={handleSizeChange}
-            totalItems={filteredOrders.length}
-          />
-        </div>
+        {isQuickRefreshing ? (
+          <div className="flex justify-center items-center h-screen bg-gray-50 w-full">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <>
+            <StatusSidebar
+              activeTab={activeTab}
+              statusCounts={statusCounts}
+              onTabChange={handleTabChange}
+            />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <OrderGrid
+                filteredOrders={filteredOrders}
+                activeTab={activeTab}
+                dateRangeText={dateRangeText}
+                isLoading={isLoading}
+                pageSize={size}
+                onSizeChange={handleSizeChange}
+                totalItems={filteredOrders.length}
+              />
+            </div>
+          </>
+        )}
       </div>
     </Card>
   );

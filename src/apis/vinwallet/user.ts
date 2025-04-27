@@ -29,7 +29,6 @@ export const getWalletsInUser = async (id: string, params?: any) => {
 
 export const getUserById = async (id: string) => {
   const response = await httpVinWallet.get<TUserResponse>(`/users/${id}`);
-  console.log("getUserById Response:", response);
   return response;
 };
 

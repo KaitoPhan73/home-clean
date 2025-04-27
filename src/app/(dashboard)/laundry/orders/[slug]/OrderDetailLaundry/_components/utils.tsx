@@ -9,7 +9,7 @@ export const getStatusBadge = (status?: string): React.ReactNode => {
   }
   switch (status) {
     case "Draft":
-      return <Badge className="bg-gray-100 text-gray-800">Nháp</Badge>;
+      return <Badge className="bg-gray-100 text-gray-800">Đơn mới</Badge>;
     case "Pending":
       return <Badge className="bg-yellow-100 text-yellow-800">Đang xử lý</Badge>;
     case "Completed":

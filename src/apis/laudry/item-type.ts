@@ -16,3 +16,15 @@ export const getItemTypeById = async (id: string) => {
     const response = await httpVinLaundry.get<TItemTypeResponse>(`/item-types/${id}`);
     return response;
 };
+
+export const createItemType = async (data: Partial<TItemTypeResponse> & { _token?: string }) => {
+    const { _token, ...requestData } = data;
+    const accessToken = _token;
+
+    const response = await httpVinLaundry.post(`/item-types`, requestData, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        }
+    });
+    return response;
+};
