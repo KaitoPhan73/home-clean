@@ -13,7 +13,7 @@ const statusConfig = {
     color: "bg-amber-50 text-amber-700 border-amber-200",
     iconColor: "text-amber-600",
     icon: <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>,
-    label: "Nháp",
+    label: "Đơn mới",
     bgColor: "bg-amber-50",
   },
   Paid: {

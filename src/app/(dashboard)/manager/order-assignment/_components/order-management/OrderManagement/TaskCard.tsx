@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { TOrderResponse } from "@/schema/order.schema";
 import OrderDetailsPopup from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/OrderDetailsPopup";
-import { User, MapPin, Clock, DollarSign, Tag, Coins, Hash, RefreshCw } from "lucide-react";
+import { User, MapPin, Clock, DollarSign, Tag, Coins, Hash, RefreshCw, Star } from "lucide-react";
 import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { useSignalRContext } from "@/context/signalr-provider";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ const getStatusColor = (status: string): string => {
       return "bg-yellow-50 border-yellow-300";
     case "Accepted":
       return "bg-blue-50 border-blue-300";
+    case "InProgress":
+      return "bg-purple-50 border-purple-300";
     case "Completed":
       return "bg-green-50 border-green-300";
     case "Cancelled":
@@ -40,14 +42,11 @@ const getPriorityColor = (priority: string): string => {
   }
 };
 
-// Function to format order codes consistently
 const formatOrderCode = (code: string): string => {
-  // Check if it's a reorder code (starts with RE)
   if (code.startsWith("RE")) {
     return code;
   }
   
-  // For regular codes, extract the last 12 characters if longer than 12
   if (code.length > 12) {
     const shortCode = code.slice(-12);
     return shortCode;
@@ -56,7 +55,6 @@ const formatOrderCode = (code: string): string => {
   return code;
 };
 
-// Function to check if an order is a reorder
 const isReorderCode = (code: string): boolean => {
   return code.startsWith("RE");
 };
@@ -205,8 +203,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </span>
         {order.totalAmount && (
           <div className="flex items-center text-green-600 text-sm font-semibold">
-            <Coins className="h-4 w-4 mr-1" />
-            {order.totalAmount.toLocaleString("vi-VN")} Point
+            {order.totalAmount.toLocaleString("vi-VN")} <Star className="h-4 w-4 mr-1 ml-1" />
           </div>
         )}
       </div>

@@ -59,7 +59,7 @@ export const useSignalR = () => {
             signalR.HttpTransportType.LongPolling,
         })
         .configureLogging(signalR.LogLevel.Debug)
-        .withAutomaticReconnect([0, 2, 1, 3]) // Giữ cơ chế reconnect
+        .withAutomaticReconnect() 
         .build();
 
       globalConnection = newConnection;

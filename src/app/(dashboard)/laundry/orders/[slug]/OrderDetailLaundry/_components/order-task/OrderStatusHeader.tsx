@@ -31,7 +31,7 @@ const OrderStatusHeader: React.FC<OrderStatusHeaderProps> = ({
   const getOrderStatusText = () => {
     switch (orderStatus) {
       case OrderStatusEnum.Draft:
-        return "Nháp";
+        return "Đơn mới";
       case OrderStatusEnum.PendingPayment:
         return "Chờ thanh toán";
       case OrderStatusEnum.Processing:

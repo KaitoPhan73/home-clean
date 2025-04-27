@@ -22,7 +22,7 @@ export const getAllServices = async (params?: any) => {
 
 export const getServiceById = async (id: string) => {
   const response = await httpHomePlus.get<TServiceResponse>(`/services/${id}`);
-  console.log("Service Response:", response);
+  // console.log("Service Response:", response);
   return response;
 };
 

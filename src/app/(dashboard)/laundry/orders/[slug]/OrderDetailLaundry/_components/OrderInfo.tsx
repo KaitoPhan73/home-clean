@@ -97,8 +97,8 @@ export default function OrderInfo({
       </CardHeader>
       <CardContent className="pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="flex items-start group">
+          <div className="space-y-8">
+            {/* <div className="flex items-start group">
               <ShoppingBag className="h-5 w-5 text-blue-500 mr-3 mt-1 group-hover:text-blue-700 transition-colors" />
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -108,9 +108,9 @@ export default function OrderInfo({
                   {order.type || "Chưa xác định"}
                 </p>
               </div>
-            </div>
+            </div> */}
 
-            <div className="flex items-start group">
+            <div className="flex items-start group mt-2">
               <Tag className="h-5 w-5 text-blue-500 mr-3 mt-1 group-hover:text-blue-700 transition-colors" />
               <div>
                 <p className="text-sm font-medium text-gray-500">Mã đơn hàng</p>
@@ -152,21 +152,33 @@ export default function OrderInfo({
                 </p>
                 <Badge
                   className={
-                    order.status === "Processing"
-                      ? "bg-amber-100 text-amber-800"
+                    order.status === "Draft"
+                      ? "bg-gray-100 text-gray-800"
+                      : order.status === "PendingPayment"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : order.status === "Processing"
+                      ? "bg-blue-100 text-blue-800"
                       : order.status === "Completed"
                       ? "bg-green-100 text-green-800"
                       : order.status === "Cancelled"
                       ? "bg-red-100 text-red-800"
+                      : order.status === "Paid"
+                      ? "bg-emerald-100 text-emerald-800"
                       : "bg-blue-100 text-blue-800"
                   }
                 >
-                  {order.status === "Processing"
+                  {order.status === "Draft"
+                    ? "Đơn mới"
+                    : order.status === "PendingPayment"
+                    ? "Chờ thanh toán"
+                    : order.status === "Processing"
                     ? "Đang xử lý"
                     : order.status === "Completed"
                     ? "Hoàn thành"
                     : order.status === "Cancelled"
                     ? "Đã hủy"
+                    : order.status === "Paid"
+                    ? "Đã thanh toán"
                     : order.status}
                 </Badge>
               </div>

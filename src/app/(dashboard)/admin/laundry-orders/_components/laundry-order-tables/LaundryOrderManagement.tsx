@@ -33,7 +33,7 @@ export const statusConfig = {
   },
   Draft: {
     id: "Draft",
-    label: "Nháp",
+    label: "Đơn mới",
     color: "text-amber-500",
     borderColor: "border-l-amber-500",
     icon: <span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>,

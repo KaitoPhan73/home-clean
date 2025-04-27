@@ -12,7 +12,7 @@ interface OrderHeaderProps {
 
 const getStatusBadge = (status: string) => {
   const statusMap: Record<string, { color: string; label: string }> = {
-    Draft: { color: "bg-gray-100 text-gray-800", label: "Nháp" },
+    Draft: { color: "bg-gray-100 text-gray-800", label: "Đơn mới" },
     PendingPayment: {
       color: "bg-yellow-100 text-yellow-800",
       label: "Chờ thanh toán",

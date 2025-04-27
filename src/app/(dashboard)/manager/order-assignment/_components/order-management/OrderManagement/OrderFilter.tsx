@@ -35,6 +35,8 @@ const LAZY_LOAD_BATCH = 10;
 
 const useStaffAssignBoard = () => {
   const [ordersData, setOrdersData] = useState<EnhancedOrder[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filteredOrders, setFilteredOrders] = useState<EnhancedOrder[]>([]);
   const [displayedItems, setDisplayedItems] = useState<EnhancedOrder[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_LIMIT);
@@ -48,8 +50,12 @@ const useStaffAssignBoard = () => {
   const [fromDate, setFromDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [toDate, setToDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [filterApplied, setFilterApplied] = useState(false);
-  const [userDataCache, setUserDataCache] = useState<Record<string, string>>({});
-  const [houseDataCache, setHouseDataCache] = useState<Record<string, string>>({});
+  const [userDataCache, setUserDataCache] = useState<Record<string, string>>(
+    {}
+  );
+  const [houseDataCache, setHouseDataCache] = useState<Record<string, string>>(
+    {}
+  );
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const { connectionStatus } = useSignalRContext();
@@ -87,12 +93,33 @@ const useStaffAssignBoard = () => {
           return orderDate >= from && orderDate <= to;
         });
       }
+
+      // Apply search filter if search query exists
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase().trim();
+        filtered = filtered.filter((order) => {
+          return (
+            (order.code && order.code.toLowerCase().includes(query)) ||
+            (order.userFullName &&
+              order.userFullName.toLowerCase().includes(query)) ||
+            (order.houseNo && order.houseNo.toLowerCase().includes(query))
+          );
+        });
+      }
+
       return filtered;
     } catch (error) {
       console.error("Error filtering orders:", error);
       return [];
     }
-  }, [filterMode, selectedDate, fromDate, toDate, ordersData]);
+  }, [filterMode, selectedDate, fromDate, toDate, ordersData, searchQuery]);
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    []
+  );
 
   // Xử lý sự kiện orderStatusChanged
   useEffect(() => {
@@ -104,10 +131,16 @@ const useStaffAssignBoard = () => {
         )
       );
     };
-  
-    window.addEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+
+    window.addEventListener(
+      "orderStatusChanged",
+      handleOrderStatusChanged as EventListener
+    );
     return () => {
-      window.removeEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+      window.removeEventListener(
+        "orderStatusChanged",
+        handleOrderStatusChanged as EventListener
+      );
     };
   }, []);
 
@@ -124,7 +157,10 @@ const useStaffAssignBoard = () => {
         try {
           const userResponse = await getUserById(order.userId);
           userFullName = userResponse.payload.fullName;
-          setUserDataCache((prev) => ({ ...prev, [order.userId]: userFullName }));
+          setUserDataCache((prev) => ({
+            ...prev,
+            [order.userId]: userFullName,
+          }));
         } catch {
           userFullName = "Không xác định";
         }
@@ -149,9 +185,15 @@ const useStaffAssignBoard = () => {
       setOrdersData((prevOrders) => [...prevOrders, newOrder]);
     };
 
-    window.addEventListener("orderCreated", handleOrderCreated as unknown as EventListener);
+    window.addEventListener(
+      "orderCreated",
+      handleOrderCreated as unknown as EventListener
+    );
     return () => {
-      window.removeEventListener("orderCreated", handleOrderCreated as unknown as EventListener);
+      window.removeEventListener(
+        "orderCreated",
+        handleOrderCreated as unknown as EventListener
+      );
     };
   }, [userDataCache, houseDataCache, extractHouseId]);
 
@@ -162,7 +204,15 @@ const useStaffAssignBoard = () => {
       setVisibleCount(INITIAL_LOAD_LIMIT);
       setDisplayedItems(filtered.slice(0, INITIAL_LOAD_LIMIT));
     }
-  }, [filterMode, selectedDate, fromDate, toDate, ordersData, filterApplied, filterOrders]);
+  }, [
+    filterMode,
+    selectedDate,
+    fromDate,
+    toDate,
+    ordersData,
+    filterApplied,
+    filterOrders,
+  ]);
 
   useEffect(() => {
     setDisplayedItems(filteredOrders.slice(0, visibleCount));
@@ -342,8 +392,37 @@ const useStaffAssignBoard = () => {
     setFromDate(today);
     setToDate(today);
     setFilterMode("single");
-    loadData();
-  }, [loadData]);
+
+    setIsRefreshing(true); // Start the refresh spinner
+
+    // Replace the content with loading spinner
+    const contentElement = document.querySelector(".task-board-container");
+    if (contentElement) {
+      contentElement.innerHTML = `
+        <div class="flex justify-center items-center h-64 bg-gray-50">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        </div>
+      `;
+    }
+
+    // Load the data
+    loadData()
+      .then(() => {
+        setFilterApplied(true);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 300);
+      });
+  }, [
+    loadData,
+    setFilterMode,
+    setSelectedDate,
+    setFromDate,
+    setToDate,
+    setFilterApplied,
+  ]);
 
   const applyFilter = useCallback(() => {
     setFilterApplied(true);
@@ -367,6 +446,7 @@ const useStaffAssignBoard = () => {
     loadMoreItems,
     applyFilter,
     connectionStatus,
+    isRefreshing,
   };
 };
 
@@ -381,8 +461,20 @@ const DateFilter = ({
   handleToDateChange,
   handleRefresh,
   applyFilter,
+  searchQuery,
+  handleSearchChange,
+  isRefreshing,
 }: any) => (
   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="flex items-center w-full">
+      <Input
+        type="text"
+        value={searchQuery}
+        onChange={handleSearchChange}
+        placeholder="Tìm kiếm theo mã đơn, tên khách hàng, địa chỉ..."
+        className="w-full"
+      />
+    </div>
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
       <Tabs
         value={filterMode}
@@ -434,8 +526,12 @@ const DateFilter = ({
       onClick={handleRefresh}
       variant="outline"
       className="whitespace-nowrap"
+      disabled={isRefreshing}
     >
-      <RefreshCw className="mr-1 h-4 w-4" /> Làm mới
+      <RefreshCw
+        className={`mr-1 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+      />
+      {isRefreshing ? "Đang làm mới..." : "Làm mới"}
     </Button>
   </div>
 );
@@ -481,7 +577,7 @@ const OrderFilter = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white p-4 rounded-lg border shadow-sm">
+      <div className="p-4 rounded-lg border shadow-sm">
         <DateFilter
           filterMode={filterMode}
           setFilterMode={setFilterMode}
@@ -541,7 +637,8 @@ const OrderFilter = () => {
                 ) : (
                   <>
                     <ChevronDown className="mr-2 h-4 w-4" />
-                    Tải thêm ({filteredOrders.length - displayedItems.length}{" "}
+                    Tải thêm ({filteredOrders.length -
+                      displayedItems.length}{" "}
                     đơn hàng còn lại)
                   </>
                 )}

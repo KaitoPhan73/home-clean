@@ -20,6 +20,13 @@ export const formattedDateTime = (timestamp: any) => {
   return format(new Date(timestamp), "dd/MM/yyyy HH:mm");
 };
 
+export const formatPoints = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return 'N/A';
+  }
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
 export const formatPriceVND = (price: any) => {
   return price.toLocaleString("vi-VN", {
     style: "currency",

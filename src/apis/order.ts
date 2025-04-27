@@ -3,7 +3,7 @@
 "use server";
 
 import { httpHomePlus } from "@/lib/http";
-import { TApproveReOrderUpdateRequest, TAssignStaffToOrderRequest, TOrderResponse } from "@/schema/order.schema";
+import { TApproveReOrderUpdateRequest, TAssignStaffToOrderRequest, TOrderResponse, TTrackingOrderResponse } from "@/schema/order.schema";
 import { TTableResponse } from "@/types/Table";
 import { cookies } from "next/headers";
 
@@ -23,6 +23,10 @@ export const getOrderById = async (id: string) => {
   return response;
 };
 
+export const getTrackingOrderById = async (id: string) => {
+  const response = await httpHomePlus.get<TTrackingOrderResponse>(`/orders/${id}/tracking`);
+  return response;
+};
 
 export const assignStaffToOrder = async (id: string, data: TAssignStaffToOrderRequest) => {
   const response = await httpHomePlus.put<TOrderResponse>(

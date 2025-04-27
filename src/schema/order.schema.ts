@@ -37,6 +37,7 @@ export const OrderSchema = BaseSchema.extend({
   serviceId: z.string().uuid(),
   userId: z.string().uuid(),
   extraServices: z.array(z.string()).default([]),
+  timeSlotDetail: z.string(),
   options: z.array(z.string()).default([]),
 });
 
@@ -46,8 +47,29 @@ export const AssignStaffToOrderSchema = BaseSchema.extend({
   staffId: z.string().uuid(),
 });
 
+export const SubActivitySchema = z.object({
+  activityId: z.string().uuid(),
+  title: z.string(),
+  estimatedTime: z.string(),
+  status: z.enum(["Pending", "InProgress", "Completed"]),
+});
+
+export const StepSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  time: z.string(),
+  status: z.enum(["Pending", "InProgress", "Completed"]),
+  subActivities: z.array(SubActivitySchema).nullable(),
+});
+
+export const TrackingOrderSchema = z.object({
+  orderId: z.string().uuid(),
+  steps: z.array(StepSchema),
+});
+
 export type TOrderRequest = z.TypeOf<typeof OrderSchema>;
 export type TOrderResponse = z.TypeOf<typeof OrderSchema>;
 export type TAssignStaffToOrderRequest = z.TypeOf<typeof AssignStaffToOrderSchema>;
 export type TApproveReOrderUpdateRequest = z.infer<typeof OrderSchema>;
+export type TTrackingOrderResponse = z.infer<typeof TrackingOrderSchema>;
 

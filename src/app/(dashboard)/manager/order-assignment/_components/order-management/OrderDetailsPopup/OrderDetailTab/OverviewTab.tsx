@@ -2,9 +2,10 @@
 // components/OrderDetailsPopup/OverviewTab.tsx
 import { getStaffById } from "@/apis/staff";
 import { getUserById } from "@/apis/vinwallet/user";
-import { formatCurrency, formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
+import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { TabsContent } from "@/components/ui/tabs";
-import { Clipboard, DollarSign, Tag, CheckCircle, User, Calendar } from "lucide-react";
+import { formatPoints } from "@/lib/formatter";
+import { Clipboard, DollarSign, Tag, CheckCircle, User, Calendar, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface OverviewTabProps {
@@ -67,7 +68,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
             <div>
               <div className="text-sm text-gray-500">Khách hàng</div>
               <div className="font-medium">{userName}</div>
-              <div className="text-xs text-gray-400">{order.userId || "N/A"}</div>
+              {/* <div className="text-xs text-gray-400">{order.userId || "N/A"}</div> */}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -75,7 +76,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
             <div>
               <div className="text-sm text-gray-500">Nhân viên</div>
               <div className="font-medium">{staffName}</div>
-              {order.employeeId && <div className="text-xs text-gray-400">ID: {order.employeeId}</div>}
+              {/* {order.employeeId && <div className="text-xs text-gray-400">ID: {order.employeeId}</div>} */}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -103,20 +104,20 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ order }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <div className="text-sm text-gray-500">Giá gốc</div>
-            <div className="font-medium">{formatCurrency(order.price)}</div>
+            <div className="font-medium">{formatPoints(order.price)} <Star size={14} className="inline text-yellow-500" /></div>
           </div>
           <div>
             <div className="text-sm text-gray-500">Tổng thanh toán</div>
-            <div className="font-bold text-lg text-green-700">{formatCurrency(order.totalAmount)}</div>
+            <div className="font-bold text-lg text-green-700">{formatPoints(order.totalAmount)} <Star size={14} className="inline text-yellow-500" /></div>
           </div>
-          <div>
+          {/* <div>
             <div className="text-sm text-gray-500">Mã giảm giá</div>
             <div className="font-medium">{order.discountCode || "Không có"}</div>
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <div className="text-sm text-gray-500">Giảm giá</div>
             <div className="font-medium text-red-600">{formatCurrency(order.discountAmount)}</div>
-          </div>
+          </div> */}
         </div>
       </div>
 
