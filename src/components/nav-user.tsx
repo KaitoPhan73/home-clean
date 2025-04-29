@@ -35,7 +35,7 @@ export function NavUser({ user }: { user: TAuthResponse }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-gray-100 rounded-md transition-all duration-200"
             >
               <Avatar className="h-9 w-9 rounded-md border border-gray-200 shadow-sm">
-                <AvatarImage src={user.fullName} alt={user.fullName} />
+                <AvatarImage src="https://img.freepik.com/free-vector/illustration-customer-service-concept_53876-5883.jpg?semt=ais_hybrid&w=740" alt={user.fullName} />
                 <AvatarFallback className="rounded-md bg-gray-800 text-white font-medium">
                   {user.fullName.charAt(0).toUpperCase()}
                 </AvatarFallback>

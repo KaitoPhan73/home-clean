@@ -14,7 +14,7 @@ const WalletIndex = ({ keyProps }: Props) => {
     <PageContainer>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
-          <Heading title="Giao Dịch" description="Quản lí các loại Giao Dịch" />
+          <Heading title="Ví người dùng" description="Quản lí các loại ví người dùng (điểm)" />
         </div>
         <Separator />
         <WalletTableAction />
