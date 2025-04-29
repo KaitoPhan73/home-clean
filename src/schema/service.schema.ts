@@ -39,6 +39,7 @@ export const ServiceCreateSchema = BaseSchema.extend({
   serviceCode: z.string().max(50, { message: "Mã dịch vụ không được quá 50 ký tự" }),
   serviceCategoryId: z.string().uuid({ message: "ID danh mục không hợp lệ" }),
   code: z.string().max(50, { message: "Mã code không được quá 50 ký tự" }),
+  base64Image: z.string().optional(),
 });
 
 
