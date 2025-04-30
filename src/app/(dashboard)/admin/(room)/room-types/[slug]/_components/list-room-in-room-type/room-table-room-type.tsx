@@ -17,7 +17,6 @@ const RoomTableRoomType = async ({ slug }: Props) => {
   };
 
   const response = await getRoomsInRoomType(slug, filters);
-  await new Promise((resolve) => setTimeout(resolve, 4000));
 
   const responsePayload = response.payload;
   return (

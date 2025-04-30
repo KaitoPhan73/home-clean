@@ -18,7 +18,6 @@ const HouseTableHouseType = async ({ slug }: Props) => {
   };
 
   const response = await getHousesInHouseType(slug, filters);
-  await new Promise((resolve) => setTimeout(resolve, 4000));
 
   const responsePayload = response.payload;
   return (

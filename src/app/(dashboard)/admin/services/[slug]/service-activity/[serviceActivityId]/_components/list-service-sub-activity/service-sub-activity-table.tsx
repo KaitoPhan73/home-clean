@@ -18,8 +18,10 @@ const ServiceSubActivityTable = async ({ slug }: Props) => {
     ...(search && { search }),
   };
 
-  const response = await getServiceSubActivitiesInServiceActivities(slug, filters);
-  await new Promise((resolve) => setTimeout(resolve, 4000));
+  const response = await getServiceSubActivitiesInServiceActivities(
+    slug,
+    filters
+  );
 
   const responsePayload = response.payload;
   return (

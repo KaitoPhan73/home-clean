@@ -17,7 +17,6 @@ const ServiceTableInServiceCategory = async ({ slug }: Props) => {
   };
 
   const response = await getServicesInServiceCategory(slug, filters);
-  await new Promise((resolve) => setTimeout(resolve, 4000));
 
   const responsePayload = response.payload;
   return (

@@ -1,7 +1,5 @@
-// Import testing libraries
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import "@testing-library/jest-dom/extend-expect";
 
 // Import dependencies
 import { getAllAreas } from "@/apis/area";
@@ -11,8 +9,6 @@ import AreaTable from "./area-table";
 // Cấu hình Jest nếu cần
 jest.useFakeTimers(); // Nếu bạn muốn mock timers
 
-// Phần còn lại của file test giữ nguyên như bạn đã viết
-// Mock các dependency
 jest.mock("@/apis/area", () => ({
   getAllAreas: jest.fn(),
 }));
