@@ -17,7 +17,6 @@ const ClusterTableArea = async ({ slug }: Props) => {
   };
 
   const response = await getClustersInArea(slug, filters);
-  await new Promise((resolve) => setTimeout(resolve, 4000));
 
   const responsePayload = response.payload;
   return (
