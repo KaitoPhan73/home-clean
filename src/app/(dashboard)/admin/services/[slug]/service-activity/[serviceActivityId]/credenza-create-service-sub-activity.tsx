@@ -32,7 +32,7 @@ import {
 } from "@/schema/service-sub-activity.schema";
 import { createServiceSubActivity } from "@/apis/service-sub-activity";
 import { getServiceActivityById } from "@/apis/service-activity";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type Props = {
   className?: string;
@@ -42,38 +42,28 @@ export function CredenzaCreateServiceSubActivity({ className }: Props) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-  const [selectedServiceActivityName, setSelectedServiceActivityName] = useState("");
-  const [selectedServiceActivityId, setSelectedServiceActivityId] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const parts = window.location.pathname.split("/");
-      const serviceActivityId = parts[parts.length - 1]; // Lấy giá trị cuối từ URL
-      setSelectedServiceActivityId(serviceActivityId);
-    }
-  }, []);
+  const [selectedServiceActivityName, setSelectedServiceActivityName] =
+    useState("");
+  const params = useParams();
+  const slug = Array.isArray(params.serviceActivityId)
+    ? params.serviceActivityId[0]
+    : (params.serviceActivityId as string);
 
   const form = useForm<TServiceSubActivityCreateRequest>({
     resolver: zodResolver(ServiceSubActivityCreateSchema),
     defaultValues: {
       name: "",
       code: "",
-      serviceActivityId: "",
+      serviceActivityId: slug,
     },
   });
 
   useEffect(() => {
-    if (selectedServiceActivityId) {
-      form.setValue("serviceActivityId", selectedServiceActivityId);
-    }
-  }, [selectedServiceActivityId]);
-
-  useEffect(() => {
     const fetchServiceActivity = async () => {
-      if (!selectedServiceActivityId) return;
+      if (!slug) return;
 
       try {
-        const response = await getServiceActivityById(selectedServiceActivityId);
+        const response = await getServiceActivityById(slug);
         if (response?.payload) {
           setSelectedServiceActivityName(response.payload.name);
         }
@@ -83,12 +73,11 @@ export function CredenzaCreateServiceSubActivity({ className }: Props) {
     };
 
     fetchServiceActivity();
-  }, [selectedServiceActivityId]);
+  }, [slug]);
 
   const { isSubmitting } = form.formState;
 
   const onSubmit = async (data: TServiceSubActivityCreateRequest) => {
-
     try {
       const response = await createServiceSubActivity(data);
       if (response.status === 201) {

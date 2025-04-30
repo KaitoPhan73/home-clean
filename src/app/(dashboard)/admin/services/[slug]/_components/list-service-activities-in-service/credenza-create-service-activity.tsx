@@ -33,7 +33,8 @@ import {
   TServiceActivityCreateRequest,
 } from "@/schema/service-activity.schema";
 import { createServiceActivity } from "@/apis/service-activity";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { handleErrorApi } from "@/lib/utils";
 
 type Props = {
   className?: string;
@@ -43,17 +44,11 @@ export function CredenzaCreateServiceActivity({ className }: Props) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedServiceName, setSelectedServiceName] = useState("");
-  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const params = useParams();
+  const slug = Array.isArray(params.slug)
+    ? params.slug[0]
+    : (params.slug as string);
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const parts = window.location.pathname.split("/");
-      const serviceId = parts[parts.length - 1]; // Lấy giá trị cuối cùng từ URL
-      setSelectedServiceId(serviceId);
-      form.setValue("serviceId", serviceId);
-    }
-  }, []);
 
   const form = useForm<TServiceActivityCreateRequest>({
     resolver: zodResolver(ServiceActivityCreateSchema),
@@ -63,7 +58,7 @@ export function CredenzaCreateServiceActivity({ className }: Props) {
       prorityLevel: 0,
       estimatedTimePerTask: "",
       safetyMeasures: "",
-      serviceId: "",
+      serviceId: slug,
     },
   });
 
@@ -73,9 +68,7 @@ export function CredenzaCreateServiceActivity({ className }: Props) {
     const fetchAllServices = async () => {
       try {
         const response = await getAllServices();
-        const service = response.payload.items.find(
-          (s) => s.id === selectedServiceId
-        );
+        const service = response.payload.items.find((s) => s.id === slug);
         if (service) {
           setSelectedServiceName(service.name);
         }
@@ -84,11 +77,12 @@ export function CredenzaCreateServiceActivity({ className }: Props) {
       }
     };
 
-    if (selectedServiceId) {
+    if (slug) {
       fetchAllServices();
     }
-  }, [selectedServiceId]);
+  }, [slug]);
 
+  console.log("form", slug);
   const onSubmit = async (data: TServiceActivityCreateRequest) => {
     console.log("Dữ liệu gửi đi:", data);
 
@@ -101,20 +95,10 @@ export function CredenzaCreateServiceActivity({ className }: Props) {
         });
         form.reset();
         setIsOpen(false);
-        router.refresh(); // Refresh lại trang để cập nhật dữ liệu mới
-      } else {
-        toast({
-          title: "Lỗi",
-          description: "Không thể tạo dịch vụ",
-          variant: "destructive",
-        });
+        router.refresh();
       }
     } catch (error: any) {
-      toast({
-        title: "Lỗi",
-        description: `Có lỗi xảy ra: ${error.message}`,
-        variant: "destructive",
-      });
+      handleErrorApi({ error });
     }
   };
 
