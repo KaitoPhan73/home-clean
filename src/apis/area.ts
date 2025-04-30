@@ -14,9 +14,19 @@ export const getAllAreas = async (params?: any) => {
       params,
     }
   ); 
-  console.log("getAllAreas Response:", response);
   return response;
 };
+
+export const getAllAreasInGroup = async (params?: any) => {
+  const response = await httpHomePlus.get<TTableResponse<TAreaResponse>>(
+    `/areas?page=1&size=1000`,
+    {
+      params,
+    }
+  ); 
+  return response;
+};
+
 export const getClustersInArea = async (id: string, params?: any) => {
   const response = await httpHomePlus.get<TTableResponse<TClusterResponse>>(
     `/areas/${id}/cluster`,
