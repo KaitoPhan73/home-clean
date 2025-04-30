@@ -27,9 +27,13 @@ export const StaffTables = ({ slug }: Props) => {
 
   const fetchData = async () => {
     try {
+      // Step 1: Get all staff info first
       const staffsResponse = await getAllStaffs();
       const staffsInfo = staffsResponse.payload.items || [];
       
+      console.log("Staff Info from API:", staffsInfo);
+      
+      // Create a mapping of staff ID to staff info
       const staffInfoMapping = staffsInfo.reduce((map: Record<string, any>, staff: any) => {
         map[staff.id] = staff;
         return map;
@@ -37,30 +41,40 @@ export const StaffTables = ({ slug }: Props) => {
       
       setStaffInfoMap(staffInfoMapping);
 
-      const allStaff = await getAllStaffStatus(slug);
-      setAllStaffStatus(Array.isArray(allStaff) ? allStaff : []);
+      // Step 2: Get status for all staff
+      const allStaffStatusResponse = await getAllStaffStatus(slug);
+      const allStaff = Array.isArray(allStaffStatusResponse) ? allStaffStatusResponse : [];
+      setAllStaffStatus(allStaff);
+      
+      console.log("All Staff Status from API:", allStaff);
 
-      const readyStaff = await getAllStaffStatusReady(slug);
-      setReadyStaffStatus(Array.isArray(readyStaff) ? readyStaff : []);
+      // Step 3: Get status for ready staff
+      const readyStaffStatusResponse = await getAllStaffStatusReady(slug);
+      const readyStaff = Array.isArray(readyStaffStatusResponse) ? readyStaffStatusResponse : [];
+      setReadyStaffStatus(readyStaff);
+      
+      console.log("Ready Staff Status from API:", readyStaff);
 
-      const staffDetails = Array.isArray(allStaff)
-        ? allStaff.map((staff: StaffStatus) => {
-            const staffInfo = staffInfoMapping[staff.id];
-            return {
-              id: staff.id,
-              name: staffInfo?.fullName || `Staff ${staff.id.substring(0, 6)}`,
-              email: staffInfo?.email || `staff${staff.id.substring(0, 4)}@example.com`,
-              role: `Chức vụ: ${staffInfo?.jobPosition}` || "Nhân viên",
-              status: staff.status,
-              lastUpdated: staff.lastUpdated,
-              avatar: staffInfo?.avatar || "",
-              phoneNumber: staffInfo?.phoneNumber || "",
-              gender: staffInfo?.gender || "",
-              address: staffInfo?.address || "",
-            };
-          })
-        : [];
+      // Step 4: Combine data to create staff details
+      const staffDetails = allStaff.map((staffStatus: StaffStatus) => {
+        const staffInfo = staffInfoMapping[staffStatus.id];
+        
+        return {
+          id: staffStatus.id,
+          name: staffStatus.fullName || staffInfo?.fullName || `Staff ${staffStatus.id.substring(0, 6)}`,
+          email: staffInfo?.email || `staff${staffStatus.id.substring(0, 4)}@example.com`,
+          role: staffInfo?.jobPosition ? `Chức vụ: ${staffInfo.jobPosition}` : "Chức vụ: Nhân viên",
+          status: staffStatus.status || "offline",
+          lastUpdated: staffStatus.lastUpdated || new Date().toISOString(),
+          avatar: staffInfo?.avatar || "",
+          phoneNumber: staffStatus.phoneNumber || staffInfo?.phoneNumber || "",
+          gender: staffInfo?.gender || "",
+          address: staffInfo?.address || "",
+        };
+      });
 
+      console.log("Processed Staff Details:", staffDetails);
+      
       setStaffData(staffDetails);
       setFilteredStaff(staffDetails);
     } catch (error) {
@@ -102,23 +116,29 @@ export const StaffTables = ({ slug }: Props) => {
 
   const getReadyStaffDetails = () => {
     return readyStaffStatus.map((readyStaff) => {
+      // Try to find this staff in the already processed data
       const staffDetail = staffData.find(
         (staff) => staff.id === readyStaff.id
       );
       
       if (staffDetail) {
-        return staffDetail;
+        return {
+          ...staffDetail,
+          status: readyStaff.status || staffDetail.status
+        };
       }
       
+      // If not found, create a new detail object
       const staffInfo = staffInfoMap[readyStaff.id];
       return {
         id: readyStaff.id,
-        name: staffInfo?.fullName || `Staff ${readyStaff.id.substring(0, 6)}`,
+        name: readyStaff.fullName || staffInfo?.fullName || `Staff ${readyStaff.id.substring(0, 6)}`,
         email: staffInfo?.email || `staff${readyStaff.id.substring(0, 4)}@example.com`,
-        role: `Chức vụ: ${staffInfo?.jobPosition}` || "Nhân viên",
-        status: readyStaff.status,
-        lastUpdated: readyStaff.lastUpdated,
-        phoneNumber: staffInfo?.phoneNumber || "",
+        role: staffInfo?.jobPosition ? `Chức vụ: ${staffInfo.jobPosition}` : "Chức vụ: Nhân viên",
+        status: readyStaff.status || "ready",
+        lastUpdated: readyStaff.lastUpdated || new Date().toISOString(),
+        avatar: staffInfo?.avatar || "",
+        phoneNumber: readyStaff.phoneNumber || staffInfo?.phoneNumber || "",
         gender: staffInfo?.gender || "",
         address: staffInfo?.address || "",
       };

@@ -1,5 +1,5 @@
 import { TGroupResponse } from "@/schema/group.schema";
-import { getAllManagers } from "@/apis/manager";
+import { getAllManagerInGroup } from "@/apis/manager";
 import { getClusterById } from "@/apis/cluster";
 import { getAllServices } from "@/apis/service";
 import { getAreaById } from "@/apis/area";
@@ -22,7 +22,7 @@ export const fetchGroupDetails = async (
 ): Promise<GroupDetails> => {
   const details: GroupDetails = {
     areaName: "Chưa xác định",
-    managerName: "Chưa xác định",
+    managerName: "Chưa xác địnhh",
     clusterNames: [],
     serviceNames: [],
   };
@@ -33,7 +33,7 @@ export const fetchGroupDetails = async (
         group.areaId
           ? (getAreaById(group.areaId) as Promise<HttpResponse<TAreaResponse>>)
           : Promise.resolve(null),
-        getAllManagers() as Promise<
+        getAllManagerInGroup() as Promise<
           HttpResponse<TTableResponse<TManagerResponse>>
         >,
         group.clusterIds?.length
