@@ -40,7 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type Props = {
   className?: string;
@@ -51,24 +51,18 @@ export function CredenzaCreateEquipmentSupply({ className }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const [selectedServiceName, setSelectedServiceName] = useState("");
-  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const params = useParams();
+  const slug = Array.isArray(params.slug)
+    ? params.slug[0]
+    : (params.slug as string);
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const parts = window.location.pathname.split("/");
-      const serviceId = parts[parts.length - 1]; // Lấy giá trị cuối cùng từ URL
-      setSelectedServiceId(serviceId);
-      form.setValue("serviceId", serviceId);
-    }
-  }, []);
 
   const form = useForm<TEquipmentSupplyCreateRequest>({
     resolver: zodResolver(EquipmentSupplyCreateSchema),
     defaultValues: {
       name: "",
       base64Image: "",
-      serviceId: "",
+      serviceId: slug,
       code: "",
     },
   });
@@ -94,9 +88,7 @@ export function CredenzaCreateEquipmentSupply({ className }: Props) {
     const fetchAllServices = async () => {
       try {
         const response = await getAllServices();
-        const service = response.payload.items.find(
-          (s) => s.id === selectedServiceId
-        );
+        const service = response.payload.items.find((s) => s.id === slug);
         if (service) {
           setSelectedServiceName(service.name);
         }
@@ -105,10 +97,10 @@ export function CredenzaCreateEquipmentSupply({ className }: Props) {
       }
     };
 
-    if (selectedServiceId) {
+    if (slug) {
       fetchAllServices();
     }
-  }, [selectedServiceId]);
+  }, [slug]);
 
   const onSubmit = async (data: TEquipmentSupplyCreateRequest) => {
     try {

@@ -33,7 +33,7 @@ import {
   TExtraServiceCreateRequest,
 } from "@/schema/extra-service.schema";
 import { createExtraService } from "@/apis/extra-service";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type Props = {
   className?: string;
@@ -43,17 +43,11 @@ export function CredenzaCreateExtraService({ className }: Props) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedServiceName, setSelectedServiceName] = useState("");
-  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const params = useParams();
+  const slug = Array.isArray(params.slug)
+    ? params.slug[0]
+    : (params.slug as string);
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const parts = window.location.pathname.split("/");
-      const serviceId = parts[parts.length - 1]; // Lấy giá trị cuối cùng từ URL
-      setSelectedServiceId(serviceId);
-      form.setValue("serviceId", serviceId);
-    }
-  }, []);
 
   const form = useForm<TExtraServiceCreateRequest>({
     resolver: zodResolver(ExtraServiceCreateSchema),
@@ -62,7 +56,7 @@ export function CredenzaCreateExtraService({ className }: Props) {
       price: 0,
       extraTime: 0,
       code: "",
-      serviceId: "",
+      serviceId: slug,
     },
   });
 
@@ -72,9 +66,7 @@ export function CredenzaCreateExtraService({ className }: Props) {
     const fetchAllServices = async () => {
       try {
         const response = await getAllServices();
-        const service = response.payload.items.find(
-          (s) => s.id === selectedServiceId
-        );
+        const service = response.payload.items.find((s) => s.id === slug);
         if (service) {
           setSelectedServiceName(service.name);
         }
@@ -83,30 +75,28 @@ export function CredenzaCreateExtraService({ className }: Props) {
       }
     };
 
-    if (selectedServiceId) {
+    if (slug) {
       fetchAllServices();
     }
-  }, [selectedServiceId]);
+  }, [slug]);
 
   useEffect(() => {
-      const fetchAllServices = async () => {
-        try {
-          const response = await getAllServices();
-          const service = response.payload.items.find(
-            (s) => s.id === selectedServiceId
-          );
-          if (service) {
-            setSelectedServiceName(service.name);
-          }
-        } catch (error) {
-          console.error("Lỗi khi lấy danh sách dịch vụ:", error);
+    const fetchAllServices = async () => {
+      try {
+        const response = await getAllServices();
+        const service = response.payload.items.find((s) => s.id === slug);
+        if (service) {
+          setSelectedServiceName(service.name);
         }
-      };
-  
-      if (selectedServiceId) {
-        fetchAllServices();
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách dịch vụ:", error);
       }
-    }, [selectedServiceId]);
+    };
+
+    if (slug) {
+      fetchAllServices();
+    }
+  }, [slug]);
 
   const onSubmit = async (data: TExtraServiceCreateRequest) => {
     console.log("Dữ liệu gửi đi:", data); // Kiểm tra dữ liệu trước khi gửi

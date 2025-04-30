@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPriceVND } from "@/lib/formatter";
+// import { formatPriceVND } from "@/lib/formatter";
 import { ColumnDef } from "@tanstack/react-table";
 import { TServiceResponse } from "@/schema/service.schema";
 import { CellAction } from "./cell-action";
@@ -34,11 +34,11 @@ export const columns: ColumnDef<TServiceResponse>[] = [
   //   header: "Mức Độ Ưu Tiên",
   //   cell: ({ row }) => <div>{row.getValue("prorityLevel")}</div>,
   // },
-  {
-    accessorKey: "price",
-    header: "Giá",
-    cell: ({ row }) => <div>{formatPriceVND(row.getValue("price"))}</div>,
-  },
+  // {
+  //   accessorKey: "price",
+  //   header: "Giá",
+  //   cell: ({ row }) => <div>{formatPriceVND(row.getValue("price"))}</div>,
+  // },
   // {
   //   accessorKey: "discount",
   //   header: "Giảm Giá",
@@ -46,8 +46,8 @@ export const columns: ColumnDef<TServiceResponse>[] = [
   // },
   {
     accessorKey: "duration",
-    header: "Thời Gian (Giờ)",
-    cell: ({ row }) => <div>{row.getValue("duration")}</div>,
+    header: "Thời Gian",
+    cell: ({ row }) => <div>{row.getValue("duration")} phút</div>,
   },
   {
     accessorKey: "maxCapacity",

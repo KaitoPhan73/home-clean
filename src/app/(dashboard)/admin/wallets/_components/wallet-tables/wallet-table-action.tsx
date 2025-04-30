@@ -4,8 +4,8 @@ import { DataTableSearch } from "@/components/table/data-table-search";
 
 import { DataTableResetFilter } from "@/components/table/data-table-reset-filter";
 import { useWalletTableFilters } from "./use-wallet-table-filters";
-import { CATEGORY_OPTIONS } from "../../../services/_components/service-tables/use-service-table-filters";
-import { DataTableSelect } from "@/components/table/data-table-select";
+// import { CATEGORY_OPTIONS } from "../../../services/_components/service-tables/use-service-table-filters";
+// import { DataTableSelect } from "@/components/table/data-table-select";
 
 export default function WalletTableAction() {
   const {
@@ -13,8 +13,8 @@ export default function WalletTableAction() {
     resetFilters,
     searchQuery,
     setPage,
-    typeQuery,
-    setTypeQuery,
+    // typeQuery,
+    // setTypeQuery,
     setSearchQuery,
   } = useWalletTableFilters();
   return (
@@ -26,14 +26,14 @@ export default function WalletTableAction() {
         setSearchQuery={setSearchQuery}
         setPage={setPage}
       />
-      <DataTableSelect
+      {/* <DataTableSelect
         selectKey="type"
         placeholder="Chọn loại giao dịch"
         setPage={setPage}
         options={CATEGORY_OPTIONS}
         setSelectValue={setTypeQuery}
         selectValue={typeQuery}
-      />
+      /> */}
       <DataTableResetFilter
         isFilterActive={isAnyFilterActive}
         onReset={resetFilters}
