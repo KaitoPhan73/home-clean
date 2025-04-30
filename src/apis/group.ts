@@ -17,6 +17,16 @@ export const getAllGroups = async (params?: any) => {
   return response;
 };
 
+export const getAllGroupsInCreateStaff = async (params?: any) => {
+  const response = await httpHomePlus.get<TTableResponse<TGroupResponse>>(
+    `/groups?page=1&size=1000`,
+    {
+      params,
+    }
+  );
+  return response;
+};
+
 export const getAllOrdersByGroupId = async (groupId: string) => {
   try {
     if (!groupId) {

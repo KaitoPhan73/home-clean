@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TGroupResponse } from "@/schema/group.schema";
-import { getAllGroups } from "@/apis/group";
+import { getAllGroupsInCreateStaff } from "@/apis/group";
 
 type Props = {
   className?: string;
@@ -75,7 +75,7 @@ export function CredenzaCreateServiceStaff({ className, onClose, isOpen = true }
       if (isOpen) {
         try {
           setIsLoadingGroups(true);
-          const response = await getAllGroups();
+          const response = await getAllGroupsInCreateStaff();
           if (response.payload.items) {
             setGroups(response.payload.items);
           }
@@ -131,8 +131,8 @@ export function CredenzaCreateServiceStaff({ className, onClose, isOpen = true }
     <Credenza open={isCredenzaOpen} onOpenChange={() => handleClose()}>
       <CredenzaContent className="sm:max-w-[600px]">
         <CredenzaHeader>
-          <CredenzaTitle>Tạo Nhân Viên</CredenzaTitle>
-          <CredenzaDescription>Tạo một nhân viên mới</CredenzaDescription>
+          <CredenzaTitle>Tạo Nhân Viên Dịch Vụ</CredenzaTitle>
+          <CredenzaDescription>Tạo một nhân viên dịch vụ mới</CredenzaDescription>
         </CredenzaHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
