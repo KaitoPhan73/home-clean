@@ -44,6 +44,7 @@ import { X, Plus, Users, Building, Map, Briefcase } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getAllManagers } from "@/apis/manager";
+import page from "../../order-services/page";
 
 export function CredenzaCreateGroup({ className }: { className?: string }) {
   const { toast } = useToast();
@@ -98,7 +99,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
     });
     return () => subscription.unsubscribe();
   }, [form.watch]);
-
+  const payload = {
+    page: 1,
+    size: 9999,
+  };
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -108,10 +112,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         servicesResponse,
         clustersResponse,
       ] = await Promise.all([
-        getAllAreas(),
-        getAllManagers(),
-        getAllServices(),
-        getAllClusters(),
+        getAllAreas(payload),
+        getAllManagers(payload),
+        getAllServices(payload),
+        getAllClusters(payload),
       ]);
 
       if (areasResponse?.payload?.items) {
@@ -158,7 +162,6 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
           data.clusterIds && data.clusterIds.length > 0
             ? (data.clusterIds as [string, ...string[]])
             : undefined,
-
       };
 
       const response = await createGroup(formattedData);
