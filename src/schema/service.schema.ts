@@ -5,6 +5,7 @@ import { BaseSchema } from "./base-schema"; // Import base schema
 export const ServiceSchema = BaseSchema.extend({
   id: z.string().uuid({ message: "ID không hợp lệ" }),
   name: z.string().max(255, { message: "Tên dịch vụ không được quá 255 ký tự" }),
+  base64Image: z.string().nullable(),
   description: z.string().optional(),
   status: z.string().max(20, { message: "Trạng thái không được quá 20 ký tự" }),
   prorityLevel: z.number().int({ message: "Mức độ ưu tiên phải là số nguyên" }),

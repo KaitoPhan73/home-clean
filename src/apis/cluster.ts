@@ -16,6 +16,17 @@ export const getAllClusters = async (params?: any) => {
   );
   return response;
 };
+
+export const getAllClustersInGroup = async (params?: any) => {
+  const response = await httpHomePlus.get<TTableResponse<TClusterResponse>>(
+    `/clusters?page=1&size=1000`,
+    {
+      params,
+    }
+  );
+  return response;
+};
+
 export const getBuildingsInCluster = async (
   clusterId: string,
   params?: any

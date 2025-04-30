@@ -20,6 +20,16 @@ export const getAllServices = async (params?: any) => {
   return response;
 };
 
+export const getAllServicesInGroup = async (params?: any) => {
+  const response = await httpHomePlus.get<TTableResponse<TServiceResponse>>(
+    `/services?page=1&size=1000`,
+    {
+      params,
+    }
+  );
+  return response;
+};
+
 export const getServiceById = async (id: string) => {
   const response = await httpHomePlus.get<TServiceResponse>(`/services/${id}`);
   // console.log("Service Response:", response);

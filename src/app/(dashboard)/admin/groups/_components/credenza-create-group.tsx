@@ -28,9 +28,9 @@ import {
 } from "@/components/ui/form";
 import { GroupCreateSchema, TGroupCreateRequest } from "@/schema/group.schema";
 import { createGroup } from "@/apis/group";
-import { getAllClusters } from "@/apis/cluster";
-import { getAllServices } from "@/apis/service";
-import { getAllAreas } from "@/apis/area";
+import { getAllClustersInGroup } from "@/apis/cluster";
+import { getAllServicesInGroup } from "@/apis/service";
+import { getAllAreasInGroup } from "@/apis/area";
 import {
   Select,
   SelectTrigger,
@@ -122,10 +122,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         servicesResponse,
         clustersResponse,
       ] = await Promise.all([
-        getAllAreas(),
+        getAllAreasInGroup(),
         getAllManagerInGroup(),
-        getAllServices(),
-        getAllClusters(),
+        getAllServicesInGroup(),
+        getAllClustersInGroup(),
       ]);
 
       if (areasResponse?.payload?.items) {
@@ -332,7 +332,9 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
                                   <Input
                                     placeholder="Tìm kiếm quản lý..."
                                     value={managerSearchValue}
-                                    onChange={(e) => setManagerSearchValue(e.target.value)}
+                                    onChange={(e) =>
+                                      setManagerSearchValue(e.target.value)
+                                    }
                                     className="pl-8"
                                   />
                                 </div>
@@ -340,8 +342,8 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
                               <div className="overflow-y-auto max-h-40">
                                 {filteredManagerOptions.length === 0 ? (
                                   <div className="p-2 text-center text-sm text-gray-500">
-                                    {managerSearchValue 
-                                      ? "Không tìm thấy quản lý phù hợp" 
+                                    {managerSearchValue
+                                      ? "Không tìm thấy quản lý phù hợp"
                                       : "Không có dữ liệu quản lý"}
                                   </div>
                                 ) : (
