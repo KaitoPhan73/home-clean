@@ -40,10 +40,10 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Users, Building, Map, Briefcase } from "lucide-react";
+import { X, Plus, Users, Building, Map, Briefcase, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getAllManagers } from "@/apis/manager";
+import { getAllManagerInGroup } from "@/apis/manager";
 import { handleErrorApi } from "@/lib/utils";
 
 export function CredenzaCreateGroup({ className }: { className?: string }) {
@@ -56,6 +56,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
   const [managerOptions, setManagerOptions] = useState<
     { id: string; name: string }[]
   >([]);
+  const [filteredManagerOptions, setFilteredManagerOptions] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [managerSearchValue, setManagerSearchValue] = useState("");
   const [serviceOptions, setServiceOptions] = useState<
     { id: string; name: string }[]
   >([]);
@@ -100,6 +104,15 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
+  // Lọc danh sách manager khi tìm kiếm
+  useEffect(() => {
+    setFilteredManagerOptions(
+      managerOptions.filter((manager) =>
+        manager.name.toLowerCase().includes(managerSearchValue.toLowerCase())
+      )
+    );
+  }, [managerSearchValue, managerOptions]);
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -110,7 +123,7 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         clustersResponse,
       ] = await Promise.all([
         getAllAreas(),
-        getAllManagers(),
+        getAllManagerInGroup(),
         getAllServices(),
         getAllClusters(),
       ]);
@@ -120,12 +133,12 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
       }
 
       if (managersResponse?.payload?.items) {
-        setManagerOptions(
-          managersResponse.payload.items.map((manager) => ({
-            id: manager.id,
-            name: manager.fullName, // Đổi từ fullName thành name
-          }))
-        );
+        const managers = managersResponse.payload.items.map((manager) => ({
+          id: manager.id,
+          name: manager.fullName, // Đổi từ fullName thành name
+        }));
+        setManagerOptions(managers);
+        setFilteredManagerOptions(managers);
       }
 
       if (servicesResponse?.payload?.items) {
@@ -312,21 +325,36 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
                                 <SelectValue placeholder="Chọn quản lí" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {managerOptions.length === 0 ? (
-                                <SelectItem value="loading" disabled>
-                                  Không có dữ liệu quản lý
-                                </SelectItem>
-                              ) : (
-                                managerOptions.map((manager) => (
-                                  <SelectItem
-                                    key={manager.id}
-                                    value={manager.id}
-                                  >
-                                    {manager.name}
-                                  </SelectItem>
-                                ))
-                              )}
+                            <SelectContent className="max-h-60">
+                              <div className="sticky top-0 bg-white z-10 p-2 border-b">
+                                <div className="relative">
+                                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    placeholder="Tìm kiếm quản lý..."
+                                    value={managerSearchValue}
+                                    onChange={(e) => setManagerSearchValue(e.target.value)}
+                                    className="pl-8"
+                                  />
+                                </div>
+                              </div>
+                              <div className="overflow-y-auto max-h-40">
+                                {filteredManagerOptions.length === 0 ? (
+                                  <div className="p-2 text-center text-sm text-gray-500">
+                                    {managerSearchValue 
+                                      ? "Không tìm thấy quản lý phù hợp" 
+                                      : "Không có dữ liệu quản lý"}
+                                  </div>
+                                ) : (
+                                  filteredManagerOptions.map((manager) => (
+                                    <SelectItem
+                                      key={manager.id}
+                                      value={manager.id}
+                                    >
+                                      {manager.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </div>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -353,7 +381,7 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
                             <SelectContent>
                               {serviceOptions.length === 0 ? (
                                 <SelectItem value="loading" disabled>
-                                  Không có dữ liệu quản lý
+                                  Không có dữ liệu dịch vụ
                                 </SelectItem>
                               ) : (
                                 serviceOptions.map((service) => (
