@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import StaffTable from "@/app/(dashboard)/admin/staffs/_components/staff-table";
 import StaffTableAction from "@/app/(dashboard)/admin/staffs/_components/staff-tables/staff-table-action";
 import { cookies } from "next/headers";
-import StaffActionDropdown from "@/app/(dashboard)/admin/staffs/_components/staff-create-dropdown";
+import StaffActionButtons from "@/app/(dashboard)/admin/staffs/_components/staff-create-dropdown";
 
 type Props = {
   keyProps: string;
@@ -24,7 +24,7 @@ const StaffIndex = async ({ keyProps }: Props) => {
             title="Quản Lí"
             description="Quản Lí Nhân Viên Dịch Vụ Và Giặt Sấy"
           />
-          <StaffActionDropdown accessToken={accessToken} />
+          <StaffActionButtons accessToken={accessToken} />
         </div>
         <Separator />
 
