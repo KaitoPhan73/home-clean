@@ -33,7 +33,7 @@ export const fetchGroupDetails = async (
         group.areaId
           ? (getAreaById(group.areaId) as Promise<HttpResponse<TAreaResponse>>)
           : Promise.resolve(null),
-        getAllManagerInGroup() as Promise<
+        getAllManagerInGroup() as unknown as Promise<
           HttpResponse<TTableResponse<TManagerResponse>>
         >,
         group.clusterIds?.length
