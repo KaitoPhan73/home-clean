@@ -8,6 +8,9 @@ export const ManagerSchema = BaseSchema.extend({
   email: z.string().email(),
   status: z.enum(["Active", "Inactive"]).optional(),
   code: z.string().max(255),
+  groupName: z.string().max(255).nullable(),
+  groupId: z.string().uuid().nullable(),
+  staffNames: z.array(z.string()),
 });
 
 export const ManagerCreateSchema = BaseSchema.extend({

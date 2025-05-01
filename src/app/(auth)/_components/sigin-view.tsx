@@ -13,6 +13,7 @@ import CombinedManagerAuthForm from "@/app/(auth)/_components/user-auth-form";
 export default function SignInViewPage() {
   const [activeRole, setActiveRole] = useState<"user" | "admin">("user");
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Track form submission
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function SignInViewPage() {
   };
 
   const toggleRole = (role: "user" | "admin") => {
-    if (!isAnimating && role !== activeRole) {
+    if (!isAnimating && !isSubmitting && role !== activeRole) {
       setIsAnimating(true);
       setTimeout(() => {
         setActiveRole(role);
@@ -70,8 +71,14 @@ export default function SignInViewPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200">
-          
+          className="mx-auto flex w-full flex-col justify-center space-y-3 sm:max-w-[550px] bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-gray-200 relative"
+        >
+          {/* {isSubmitting && (
+            <div className="absolute inset-0 bg-gray-100/50 z-10 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )} */}
+
           <div className="flex justify-center mb-2">
             <Image
               src="/image/homeplus-logo.png"
@@ -103,7 +110,7 @@ export default function SignInViewPage() {
                 activeRole === "admin"
                   ? "bg-red-100 text-red-500"
                   : "bg-blue-100 text-blue-500"
-              } hover:shadow-md`}
+              } hover:shadow-md ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
             >
               <motion.div
                 animate={{ rotate: isAnimating ? 180 : 0 }}
@@ -127,7 +134,7 @@ export default function SignInViewPage() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <AdminAuthForm />
+                <AdminAuthForm setIsSubmitting={setIsSubmitting} />
               </motion.div>
             ) : (
               <motion.div
@@ -137,7 +144,7 @@ export default function SignInViewPage() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <CombinedManagerAuthForm />
+                <CombinedManagerAuthForm setIsSubmitting={setIsSubmitting} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -154,7 +161,7 @@ export default function SignInViewPage() {
                   activeRole === "user"
                     ? "text-blue-600 hover:text-blue-500"
                     : "text-red-600 hover:text-red-500"
-                }`}
+                } ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
                 onClick={
                   activeRole === "user" ? undefined : () => toggleRole("user")
                 }
@@ -168,14 +175,14 @@ export default function SignInViewPage() {
             Bằng cách tiếp tục, bạn đồng ý với{" "}
             <Link
               href="/terms"
-              className="underline underline-offset-2 hover:text-blue-600"
+              className={`underline underline-offset-2 hover:text-blue-600 ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
             >
               Điều khoản
             </Link>{" "}
             và{" "}
             <Link
               href="/privacy"
-              className="underline underline-offset-2 hover:text-blue-600"
+              className={`underline underline-offset-2 hover:text-blue-600 ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
             >
               Bảo mật
             </Link>

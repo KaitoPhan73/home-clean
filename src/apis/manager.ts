@@ -16,15 +16,18 @@ export const getAllManagers = async (params?: any) => {
 };
 
 export const getAllManagerInGroup = async (params?: any) => {
-  const response = await httpHomePlus.get<TTableResponse<TManagerResponse>>(
-    `/managers?page=1&size=1000`,
+  const response = await httpHomePlus.get<TManagerResponse[]>(
+    `/managers/no-group`,
     {
       params,
     }
   );
   return response;
+}
+export const getManagerById = async (id: string) => {
+  const response = await httpHomePlus.get<TManagerResponse>(`/managers/${id}`);
+  return response;
 };
-
 
 export const createManager = async (data: Partial<TManagerResponse>) => {
   const response = await httpHomePlus.post<TManagerResponse>(`/auth/register-manager`, data);

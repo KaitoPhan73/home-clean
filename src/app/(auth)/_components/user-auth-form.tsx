@@ -58,13 +58,16 @@ const AuthSchema = z
 
 type TAuthRequest = z.infer<typeof AuthSchema>;
 
-const CombinedManagerAuthForm = () => {
+interface CombinedManagerAuthFormProps {
+  setIsSubmitting: (isSubmitting: boolean) => void;
+}
+
+const CombinedManagerAuthForm = ({ setIsSubmitting }: CombinedManagerAuthFormProps) => {
   const { toast } = useToast();
   const router = useRouter();
   const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<TAuthRequest>({
     resolver: zodResolver(AuthSchema),
@@ -75,7 +78,6 @@ const CombinedManagerAuthForm = () => {
   });
 
   useEffect(() => {
-    // Check for saved credentials
     const savedPhone = localStorage.getItem("user_phone");
     const savedPassword = localStorage.getItem("user_password");
     const savedRememberMe = localStorage.getItem("user_remember") === "true";
@@ -88,18 +90,20 @@ const CombinedManagerAuthForm = () => {
   }, [form]);
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    if (!form.formState.isSubmitting) {
+      setShowPassword(!showPassword);
+    }
   };
 
   const handleRememberMeChange = (checked: boolean) => {
-    setRememberMe(checked);
+    if (!form.formState.isSubmitting) {
+      setRememberMe(checked);
+    }
   };
 
   const onSubmit = async (data: TAuthRequest) => {
-    setIsLoading(true);
-    
+    setIsSubmitting(true);
     try {
-      // Handle remember me logic
       if (rememberMe) {
         localStorage.setItem("user_phone", data.phoneNumber);
         localStorage.setItem("user_password", data.password);
@@ -110,83 +114,90 @@ const CombinedManagerAuthForm = () => {
         localStorage.removeItem("user_remember");
       }
 
-      // Try both APIs in parallel
-      const [cleaningResponse, laundryResponse] = await Promise.allSettled([
-        // Cleaning service API
-        checkLoginManager({
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      // Try cleaning API first
+      try {
+        const cleaningResponse = await checkLoginManager({
           phoneNumber: data.phoneNumber,
           password: data.password
-        }).catch(() => null),
-        
-        // Laundry service API
-        checkLoginManagerLaudry({
+        }, { signal: controller.signal });
+
+        clearTimeout(timeoutId);
+
+        if (cleaningResponse?.status === 200) {
+          const userData = cleaningResponse.payload;
+          await authClient.auth(userData);
+          dispatch(setUser(userData));
+
+          let redirectUrl = "/homeplus";
+          let message = "Đang chuyển đến trang chính";
+
+          if (userData.role?.toLowerCase() === "admin") {
+            redirectUrl = "/admin/buildings";
+            message = "Đang chuyển đến trang quản lí";
+          } else if (userData.role?.toLowerCase() === "manager") {
+            redirectUrl = "/manager/groups";
+            message = "Đang chuyển đến trang quản lý dịch vụ";
+          } else if (userData.role?.toLowerCase() === "staff") {
+            redirectUrl = "/homeplus";
+            message = "Đang chuyển đến trang HomePlus";
+          }
+
+          toast({
+            title: "Đăng nhập thành công",
+            description: <CompactToast message={message} type="success" />,
+            duration: 2500,
+          });
+
+          router.push(redirectUrl);
+          return;
+        }
+      } catch (error) {
+        console.log("Cleaning login failed, trying laundry...");
+      }
+
+      try {
+        const laundryResponse = await checkLoginManagerLaudry({
           phoneNumber: data.phoneNumber,
           password: data.password
-        }).catch(() => null)
-      ]);
+        }, { signal: controller.signal });
 
-      // Check if cleaning API succeeded
-      if (cleaningResponse.status === 'fulfilled' && cleaningResponse.value?.status === 200) {
-        const userData = cleaningResponse.value.payload;
-        await authClient.auth(userData);
-        dispatch(setUser(userData));
+        clearTimeout(timeoutId);
 
-        let redirectUrl = "/homeplus";
-        let message = "Đang chuyển đến trang chính";
+        if (laundryResponse?.status === 200) {
+          const userData = laundryResponse.payload;
+          await authClient.auth(userData);
+          
+          const positionUserData = {
+            ...userData,
+            position: "ManageLaundry",
+          };
+          dispatch(setUser(positionUserData));
 
-        // Set redirect based on role for cleaning service
-        if (userData.role?.toLowerCase() === "admin") {
-          redirectUrl = "/admin/buildings";
-          message = "Đang chuyển đến trang quản lí";
-        } else if (userData.role?.toLowerCase() === "manager") {
-          redirectUrl = "/manager/groups";
-          message = "Đang chuyển đến trang quản lý dịch vụ";
-        } else if (userData.role?.toLowerCase() === "staff") {
-          redirectUrl = "/homeplus";
-          message = "Đang chuyển đến trang HomePlus";
+          let redirectUrl = "/laundry/orders";
+          let message = "Đang chuyển đến trang quản lý dịch vụ giặt sấy";
+
+          if (userData.role?.toLowerCase() === "admin") {
+            redirectUrl = "/admin/laundry";
+            message = "Đang chuyển đến trang quản lí giặt sấy";
+          }
+
+          toast({
+            title: "Đăng nhập thành công",
+            description: <CompactToast message={message} type="success" />,
+            duration: 2500,
+          });
+
+          router.push(redirectUrl);
+          return;
         }
-
-        toast({
-          title: "Đăng nhập thành công",
-          description: <CompactToast message={message} type="success" />,
-          duration: 2500,
-        });
-
-        router.push(redirectUrl);
-        return;
+      } catch (error) {
+        console.log("Laundry login failed");
       }
 
-      // Check if laundry API succeeded
-      if (laundryResponse.status === 'fulfilled' && laundryResponse.value?.status === 200) {
-        const userData = laundryResponse.value.payload;
-        await authClient.auth(userData);
-        
-        const positionUserData = {
-          ...userData,
-          position: "ManageLaundry",
-        };
-        dispatch(setUser(positionUserData));
-
-        let redirectUrl = "/laundry/orders";
-        let message = "Đang chuyển đến trang quản lý dịch vụ giặt sấy";
-
-        // Set redirect based on role for laundry service
-        if (userData.role?.toLowerCase() === "admin") {
-          redirectUrl = "/admin/laundry";
-          message = "Đang chuyển đến trang quản lí giặt sấy";
-        }
-
-        toast({
-          title: "Đăng nhập thành công",
-          description: <CompactToast message={message} type="success" />,
-          duration: 2500,
-        });
-
-        router.push(redirectUrl);
-        return;
-      }
-
-      // If both APIs failed
+      clearTimeout(timeoutId);
       throw new Error("Đăng nhập thất bại");
       
     } catch (error) {
@@ -197,7 +208,7 @@ const CombinedManagerAuthForm = () => {
         duration: 2500,
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -215,7 +226,7 @@ const CombinedManagerAuthForm = () => {
                 <Input
                   placeholder="Nhập số điện thoại..."
                   {...field}
-                  disabled={isLoading}
+                  disabled={form.formState.isSubmitting}
                   className="focus-visible:ring-blue-500"
                 />
               </FormControl>
@@ -237,13 +248,14 @@ const CombinedManagerAuthForm = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Nhập mật khẩu..."
                     {...field}
-                    disabled={isLoading}
+                    disabled={form.formState.isSubmitting}
                     className="pr-10 focus-visible:ring-blue-500"
                   />
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-500"
+                    disabled={form.formState.isSubmitting}
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -262,6 +274,7 @@ const CombinedManagerAuthForm = () => {
               id="remember-me"
               checked={rememberMe}
               onCheckedChange={handleRememberMeChange}
+              disabled={form.formState.isSubmitting}
               className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
             />
             <label
@@ -273,19 +286,23 @@ const CombinedManagerAuthForm = () => {
           </div>
           <a
             href="#"
-            className="text-blue-600 hover:text-blue-500 hover:underline transition-colors"
+            className={`text-blue-600 hover:text-blue-500 hover:underline transition-colors ${form.formState.isSubmitting ? "pointer-events-none opacity-50" : ""}`}
           >
             Quên mật khẩu?
           </a>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button with Spinner */}
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 transition-colors"
-          disabled={isLoading}
+          disabled={form.formState.isSubmitting}
         >
-          {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+          {form.formState.isSubmitting ? (
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            "Đăng nhập"
+          )}
         </Button>
       </form>
     </Form>

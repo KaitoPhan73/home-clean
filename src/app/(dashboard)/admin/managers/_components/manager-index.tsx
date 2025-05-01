@@ -3,9 +3,8 @@ import React, { Suspense } from "react";
 
 import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
 import { Heading } from "@/components/ui/headling";
-import { Separator } from "@/components/ui/separator";
 import ManagerTableAction from "@/app/(dashboard)/admin/service-categories/_components/service-category-tables/service-category-table-action";
-import ManagerTable from "@/app/(dashboard)/admin/managers/_components/service-category-table";
+import ManagerTable from "@/app/(dashboard)/admin/managers/_components/manager-table";
 import { CredenzaCreateManager } from "@/app/(dashboard)/admin/managers/_components/credenza-create-manager";
 type Props = {
   keyProps: string;
@@ -18,7 +17,7 @@ const ManagerIndex = ({ keyProps }: Props) => {
           <Heading title="Quản Lí" description="Điều Phối Viên" />
           <CredenzaCreateManager />
         </div>
-        <Separator />
+        {/* <Separator /> */}
 
         <ManagerTableAction />
         <Suspense
