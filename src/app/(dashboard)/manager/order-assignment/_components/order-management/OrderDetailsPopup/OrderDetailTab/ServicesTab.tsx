@@ -156,11 +156,11 @@ export const ServicesTab: React.FC<ServicesTabProps> = ({ order }) => {
             <div>
               <div className="text-sm text-gray-500">Thời lượng</div>
               <div className="font-medium flex items-center">
-                <span>{order.estimatedDuration} giờ</span>
+                <span>{order.estimatedDuration} phút</span>
                 {order.actualDuration && (
                   <>
                     <ArrowRight size={14} className="mx-1" />
-                    <span>{order.actualDuration} giờ (thực tế)</span>
+                    <span>{order.actualDuration} phút (thực tế)</span>
                   </>
                 )}
               </div>

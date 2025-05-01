@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { AlertModal } from "@/components/modal/alert-modal";
 import { Button } from "@/components/ui/button";
@@ -8,19 +9,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { TManagerResponse } from "@/schema/manager.schema";
+import { ManagerDetailModal } from "@/app/(dashboard)/admin/managers/_components/manager-tables/ManagerDetailModal";
 
 interface CellActionProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: TManagerResponse;
 }
 
-export const CellAction: React.FC<CellActionProps> = ({data}) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const router = useRouter();
 
   const onConfirm = async () => {};
@@ -28,11 +30,19 @@ export const CellAction: React.FC<CellActionProps> = ({data}) => {
   return (
     <>
       <AlertModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
+        isOpen={alertOpen}
+        onClose={() => setAlertOpen(false)}
         onConfirm={onConfirm}
         loading={loading}
       />
+
+      <ManagerDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        managerId={data.id}
+        initialData={data}
+      />
+
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -41,16 +51,22 @@ export const CellAction: React.FC<CellActionProps> = ({data}) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
 
+          <DropdownMenuItem onClick={() => setDetailModalOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" /> Xem chi tiết
+          </DropdownMenuItem>
+          
+          {/* Uncomment when needed
           <DropdownMenuItem
-            onClick={() => router.push(`/admin/service-categories/${data.id}`)}
+            onClick={() => router.push(`/admin/managers/${data.id}`)}
           >
-            <Edit className="mr-2 h-4 w-4" /> Xem chi tiết
+            <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            {/* <Trash className="mr-2 h-4 w-4" /> Xóa */}
+          <DropdownMenuItem onClick={() => setAlertOpen(true)}>
+            <Trash className="mr-2 h-4 w-4" /> Xóa
           </DropdownMenuItem>
+          */}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

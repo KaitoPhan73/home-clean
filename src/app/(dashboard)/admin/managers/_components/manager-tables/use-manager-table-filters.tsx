@@ -4,15 +4,20 @@ import { searchParams } from "@/lib/searchparams";
 import { useQueryState } from "nuqs";
 import { useCallback, useMemo } from "react";
 
-
 export function useManagerTableFilters() {
   const [searchQuery, setSearchQuery] = useQueryState(
-    "q",
+    "search",
     searchParams.q
-      .withOptions({ shallow: false, throttleMs: 1000 })
+      .withOptions({ shallow: false, throttleMs: 700 })
       .withDefault("")
   );
 
+  const [groupFilter, setGroupFilter] = useQueryState(
+    "groupFilter",
+    searchParams.q
+      .withOptions({ shallow: false })
+      .withDefault("all")
+  );
 
   const [page, setPage] = useQueryState(
     "page",
@@ -21,17 +26,19 @@ export function useManagerTableFilters() {
 
   const resetFilters = useCallback(() => {
     setSearchQuery(null);
-
+    setGroupFilter("all");
     setPage(1);
-  }, [setSearchQuery, setPage]);
+  }, [setSearchQuery, setGroupFilter, setPage]);
 
   const isAnyFilterActive = useMemo(() => {
-    return !!searchQuery;
-  }, [searchQuery]);
+    return !!searchQuery || groupFilter !== "all";
+  }, [searchQuery, groupFilter]);
 
   return {
     searchQuery,
     setSearchQuery,
+    groupFilter,
+    setGroupFilter,
     page,
     setPage,
     resetFilters,

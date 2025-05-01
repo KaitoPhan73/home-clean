@@ -132,10 +132,10 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
         setAreaOptions(areasResponse.payload.items);
       }
 
-      if (managersResponse?.payload?.items) {
-        const managers = managersResponse.payload.items.map((manager) => ({
+      if (managersResponse?.payload) {
+        const managers = managersResponse.payload.map((manager) => ({
           id: manager.id,
-          name: manager.fullName, // Đổi từ fullName thành name
+          name: manager.fullName,
         }));
         setManagerOptions(managers);
         setFilteredManagerOptions(managers);
@@ -322,7 +322,7 @@ export function CredenzaCreateGroup({ className }: { className?: string }) {
                           >
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Chọn quản lí" />
+                                <SelectValue placeholder="Chọn quản lí nhóm" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-60">

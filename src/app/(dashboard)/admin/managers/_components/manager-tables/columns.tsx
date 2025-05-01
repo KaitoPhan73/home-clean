@@ -2,20 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./cell-action";
-import { CheckCircle, XCircle, User, Mail, Phone, Hash, Calendar } from "lucide-react";
+import { CheckCircle, XCircle, User, Phone, Hash, Calendar, Group } from "lucide-react";
+import { TManagerResponse } from "@/schema/manager.schema";
 
-// Define a generic interface for manager data
-interface ManagerData {
-  fullName?: string;
-  phoneNumber?: string;
-  email?: string;
-  status?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  code?: string;
-}
-
-export const columns: ColumnDef<ManagerData>[] = [
+export const columns: ColumnDef<TManagerResponse>[] = [
   {
     accessorKey: "fullName",
     header: "Họ và Tên",
@@ -52,14 +42,37 @@ export const columns: ColumnDef<ManagerData>[] = [
     },
   },
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "groupName",
+    header: "Tên Nhóm",
     cell: ({ row }) => {
-      const email = row.getValue("email") as string;
+      const groupName = row.getValue("groupName") as string;
       return (
         <div className="flex items-center space-x-2">
-          <Mail className="text-red-500 h-5 w-5" />
-          <span className="text-gray-700 truncate max-w-[200px]">{email || 'Chưa cập nhật'}</span>
+          <Group className={`h-5 w-5 ${groupName ? 'text-indigo-500' : 'text-gray-400'}`} />
+          <span 
+            className={`px-2 py-1 rounded-md text-sm font-medium ${
+              groupName 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'bg-gray-100 text-gray-500'
+            }`}
+          >
+            {groupName || 'Chưa có nhóm'}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "code",
+    header: "Mã Quản Lý",
+    cell: ({ row }) => {
+      const code = row.getValue("code") as string;
+      return (
+        <div className="flex items-center space-x-2">
+          <Hash className="text-gray-500 h-5 w-5" />
+          <span className="text-gray-700 font-mono bg-gray-100 px-2 py-1 rounded-md">
+            {code || 'Chưa có mã'}
+          </span>
         </div>
       );
     },
@@ -103,21 +116,6 @@ export const columns: ColumnDef<ManagerData>[] = [
                   day: '2-digit'
                 }) 
               : 'Chưa xác định'}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "code",
-    header: "Mã Quản Lý",
-    cell: ({ row }) => {
-      const code = row.getValue("code") as string;
-      return (
-        <div className="flex items-center space-x-2">
-          <Hash className="text-gray-500 h-5 w-5" />
-          <span className="text-gray-700 font-mono bg-gray-100 px-2 py-1 rounded-md">
-            {code || 'Chưa có mã'}
           </span>
         </div>
       );

@@ -47,7 +47,7 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
   orderId,
   onSubmit,
 }) => {
-  const serviceTypeId = "7741d4d4-403e-4b50-902e-6b6c31080d2f";
+  const serviceTypeId = "f8f3965e-c72e-4d63-9ddc-eb38a2369946";
   const [itemTypes, setItemTypes] = useState<TItemTypeResponse[]>([]);
   const [itemWeights, setItemWeights] = useState<ItemWeight[]>([]);
   const [loading, setLoading] = useState(true);

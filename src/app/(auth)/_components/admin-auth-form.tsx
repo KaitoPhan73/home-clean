@@ -30,25 +30,30 @@ import { setUser } from "@/redux/User/userSlice";
 import { useDispatch } from "react-redux";
 
 // Compact toast notification
-const CompactAdminToast = ({ 
-  message, 
-  type = "success" 
-}: { 
-  message: string; 
-  type: "success" | "error"; 
+const CompactAdminToast = ({
+  message,
+  type = "success",
+}: {
+  message: string;
+  type: "success" | "error";
 }) => {
   return (
     <div className="flex items-center space-x-2 py-1">
-      {type === "success" ? 
-        <CheckCircle className="text-red-600 flex-shrink-0" size={16} /> : 
+      {type === "success" ? (
+        <CheckCircle className="text-red-600 flex-shrink-0" size={16} />
+      ) : (
         <AlertCircle className="text-red-600 flex-shrink-0" size={16} />
-      }
+      )}
       <span className="text-sm font-medium">{message}</span>
     </div>
   );
 };
 
-const AdminAuthForm = () => {
+interface AdminAuthFormProps {
+  setIsSubmitting: (isSubmitting: boolean) => void;
+}
+
+const AdminAuthForm = ({ setIsSubmitting }: AdminAuthFormProps) => {
   const { toast } = useToast();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -59,7 +64,7 @@ const AdminAuthForm = () => {
     const savedUsername = localStorage.getItem("admin_username");
     const savedPassword = localStorage.getItem("admin_password");
     const savedRememberMe = localStorage.getItem("admin_remember") === "true";
-    
+
     if (savedUsername && savedPassword && savedRememberMe) {
       form.setValue("username", savedUsername);
       form.setValue("password", savedPassword);
@@ -78,14 +83,19 @@ const AdminAuthForm = () => {
   const { isSubmitting } = form.formState;
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    if (!isSubmitting) {
+      setShowPassword(!showPassword);
+    }
   };
 
   const handleRememberMeChange = (checked: boolean) => {
-    setRememberMe(checked);
+    if (!isSubmitting) {
+      setRememberMe(checked);
+    }
   };
 
   const onSubmit = async (data: TLoginAdminRequest) => {
+    setIsSubmitting(true);
     try {
       if (rememberMe) {
         localStorage.setItem("admin_username", data.username);
@@ -97,7 +107,18 @@ const AdminAuthForm = () => {
         localStorage.removeItem("admin_remember");
       }
 
-      const response: HttpResponse<TAuthResponse> = await checkLoginAdmin(data);
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      const response: HttpResponse<TAuthResponse> = await checkLoginAdmin(
+        data,
+        {
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
 
       if (response && response.status === 200) {
         const userData = response.payload;
@@ -130,12 +151,16 @@ const AdminAuthForm = () => {
       console.error("Login error: ", error);
       toast({
         title: "Đăng nhập thất bại",
-        description: <CompactAdminToast 
-          message="Vui lòng kiểm tra lại thông tin đăng nhập" 
-          type="error" 
-        />,
+        description: (
+          <CompactAdminToast
+            message="Vui lòng kiểm tra lại thông tin đăng nhập"
+            type="error"
+          />
+        ),
         duration: 2500,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -182,6 +207,7 @@ const AdminAuthForm = () => {
                     type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-500"
+                    disabled={isSubmitting}
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -200,6 +226,7 @@ const AdminAuthForm = () => {
               id="admin-remember-me"
               checked={rememberMe}
               onCheckedChange={handleRememberMeChange}
+              disabled={isSubmitting}
               className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
             />
             <label
@@ -211,19 +238,25 @@ const AdminAuthForm = () => {
           </div>
           <a
             href="#"
-            className="text-red-600 hover:text-red-500 hover:underline transition-colors"
+            className={`text-red-600 hover:text-red-500 hover:underline transition-colors ${
+              isSubmitting ? "pointer-events-none opacity-50" : ""
+            }`}
           >
             Quên mật khẩu?
           </a>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button with Spinner */}
         <Button
           type="submit"
           className="w-full bg-red-600 hover:bg-red-700 transition-colors"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập Admin"}
+          {isSubmitting ? (
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            "Đăng nhập Admin"
+          )}
         </Button>
       </form>
     </Form>
