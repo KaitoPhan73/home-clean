@@ -39,6 +39,12 @@ const WALLET_TYPE_CONFIG = {
   },
 };
 
+// Fallback configuration for unknown wallet types
+const FALLBACK_TYPE_CONFIG = {
+  label: "Không xác định",
+  className: "bg-gray-100 text-gray-500 hover:bg-gray-100",
+};
+
 export const WalletColumn: ColumnDef<TWalletResponse>[] = [
   {
     accessorKey: "name",
@@ -76,8 +82,15 @@ export const WalletColumn: ColumnDef<TWalletResponse>[] = [
     accessorKey: "type",
     header: "Loại ví",
     cell: ({ row }) => {
-      const type = row.getValue("type") as keyof typeof WALLET_TYPE_CONFIG;
-      const config = WALLET_TYPE_CONFIG[type];
+      const type = row.getValue("type");
+      const validType = typeof type === "string" && type in WALLET_TYPE_CONFIG ? type as keyof typeof WALLET_TYPE_CONFIG : null;
+      const config = validType ? WALLET_TYPE_CONFIG[validType] : FALLBACK_TYPE_CONFIG;
+
+      // Log unexpected type for debugging
+      if (!validType) {
+        console.warn(`Unexpected wallet type: ${type}`);
+      }
+
       return <Badge className={config.className}>{config.label}</Badge>;
     },
   },
@@ -86,7 +99,10 @@ export const WalletColumn: ColumnDef<TWalletResponse>[] = [
     header: "Trạng thái",
     cell: ({ row }) => {
       const status = row.getValue("status") as keyof typeof STATUS_CONFIG;
-      const config = STATUS_CONFIG[status];
+      const config = STATUS_CONFIG[status] || {
+        label: "Không xác định",
+        className: "bg-gray-100 text-gray-500 hover:bg-gray-100",
+      };
       return <Badge className={config.className}>{config.label}</Badge>;
     },
   },
@@ -99,7 +115,7 @@ export const WalletColumn: ColumnDef<TWalletResponse>[] = [
     id: "actions",
     header: "Thao tác",
     cell: ({ row }) => (
-      <div>
+      <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
