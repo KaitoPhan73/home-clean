@@ -14,7 +14,7 @@ import {
   Package,
 } from "lucide-react";
 import { getAllStaffStatusReady } from "@/apis/staff";
-import StaffOrdersPopup from "@/app/(dashboard)/manager/groups/[slug]/_components/list-staff-in-group/staff-detail/StaffOrdersView";
+import StaffOrdersPopup from "@/app/(dashboard)/manager/groups/_components/group-management/Staff-Detail/StaffOrdersView";
 
 interface Staff {
   id: string;
