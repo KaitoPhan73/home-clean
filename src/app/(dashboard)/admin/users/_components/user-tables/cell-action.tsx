@@ -3,6 +3,7 @@
 "use client";
 import { updateVerifyUser } from "@/apis/vinwallet/user";
 import { UserDetailPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-detail";
+import { UserEditPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-edit";
 import { AlertModal } from "@/components/modal/alert-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,13 +29,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
+  const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
 
   const onDelete = () => {
     console.log("Deleting", data);
-  };
-
-  const onEdit = () => {
-    console.log("Editing", data);
   };
 
   const onConfirm = async () => {};
@@ -45,12 +43,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
       const updateData: TUpdateUserRequest = {
         fullName: data.fullName,
-        username: data.username,
-        buildingCode: data.houseId,
-        houseCode: data.houseId,
-        phoneNumber: data.phoneNumber,
         email: data.email,
-        citizenCode: data.citizenCode,
+        phoneNumber: data.phoneNumber,
+        houseId: data.houseId,
       };
 
       await updateVerifyUser(data.id, updateData);
@@ -90,17 +85,22 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <Eye className="mr-2 h-4 w-4" /> Xem Chi Tiết
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={onEdit} className="cursor-pointer">
+          <DropdownMenuItem
+            onClick={() => setIsEditPopupOpen(true)}
+            className="cursor-pointer"
+          >
             <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
           </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onClick={confirmResident}
-            className="cursor-pointer text-green-600"
-            disabled={loading}
-          >
-            <Check className="mr-2 h-4 w-4" /> Xác Nhận Cư Dân
-          </DropdownMenuItem>
+          {data.status !== "Active" && (
+            <DropdownMenuItem
+              onClick={confirmResident}
+              className="cursor-pointer text-green-600"
+              disabled={loading}
+            >
+              <Check className="mr-2 h-4 w-4" /> Xác Nhận Cư Dân
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -108,6 +108,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <UserDetailPopup
           user={data}
           onClose={() => setIsDetailPopupOpen(false)}
+        />
+      )}
+      {isEditPopupOpen && (
+        <UserEditPopup
+          user={data}
+          onClose={() => setIsEditPopupOpen(false)}
         />
       )}
     </>

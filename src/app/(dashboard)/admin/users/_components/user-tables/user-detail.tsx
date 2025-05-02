@@ -7,7 +7,6 @@ import {
   User,
   Mail,
   Phone,
-  ShieldCheck,
   MapPin,
   Check,
   XCircle,
@@ -39,7 +38,7 @@ export const UserDetailPopup: React.FC<UserDetailPopupProps> = ({
         setHouse(res.payload);
       } catch (error) {
         console.error("Lỗi khi lấy thông tin nhà:", error);
-        setHouse(null); // fallback nếu lỗi
+        setHouse(null);
       }
     };
 
@@ -104,11 +103,11 @@ export const UserDetailPopup: React.FC<UserDetailPopupProps> = ({
           <DetailSection
             title="Thông Tin Hệ Thống"
             items={[
-              {
-                icon: <ShieldCheck className="text-yellow-500" />,
-                label: "Vai Trò",
-                value: user.role,
-              },
+              // {
+              //   icon: <ShieldCheck className="text-yellow-500" />,
+              //   label: "Vai Trò",
+              //   value: user.role,
+              // },
               {
                 icon: <MapPin className="text-orange-500" />,
                 label: "Nhà",
@@ -127,7 +126,7 @@ export const UserDetailPopup: React.FC<UserDetailPopupProps> = ({
                   ),
                 label: "Trạng Thái",
                 value:
-                  user.status === "Active" ? "Hoạt động" : "Không hoạt động",
+                  user.status === "Active" ? "Đã xác nhận" : "Chưa xác nhận",
               },
             ]}
           />

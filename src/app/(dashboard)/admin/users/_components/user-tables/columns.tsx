@@ -3,11 +3,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./cell-action";
 import {
-  Mail,
   Phone,
   User,
   User2,
   IdCard,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import React from "react";
 import { TUserResponse } from "@/schema/user.schema";
@@ -51,21 +52,6 @@ export const UserColumns: ColumnDef<TUserResponse>[] = [
     },
   },
   {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => {
-      const email = row.getValue("email") as string;
-      return (
-        <div className="flex items-center space-x-2">
-          <Mail className="text-red-500 h-5 w-5" />
-          <span className="text-gray-700 truncate max-w-[200px]">
-            {email || 'Chưa cập nhật'}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "phoneNumber",
     header: "Số Điện Thoại",
     cell: ({ row }) => {
@@ -95,29 +81,29 @@ export const UserColumns: ColumnDef<TUserResponse>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: "status",
-  //   header: "Trạng Thái",
-  //   cell: ({ row }) => {
-  //     const status = row.getValue("status") as string;
-  //     return (
-  //       <div className="flex items-center space-x-2">
-  //         {status === "Active" ? (
-  //           <CheckCircle className="text-green-500 h-5 w-5" />
-  //         ) : (
-  //           <XCircle className="text-red-500 h-5 w-5" />
-  //         )}
-  //         <span 
-  //           className={`font-medium ${
-  //             status === "Active" ? 'text-green-600' : 'text-red-600'
-  //           }`}
-  //         >
-  //           {status === "Active" ? "Hoạt động" : "Không hoạt động"}
-  //         </span>
-  //       </div>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: "status",
+    header: "Trạng Thái",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      return (
+        <div className="flex items-center space-x-2">
+          {status === "Active" ? (
+            <CheckCircle className="text-green-500 h-5 w-5" />
+          ) : (
+            <XCircle className="text-red-500 h-5 w-5" />
+          )}
+          <span 
+            className={`font-medium ${
+              status === "Active" ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
+            {status === "Active" ? "Đã xác nhận" : "Chưa xác nhận"}
+          </span>
+        </div>
+      );
+    },
+  },
   {
     id: "actions",
     header: "Thao Tác",

@@ -44,3 +44,8 @@ export const updateVerifyUser = async (id: string, data: TUpdateUserRequest) => 
   );
   return response;
 };
+
+export const updateUser = async (id: string, data: TUpdateUserRequest) => {
+  const response = await httpVinWallet.put<TUserResponse>(`/users/${id}`, data);
+  return response;
+};
