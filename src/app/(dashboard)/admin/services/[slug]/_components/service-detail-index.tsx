@@ -1,6 +1,5 @@
 import React, { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
 import PageContainer from "@/components/layout/page-container";
 import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
 import { Heading } from "@/components/ui/headling";
@@ -20,18 +19,21 @@ type Props = {
   slug: string;
   keyProps: string;
 };
+
 const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
   return (
     <PageContainer>
-      <div className="grid grid-cols-12 md:grid-cols-6 lg:grid-cols-12 gap-4 p-4">
-        <Card className="p-4 col-span-12 md:col-span-12 lg:col-span-12">
-          <Suspense fallback={<Skeleton className=" w-full h-full" />}>
+      <div className="p-0 space-y-6">
+        {/* Service Details Section */}
+        <div className="bg-white rounded-md shadow-sm p-4">
+          <Suspense fallback={<Skeleton className="w-full h-32" />}>
             <ServiceDetailAsync slug={slug} />
           </Suspense>
-        </Card>
+        </div>
 
-        <div className="col-span-12">
-          <Separator />
+        {/* Related Services Section */}
+        <div>
+          <Separator className="my-4" />
           <div className="py-4">
             <Heading
               title="Những dịch vụ liên quan"
@@ -47,16 +49,14 @@ const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
               <TabsTrigger value="equipment">Trang thiết bị hỗ trợ</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="activities">
-              <Card className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <TabsContent value="activities" className="mt-4">
+              <div className="bg-white rounded-md shadow-sm p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <Heading
                     title="Công việc chính"
                     description="Danh sách các Công việc chính"
                   />
-                  <div className="flex justify-end">
-                    <CredenzaCreateServiceActivity  />
-                  </div>
+                  <CredenzaCreateServiceActivity />
                 </div>
                 <Suspense
                   key={keyProps}
@@ -64,19 +64,17 @@ const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
                 >
                   <ServiceActivitiesTableInService slug={slug} />
                 </Suspense>
-              </Card>
+              </div>
             </TabsContent>
 
-            <TabsContent value="extra-services">
-              <Card className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <TabsContent value="extra-services" className="mt-4">
+              <div className="bg-white rounded-md shadow-sm p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <Heading
                     title="Dịch vụ bổ sung"
                     description="Danh sách các dịch vụ bổ sung"
                   />
-                  <div className="flex justify-end">
-                    <CredenzaCreateExtraService  />
-                  </div>
+                  <CredenzaCreateExtraService />
                 </div>
                 <Suspense
                   key={keyProps}
@@ -84,19 +82,17 @@ const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
                 >
                   <ExtraServiceTableInService slug={slug} />
                 </Suspense>
-              </Card>
+              </div>
             </TabsContent>
 
-            <TabsContent value="options">
-              <Card className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <TabsContent value="options" className="mt-4">
+              <div className="bg-white rounded-md shadow-sm p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <Heading
                     title="Lựa chọn"
                     description="Danh sách các lựa chọn"
                   />
-                  <div className="flex justify-end">
-                    <CredenzaCreateOption />
-                  </div>
+                  <CredenzaCreateOption />
                 </div>
                 <Suspense
                   key={keyProps}
@@ -104,19 +100,17 @@ const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
                 >
                   <OptionsTableInService slug={slug} />
                 </Suspense>
-              </Card>
+              </div>
             </TabsContent>
 
-            <TabsContent value="equipment">
-              <Card className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <TabsContent value="equipment" className="mt-4">
+              <div className="bg-white rounded-md shadow-sm p-6 space-y-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                   <Heading
                     title="Trang thiết bị hỗ trợ"
                     description="Danh sách các thiết bị hỗ trợ"
                   />
-                  <div className="flex justify-end">
-                    <CredenzaCreateEquipmentSupply />
-                  </div>
+                  <CredenzaCreateEquipmentSupply />
                 </div>
                 <Suspense
                   key={keyProps}
@@ -124,7 +118,7 @@ const ServiceDetailIndex = ({ slug, keyProps }: Props) => {
                 >
                   <EquipmentSuppliesTableInService slug={slug} />
                 </Suspense>
-              </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

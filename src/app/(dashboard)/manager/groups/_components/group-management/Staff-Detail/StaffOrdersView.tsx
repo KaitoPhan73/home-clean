@@ -220,7 +220,6 @@ const OrderDetail = ({ order }: { order: TOrderResponse }) => {
   );
 };
 
-// Component nhóm đơn hàng theo ngày
 const OrderDateGroup = ({ 
   dateGroup, 
   toggleDateGroup 
@@ -228,12 +227,10 @@ const OrderDateGroup = ({
   dateGroup: OrdersByDate, 
   toggleDateGroup: (date: string) => void 
 }) => {
-  // Format ngày thành chuỗi ví dụ: "03/04/2025 (Hôm nay) - 5 đơn"
   const formatDateHeader = (dateStr: string, ordersCount: number) => {
     const date = parseISO(dateStr);
     const today = new Date();
     
-    // Kiểm tra xem ngày này có phải là ngày hôm nay
     const isToday = isEqual(
       new Date(date.getFullYear(), date.getMonth(), date.getDate()),
       new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -277,7 +274,6 @@ const OrderDateGroup = ({
   );
 };
 
-// Component chính
 const StaffOrdersPopup: React.FC<StaffOrdersPopupProps> = ({
   isOpen,
   onOpenChange,
@@ -321,12 +317,10 @@ const StaffOrdersPopup: React.FC<StaffOrdersPopupProps> = ({
     const ordersByDateArray = sortedDates.map(date => ({
       date,
       orders: groupedOrders[date],
-      isOpen: true // Mặc định mở rộng tất cả các nhóm
+      isOpen: true
     }));
 
     setOrdersByDate(ordersByDateArray);
-
-    // Tính toán thống kê
     calculateStats(orders);
   }, [orders]);
 
