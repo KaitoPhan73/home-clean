@@ -34,7 +34,7 @@ export const ServiceInHouseTypesColumns: ColumnDef<TServiceInHouseTypeResponse>[
     },
     {
       accessorKey: "price",
-      header: "Số dư",
+      header: "Số Điểm",
       cell: ({ row }) => {
         const priceValue = row.getValue("price");
         const amount =
