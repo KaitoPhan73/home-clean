@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { httpHomePlus } from "@/lib/http";
+import { TFeedbackResponse } from "@/schema/feedback.schema";
 import { TOrderResponse } from "@/schema/order.schema";
 import { TStaffResponse, TStaffStatusReadyResponse } from "@/schema/staff.schema";
 import { TTableResponse } from "@/types/Table";
@@ -72,6 +73,11 @@ export const getAllStaffStatusReady = async (groupId?: string) => {
 
 export const getOrderByStaffId = async (id: string) => {
   const response = await httpHomePlus.get<TOrderResponse>(`/staffs/${id}/order`);
+  return response;
+};  
+
+export const getFeedBackByStaffId = async (id: string) => {
+  const response = await httpHomePlus.get<TTableResponse<TFeedbackResponse>>(`/staffs/${id}/feedback`);
   return response;
 };  
 

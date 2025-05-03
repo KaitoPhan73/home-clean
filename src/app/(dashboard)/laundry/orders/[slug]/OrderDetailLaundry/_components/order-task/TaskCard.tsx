@@ -4,12 +4,20 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Task, TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
-import { CheckCircle, Clock, CreditCard, PlayCircle, Lock, Unlock, Scale, XCircle } from "lucide-react";
-import { EmployeRealTimeStatus, getEmployeeById } from "@/apis/laudry/employee";
+import {
+  CheckCircle,
+  Clock,
+  CreditCard,
+  PlayCircle,
+  Lock,
+  Unlock,
+  Scale,
+  XCircle,
+} from "lucide-react";
 import EmployeeDetail from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/EmployeeDetail";
 
 interface TaskCardProps {
-  staff: EmployeRealTimeStatus | null;
+  staff: any | null;
   task: Task;
   index: number;
   currentUser: any;
@@ -20,12 +28,14 @@ interface TaskCardProps {
   onCheckout: () => void;
   onWeightEdit?: () => void;
   tasks: Task[];
+  employeeCache: { [key: string]: { name: string; data: any } };
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
   staff,
   index,
+  currentUser,
   orderStatus,
   processingTask,
   canCheckoutTask,
@@ -33,32 +43,27 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onCheckout,
   onWeightEdit,
   tasks,
+  employeeCache,
 }) => {
-  const [assignedByEmployee, setAssignedByEmployee] = useState<EmployeRealTimeStatus | null>(null);
-  const [assignedToEmployee, setAssignedToEmployee] = useState<EmployeRealTimeStatus | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [assignedByEmployee, setAssignedByEmployee] = useState<any | null>(null);
+  const [assignedToEmployee, setAssignedToEmployee] = useState<any | null>(null);
+  const [loading, setLoading] = useState<boolean>(!!task.employeeId || !!task.assignedBy);
 
   useEffect(() => {
-    const fetchEmployeeData = async () => {
-      setLoading(true);
-      try {
-        if (task.assignedBy) {
-          const assignedByData = await getEmployeeById(task.assignedBy);
-          setAssignedByEmployee(assignedByData);
-        }
-        if (task.employeeId) {
-          const assignedToData = await getEmployeeById(task.employeeId);
-          setAssignedToEmployee(assignedToData);
-        }
-      } catch (error) {
-        console.error("Error fetching employee data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (task.employeeId && employeeCache[task.employeeId]) {
+      setAssignedToEmployee(employeeCache[task.employeeId].data);
+      setLoading(false);
+    } else if (task.employeeId) {
+      setAssignedToEmployee({ staffName: "Đang tải..." });
+    }
 
-    fetchEmployeeData();
-  }, [task.assignedBy, task.employeeId]);
+    if (task.assignedBy && employeeCache[task.assignedBy]) {
+      setAssignedByEmployee(employeeCache[task.assignedBy].data);
+      setLoading(false);
+    } else if (task.assignedBy) {
+      setAssignedByEmployee({ staffName: "Đang tải..." });
+    }
+  }, [task.employeeId, task.assignedBy, employeeCache]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Chưa xác định";
@@ -106,7 +111,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
-    if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
+    if (
+      task.status === TaskStatusEnum.InProgress &&
+      canCheckoutTask(task, index)
+    ) {
       return (
         <span className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4" />
@@ -115,7 +123,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       );
     }
 
-    if (task.status === TaskStatusEnum.Pending && canCheckoutTask(task, index)) {
+    if (
+      task.status === TaskStatusEnum.Pending &&
+      canCheckoutTask(task, index)
+    ) {
       return (
         <span className="flex items-center gap-2">
           <PlayCircle className="h-4 w-4" />
@@ -146,7 +157,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
       return (
         <span className="flex items-center gap-2">
           <Unlock className="h-4 w-4" />
-          {task.status === TaskStatusEnum.Pending ? "Sẵn sàng bắt đầu" : "Chờ xử lý"}
+          {task.status === TaskStatusEnum.Pending
+            ? "Sẵn sàng bắt đầu"
+            : "Chờ xử lý"}
         </span>
       );
     }
@@ -181,12 +194,16 @@ const TaskCard: React.FC<TaskCardProps> = ({
       return "border-red-300 text-red-600";
     }
 
-    if (task.status === TaskStatusEnum.InProgress && canCheckoutTask(task, index)) {
+    if (
+      task.status === TaskStatusEnum.InProgress &&
+      canCheckoutTask(task, index)
+    ) {
       return "bg-green-600 hover:bg-green-700";
     }
 
     if (
-      (task.status === TaskStatusEnum.Pending && canCheckoutTask(task, index)) ||
+      (task.status === TaskStatusEnum.Pending &&
+        canCheckoutTask(task, index)) ||
       isStep3Unlocked ||
       (isStep2Unlocked && task.status === TaskStatusEnum.Pending)
     ) {
@@ -288,7 +305,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </span>
             <h3
               className={`text-lg font-semibold ${
-                isTaskLocked(index) && !isStep2Unlocked && !isStep3Unlocked ? "text-gray-500" : ""
+                isTaskLocked(index) && !isStep2Unlocked && !isStep3Unlocked
+                  ? "text-gray-500"
+                  : ""
               }`}
             >
               {task.taskName}
@@ -298,7 +317,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             Mã công việc: {task.taskCode}
           </p>
           <p className="text-sm text-gray-600 mt-2">
-            Nhân viên: {task?.employeeName || "Chưa xác định"}
+            Nhân viên: {loading ? "Đang tải..." : task.employeeName}
           </p>
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
@@ -334,27 +353,36 @@ const TaskCard: React.FC<TaskCardProps> = ({
               Công việc này đã bị hủy do đơn hàng bị hủy.
             </p>
           )}
-          {isStep2Unlocked && task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled && (
-            <p className="text-sm text-blue-600 font-medium mt-4">
-              Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay bây giờ.
-            </p>
-          )}
+          {isStep2Unlocked &&
+            task.status !== TaskStatusEnum.Completed &&
+            task.status !== TaskStatusEnum.Canceled && (
+              <p className="text-sm text-blue-600 font-medium mt-4">
+                Thanh toán đã hoàn tất. Bạn có thể tiến hành công việc này ngay
+                bây giờ.
+              </p>
+            )}
           {isStep2PendingPayment && task.status != TaskStatusEnum.Completed && (
             <p className="text-sm text-yellow-600 font-medium mt-4 animate-pulse">
               <CreditCard className="h-4 w-4 inline mr-1" />
               Cần thanh toán trước khi tiếp tục công việc này!
             </p>
           )}
-          {isStep3Unlocked && task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled && (
-            <p className="text-sm text-blue-600 font-medium mt-4">
-              Quá trình giặt sấy đã hoàn thành. Bạn có thể tiến hành giao nhân viên trả đồ ngay bây giờ.
-            </p>
-          )}
+          {isStep3Unlocked &&
+            task.status !== TaskStatusEnum.Completed &&
+            task.status !== TaskStatusEnum.Canceled && (
+              <p className="text-sm text-blue-600 font-medium mt-4">
+                Quá trình giặt sấy đã hoàn thành. Bạn có thể tiến hành giao nhân
+                viên trả đồ ngay bây giờ.
+              </p>
+            )}
         </div>
         <div className="ml-4 flex flex-col gap-2">
           <Button
             variant={
-              task.status === TaskStatusEnum.Completed || task.status === TaskStatusEnum.Canceled ? "outline" : "default"
+              task.status === TaskStatusEnum.Completed ||
+              task.status === TaskStatusEnum.Canceled
+                ? "outline"
+                : "default"
             }
             size="sm"
             disabled={
@@ -366,7 +394,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
               processingTask !== null
             }
             onClick={onCheckout}
-            className={`${getButtonColor(task, index)} min-w-32 transition-all duration-300`}
+            className={`${getButtonColor(
+              task,
+              index
+            )} min-w-32 transition-all duration-300`}
           >
             {processingTask === task.id ? (
               <span className="flex items-center gap-2">

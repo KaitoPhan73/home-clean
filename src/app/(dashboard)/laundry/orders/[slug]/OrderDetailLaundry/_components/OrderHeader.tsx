@@ -1,5 +1,4 @@
-// OrderHeader.tsx (unchanged)
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, RefreshCw } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -8,6 +7,8 @@ import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 
 interface OrderHeaderProps {
   order: TOrderLaundryResponse;
+  onRefresh: () => void;
+  refreshing: boolean;
 }
 
 const getStatusBadge = (status: string) => {
@@ -37,7 +38,7 @@ const getStatusBadge = (status: string) => {
   );
 };
 
-export default function OrderHeader({ order }: OrderHeaderProps) {
+export default function OrderHeader({ order, onRefresh, refreshing }: OrderHeaderProps) {
   return (
     <Card className="mb-3 shadow-sm border-slate-200">
       <CardHeader className="p-2">
@@ -58,14 +59,22 @@ export default function OrderHeader({ order }: OrderHeaderProps) {
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-slate-500 bg-slate-50 px-2 py-1 rounded">
-              ID: {order.id.substring(0, 100)}
-            </span>
             <span className="text-sm text-slate-500 flex items-center bg-slate-50 px-2 py-1 rounded">
               <Clock className="h-4 w-4 mr-1 text-slate-400" />
               {formatDate(order.orderDate)}
             </span>
             {getStatusBadge(order.status)}
+            <Button
+              onClick={onRefresh}
+              variant="outline"
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              {refreshing ? "Đang làm mới..." : "Làm mới"}
+            </Button>
           </div>
         </div>
       </CardHeader>

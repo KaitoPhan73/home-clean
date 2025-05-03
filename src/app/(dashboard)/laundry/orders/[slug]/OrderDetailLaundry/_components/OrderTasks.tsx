@@ -3,13 +3,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { ToastProvider, ToastViewport } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   OrderStatusEnum,
   Task,
   TaskStatusEnum,
 } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TaskProgress from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskProgress";
 import TaskCard from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskCard";
@@ -23,14 +22,19 @@ import {
 import { getOrderTasks, ApiTask } from "@/apis/laudry/task";
 import PaymentStatusNotification from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/PaymentNotification";
 import WeightSubmissionDialog from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/WeightSubmissionDialog";
-import { getEmployeeById } from "@/apis/laudry/employee";
+import { getEmployeeById, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OrderTasksProps {
   orderId: string;
   currentUser: any;
   orderStatusOverride?: OrderStatusEnum;
   updateOrderStatus: (newStatus: string) => void;
-  onWeightSubmitted?: () => void;
+  onRefresh: () => void;
+}
+
+interface EmployeeCache {
+  [key: string]: { name: string; data: any };
 }
 
 const OrderTasks: React.FC<OrderTasksProps> = ({
@@ -38,10 +42,11 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   currentUser,
   orderStatusOverride,
   updateOrderStatus,
-  onWeightSubmitted,
+  onRefresh,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [processingTask, setProcessingTask] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatusEnum>(
@@ -50,12 +55,16 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   const [checkoutTaskInfo, setCheckoutTaskInfo] = useState<{
     taskId: string;
     currentStatus: TaskStatusEnum;
+    employeeId?: string;
+    employeeName?: string;
   } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showWeightDialog, setShowWeightDialog] = useState(false);
   const [weightSubmitted, setWeightSubmitted] = useState(false);
   const { toast } = useToast();
   const tasksContainerRef = useRef<HTMLDivElement>(null);
+  const [employeeCache, setEmployeeCache] = useState<EmployeeCache>({});
+  const [availableEmployees, setAvailableEmployees] = useState<any[]>([]);
 
   const hasManagerRole =
     currentUser?.role === "Manager" || currentUser?.role === "Admin";
@@ -66,56 +75,132 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     }
   }, [orderStatusOverride]);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const response = await getOrderTasks(orderId);
-        if (
-          !response?.payload?.items ||
-          !Array.isArray(response.payload.items)
-        ) {
-          throw new Error("Dữ liệu công việc không hợp lệ hoặc không tồn tại.");
+  const fetchEmployees = async () => {
+    try {
+      const fetchedEmployees = await getEmployeesRealTimeStatus();
+      const filteredEmployees = fetchedEmployees.filter(
+        (employee) => employee.status !== "Working"
+      );
+      setAvailableEmployees(filteredEmployees);
+      const newCache = { ...employeeCache };
+      filteredEmployees.forEach((emp) => {
+        if (!newCache[emp.id]) {
+          newCache[emp.id] = { name: emp.staffName, data: emp };
         }
-        const convertedTasks: Task[] = response.payload.items.map(
-          (apiTask: ApiTask) => ({
+      });
+      setEmployeeCache(newCache);
+    } catch (err: any) {
+      console.error("Failed to prefetch employees:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await getOrderTasks(orderId);
+      if (!response?.payload?.items || !Array.isArray(response.payload.items)) {
+        throw new Error("Dữ liệu công việc không hợp lệ hoặc không tồn tại.");
+      }
+      const convertedTasks: Task[] = await Promise.all(
+        response.payload.items.map(async (apiTask: ApiTask) => {
+          let employeeName = apiTask.employeeName || "Chưa phân công nhân viên";
+          let managerName = apiTask.managerName || "Unknown Manager";
+
+          if (apiTask.employeeId && employeeCache[apiTask.employeeId]) {
+            employeeName = employeeCache[apiTask.employeeId].name;
+          } else if (apiTask.employeeId) {
+            const employee = await getEmployeeById(apiTask.employeeId);
+            employeeName = employee?.staffName || employeeName;
+            setEmployeeCache((prev) => ({
+              ...prev,
+              [String(apiTask.employeeId)]: { name: employeeName, data: employee },
+            }));
+          }
+
+          if (apiTask.assignedBy && employeeCache[apiTask.assignedBy]) {
+            managerName = employeeCache[apiTask.assignedBy].name;
+          } else if (apiTask.assignedBy) {
+            const manager = await getEmployeeById(apiTask.assignedBy);
+            managerName = manager?.staffName || managerName;
+            setEmployeeCache((prev) => ({
+              ...prev,
+              [String(apiTask.assignedBy)]: { name: managerName, data: manager },
+            }));
+          }
+
+          return {
             ...apiTask,
             status: convertToTaskStatusEnum(apiTask.status),
             priority: String(apiTask.priority),
-            employeeName: apiTask.employeeName || "Chưa phân công nhân viên",
-            managerName: apiTask.managerName || "Unknown Manager",
-          })
-        );
-        const sortedTasks = convertedTasks.sort((a: Task, b: Task) => {
-          const priorityA = isNaN(Number(a.priority)) ? 0 : Number(a.priority);
-          const priorityB = isNaN(Number(b.priority)) ? 0 : Number(b.priority);
-          return priorityA - priorityB;
-        });
-        setTasks(sortedTasks);
-        if (orderStatusOverride === undefined) {
-          updateOrderStatusFromTasks(sortedTasks);
-        }
-        setError(null);
-      } catch (err: any) {
-        console.error("Error fetching tasks:", {
-          message: err.message,
-          status: err.response?.status,
-          data: err.response?.data,
-        });
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Không thể tải danh sách công việc. Vui lòng thử lại sau."
-        );
-      } finally {
-        setLoading(false);
+            employeeName,
+            managerName,
+          };
+        })
+      );
+      const sortedTasks = convertedTasks.sort((a: Task, b: Task) => {
+        const priorityA = isNaN(Number(a.priority)) ? 0 : Number(a.priority);
+        const priorityB = isNaN(Number(b.priority)) ? 0 : Number(b.priority);
+        return priorityA - priorityB;
+      });
+      setTasks(sortedTasks);
+      if (orderStatusOverride === undefined) {
+        updateOrderStatusFromTasks(sortedTasks);
       }
-    };
+      setError(null);
+    } catch (err: any) {
+      console.error("Error fetching tasks:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Không thể tải danh sách công việc. Vui lòng thử lại sau."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (orderId) {
       fetchTasks();
     }
   }, [orderId, orderStatusOverride]);
+
+  const handleRefreshTasks = async () => {
+    setRefreshing(true);
+    try {
+      await fetchTasks();
+      await fetchEmployees();
+      onRefresh();
+      setError(null);
+    } catch (err: any) {
+      console.error("Error refreshing tasks:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Không thể làm mới danh sách công việc. Vui lòng thử lại sau."
+      );
+      toast({
+        variant: "destructive",
+        title: "Lỗi",
+        description: "Không thể làm mới danh sách công việc.",
+        duration: 5000,
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const updateOrderStatusFromTasks = (taskList: Task[]) => {
     const step1Completed =
@@ -153,7 +238,10 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     updateOrderStatus(newStatus.toString());
   };
 
-  const handleTaskCheckout = async (employeeId: string) => {
+  const handleTaskCheckout = async (
+    employeeId: string,
+    employeeName: string
+  ) => {
     if (!checkoutTaskInfo) return;
 
     if (
@@ -163,7 +251,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description: "Công việc đã hoàn thành hoặc bị hủy, không thể cập nhật thêm.",
+        description:
+          "Công việc đã hoàn thành hoặc bị hủy, không thể cập nhật thêm.",
         duration: 5000,
       });
       setDialogOpen(false);
@@ -181,16 +270,16 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           : "complete";
       await assignTask(checkoutTaskInfo.taskId, employeeId, action);
 
-      const employeeDetails = await getEmployeeById(employeeId);
-      const employeeName = employeeDetails?.staffName || currentUser?.fullName || "Unknown";
-
       const updatedTasks = tasks.map((task) =>
         task.id === checkoutTaskInfo.taskId
           ? {
               ...task,
               status: getNextTaskStatus(checkoutTaskInfo.currentStatus),
               employeeId,
-              employeeName: employeeName,
+              employeeName:
+                employeeName || currentUser?.fullName || "Chưa xác định",
+              assignedBy: currentUser?.id || task.assignedBy,
+              managerName: currentUser?.fullName || "Unknown Manager",
               updatedAt: new Date().toISOString(),
             }
           : task
@@ -210,13 +299,13 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       if (nextStatus === TaskStatusEnum.InProgress) {
         toast({
           title: "Bắt đầu công việc",
-          description: `${updatedTask.taskName} đã được bắt đầu thực hiện.`,
+          description: `${updatedTask.taskName} đã được bắt đầu thực hiện bởi ${employeeName}.`,
           duration: 5000,
         });
       } else if (nextStatus === TaskStatusEnum.Completed) {
         toast({
           title: "Công việc đã hoàn thành",
-          description: `${updatedTask.taskName} đã được hoàn thành thành công.`,
+          description: `${updatedTask.taskName} đã được hoàn thành bởi ${employeeName}.`,
           duration: 5000,
         });
       }
@@ -259,9 +348,6 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
       description: "Trọng lượng đã được cập nhật thành công.",
       duration: 5000,
     });
-    if (onWeightSubmitted) {
-      onWeightSubmitted();
-    }
   };
 
   const handleWeightEdit = () => {
@@ -286,7 +372,11 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
 
     if (isTaskLocked(index)) return false;
 
-    if (index === 0) return task.status !== TaskStatusEnum.Completed && task.status !== TaskStatusEnum.Canceled;
+    if (index === 0)
+      return (
+        task.status !== TaskStatusEnum.Completed &&
+        task.status !== TaskStatusEnum.Canceled
+      );
     if (index === 1) {
       return (
         tasks[0].status === TaskStatusEnum.Completed &&
@@ -341,11 +431,13 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     setCheckoutTaskInfo({
       taskId: task.id,
       currentStatus: task.status,
+      employeeId: task.employeeId ?? undefined,
+      employeeName: task.employeeName ?? undefined,
     });
     setDialogOpen(true);
   };
 
-  if (loading) {
+  if (loading || refreshing) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-12 w-full" />
@@ -365,11 +457,12 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         </div>
         <p className="text-red-700">{error}</p>
         <Button
-          onClick={() => window.location.reload()}
+          onClick={handleRefreshTasks}
           variant="outline"
           className="mt-4 text-red-600 border-red-300 hover:bg-red-50"
         >
-          Tải lại trang
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Tải lại
         </Button>
       </div>
     );
@@ -381,16 +474,17 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         <p className="text-gray-600">
           Không có công việc nào cho đơn hàng này.
         </p>
+        <Button onClick={handleRefreshTasks} variant="outline" className="mt-4">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Làm mới
+        </Button>
       </div>
     );
   }
 
   return (
     <ToastProvider>
-      <div
-        className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto pr-2"
-        ref={tasksContainerRef}
-      >
+      <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
         {checkoutTaskInfo && (
           <TaskCheckoutDialog
             open={dialogOpen}
@@ -400,6 +494,9 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
             taskId={checkoutTaskInfo.taskId}
             currentStatus={checkoutTaskInfo.currentStatus}
             currentUser={currentUser}
+            availableEmployees={availableEmployees}
+            employeeId={checkoutTaskInfo.employeeId}
+            employeeName={checkoutTaskInfo.employeeName}
           />
         )}
 
@@ -425,7 +522,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
           isTaskLocked={isTaskLocked}
           orderStatus={orderStatus}
         />
-        <div className="space-y-6">
+        <div className="space-y-6" ref={tasksContainerRef}>
           {tasks.map((task, index) => (
             <TaskCard
               key={task.id}
@@ -446,7 +543,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
                   : undefined
               }
               tasks={tasks}
-              staff={null}
+              staff={employeeCache[String(task.employeeId)]?.data || null}
+              employeeCache={employeeCache}
             />
           ))}
         </div>
@@ -461,9 +559,8 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         )}
 
         <ProcessGuide />
-
-        <ToastViewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-full max-w-sm m-0 z-50 outline-none" />
       </div>
+      <ToastViewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-full max-w-sm m-0 z-50 outline-none" />
     </ToastProvider>
   );
 };

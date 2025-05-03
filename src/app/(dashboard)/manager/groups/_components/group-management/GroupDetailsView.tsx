@@ -1,11 +1,15 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { getAreaById } from "@/apis/area";
 import { getManagerById } from "@/apis/manager";
 import { getClusterById } from "@/apis/cluster";
 import { getServiceById } from "@/apis/service";
-import { getAllStaffStatus, getAllStaffStatusReady, reloadAllStaffStatus } from "@/apis/staff";
+import {
+  getAllStaffStatus,
+  getAllStaffStatusReady,
+  reloadAllStaffStatus,
+} from "@/apis/staff";
 import { TGroupResponse } from "@/schema/group.schema";
 import { TAreaResponse } from "@/schema/area.schema";
 import { TManagerResponse } from "@/schema/manager.schema";
@@ -63,7 +67,9 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
         }
 
         if (group.clusterIds && group.clusterIds.length > 0) {
-          const clusterPromises = group.clusterIds.map((id: string) => getClusterById(id));
+          const clusterPromises = group.clusterIds.map((id: string) =>
+            getClusterById(id)
+          );
           const clusterResponses = await Promise.all(clusterPromises);
           const validClusters = clusterResponses
             .filter((response) => response?.payload)
@@ -84,7 +90,9 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
 
         if (group.id) {
           const staffResponse = await getAllStaffStatus(group.id);
-          const normalizedStaff = Array.isArray(staffResponse) ? staffResponse : [];
+          const normalizedStaff = Array.isArray(staffResponse)
+            ? staffResponse
+            : [];
           setStaffData(normalizedStaff as Staff[]);
         }
       } catch (error) {
@@ -118,9 +126,19 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <span className="ml-4 text-indigo-600 font-medium text-lg">Đang tải thông tin nhóm...</span>
+      <div className="flex justify-center items-center h-96 bg-gradient-to-b from-blue-50 to-white rounded-lg shadow-sm">
+        <div className="flex flex-col items-center">
+          <div className="relative w-16 h-16">
+            <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-blue-200"></div>
+            <div className="absolute top-0 left-0 w-full h-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
+          </div>
+          <p className="mt-4 text-blue-600 font-medium">
+            Đang tải thông tin...
+          </p>
+          <p className="text-blue-400 text-sm mt-1">
+            Vui lòng đợi trong giây lát
+          </p>
+        </div>
       </div>
     );
   }
@@ -132,16 +150,29 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
           <div className="bg-red-100 p-4 rounded-full">
             <AlertCircle className="h-12 w-12 text-red-500" />
           </div>
-          <h3 className="text-xl font-semibold text-red-800">Không Có Dữ Liệu Nhóm</h3>
-          <p className="text-red-600 max-w-md mx-auto">Không tìm thấy dữ liệu nhóm nào để hiển thị. Vui lòng kiểm tra lại thông tin hoặc thêm nhóm mới.</p>
+          <h3 className="text-xl font-semibold text-red-800">
+            Không Có Dữ Liệu Nhóm
+          </h3>
+          <p className="text-red-600 max-w-md mx-auto">
+            Không tìm thấy dữ liệu nhóm nào để hiển thị. Vui lòng kiểm tra lại
+            thông tin hoặc thêm nhóm mới.
+          </p>
         </div>
       </div>
     );
   }
 
   const tabs = [
-    { id: "overview", label: "Tổng Quan", icon: <Info size={20} className="text-indigo-500" /> },
-    { id: "staff", label: "Nhân Viên", icon: <Users size={20} className="text-indigo-500" /> },
+    {
+      id: "overview",
+      label: "Tổng Quan",
+      icon: <Info size={20} className="text-indigo-500" />,
+    },
+    {
+      id: "staff",
+      label: "Nhân Viên",
+      icon: <Users size={20} className="text-indigo-500" />,
+    },
   ];
 
   return (
@@ -159,7 +190,13 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
                   : "text-gray-600 hover:text-indigo-600 hover:bg-indigo-50"
               }`}
             >
-              <div className={`mr-2 ${activeTab === tab.id ? "animate-pulse" : ""}`}>{tab.icon}</div>
+              <div
+                className={`mr-2 ${
+                  activeTab === tab.id ? "animate-pulse" : ""
+                }`}
+              >
+                {tab.icon}
+              </div>
               {tab.label}
               {tab.id === "staff" && staffData.length > 0 && (
                 <div className="ml-2 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full px-2 py-0.5">
@@ -169,13 +206,15 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
             </button>
           ))}
         </div>
-        
+
         {reloadMessage && (
-          <div className={`p-3 text-sm font-medium ${
-            reloadMessage.includes("thành công") 
-              ? "bg-green-50 text-green-700 border-b border-green-200"
-              : "bg-red-50 text-red-700 border-b border-red-200"
-          }`}>
+          <div
+            className={`p-3 text-sm font-medium ${
+              reloadMessage.includes("thành công")
+                ? "bg-green-50 text-green-700 border-b border-green-200"
+                : "bg-red-50 text-red-700 border-b border-red-200"
+            }`}
+          >
             <div className="flex items-center justify-center">
               {reloadMessage.includes("thành công") ? (
                 <Bookmark size={16} className="mr-2" />
@@ -186,7 +225,7 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
             </div>
           </div>
         )}
-        
+
         <div className="p-6">
           {activeTab === "overview" && (
             <EnhancedOverviewTab
