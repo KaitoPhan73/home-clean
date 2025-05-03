@@ -102,7 +102,7 @@ export const SchedulingTab: React.FC<SchedulingTabProps> = ({ order }) => {
               <div className="font-medium flex items-center gap-1">
                 <Timer size={16} className="text-violet-500" />
                 {order.estimatedDuration
-                  ? `${order.estimatedDuration} giờ`
+                  ? `${order.estimatedDuration} phút`
                   : "N/A"}
               </div>
             </div>

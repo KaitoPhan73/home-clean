@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
@@ -19,16 +20,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { TaskStatusEnum } from "./TaskEnums";
 import { getNextTaskStatus } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/taskService";
-import { EmployeRealTimeStatus, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
 
 interface TaskCheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (employeeId: string) => void;
+  onConfirm: (employeeId: string, employeeName: string) => void;
   processing: boolean;
   taskId: string;
   currentStatus: TaskStatusEnum;
   currentUser: any;
+  availableEmployees: any[];
+  employeeId?: string;
+  employeeName?: string;
 }
 
 const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
@@ -38,10 +41,11 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   processing,
   currentStatus,
   currentUser,
+  availableEmployees,
+  employeeId,
+  employeeName,
 }) => {
-  const [employees, setEmployees] = useState<EmployeRealTimeStatus[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const nextStatus = getNextTaskStatus(currentStatus);
@@ -49,55 +53,24 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   const isCompletingTask = currentStatus === TaskStatusEnum.InProgress;
 
   useEffect(() => {
-    if (open) {
-      setError(null);
-
-      if (isFirstCheckout) {
-        fetchEmployees();
-      } else if (isCompletingTask) {
-        setSelectedEmployeeId(currentUser?.id || "");
-      }
-    }
-  }, [open, currentUser, isFirstCheckout, isCompletingTask]);
-
-  const fetchEmployees = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const fetchedEmployees = await getEmployeesRealTimeStatus();
-      console.log("Fetched employees:", fetchedEmployees);
-
-      // Filter out employees with status "Working"
-      const filteredEmployees = fetchedEmployees.filter(
-        (employee) => employee.status !== "Working"
-      );
-
-      setEmployees(filteredEmployees);
-
-      if (filteredEmployees.length === 0) {
-        setError("Không có nhân viên nào sẵn sàng để phân công.");
-        setSelectedEmployeeId("");
-      } else {
-        setSelectedEmployeeId(filteredEmployees[0].id);
-      }
-    } catch (err: any) {
-      console.error("Failed to fetch employees:", err);
-      setError(
-        err.response?.data?.description ||
-          "Không thể tải danh sách nhân viên. Vui lòng thử lại sau."
-      );
+    if (open && isCompletingTask && employeeId) {
+      setSelectedEmployeeId(employeeId);
+    } else if (open && isFirstCheckout) {
       setSelectedEmployeeId("");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [open, isCompletingTask, employeeId, isFirstCheckout]);
 
   const handleConfirm = () => {
-    if (!selectedEmployeeId && isCompletingTask) {
-      onConfirm(currentUser?.id || "");
-    } else if (selectedEmployeeId) {
-      onConfirm(selectedEmployeeId);
+    if (isCompletingTask && employeeId && employeeName) {
+      onConfirm(employeeId, employeeName);
+    } else if (isFirstCheckout && selectedEmployeeId) {
+      const selectedEmployee = availableEmployees.find(
+        (emp) => emp.id === selectedEmployeeId
+      );
+      onConfirm(
+        selectedEmployeeId,
+        selectedEmployee?.staffName || "Chưa xác định"
+      );
     } else {
       setError("Vui lòng chọn nhân viên trước khi tiếp tục.");
     }
@@ -114,16 +87,15 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
     if (isFirstCheckout) {
       return "Vui lòng chọn nhân viên đảm nhận công việc này. Trạng thái công việc sẽ được chuyển sang 'Đang thực hiện'.";
     }
-    return "Bạn có chắc chắn muốn hoàn thành công việc này không? Hành động này không thể hoàn tác.";
+    return `Xác nhận hoàn thành công việc bởi ${employeeName || "Chưa xác định"}. Hành động này không thể hoàn tác.`;
   };
 
   const isActionDisabled = () => {
     if (processing) return true;
     if (isFirstCheckout) return !selectedEmployeeId;
-    return false;
+    return !employeeId || !employeeName;
   };
 
-  // Format lastUpdated to a readable date
   const formatLastUpdated = (lastUpdated: string) => {
     try {
       const date = new Date(lastUpdated);
@@ -132,12 +104,9 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
         timeStyle: "short",
       });
     } catch {
-      return lastUpdated; // Fallback if date parsing fails
+      return lastUpdated;
     }
   };
-
-  // Get the selected employee's details
-  const selectedEmployee = employees.find((emp) => emp.id === selectedEmployeeId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,69 +116,79 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
           <DialogDescription>{getDialogDescription()}</DialogDescription>
         </DialogHeader>
 
-        {isFirstCheckout && (
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="employee">Nhân viên thực hiện</Label>
-              {loading ? (
-                <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
-              ) : (
-                <>
-                  <Select
-                    value={selectedEmployeeId}
-                    onValueChange={setSelectedEmployeeId}
-                    disabled={processing || loading || employees.length === 0}
-                  >
-                    <SelectTrigger id="employee" className="w-full">
-                      <SelectValue
-                        placeholder={
-                          employees.length === 0
-                            ? "Không có nhân viên Staff"
-                            : "Chọn nhân viên"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          {employee.staffName}{" "}
-                          {employee.id === currentUser?.id &&
-                            "(Người dùng hiện tại)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedEmployee && (
-                    <div className="text-sm text-gray-600">
-                      <p>
-                        <span className="font-medium">Mã nhân viên:</span>{" "}
-                        {selectedEmployee.staffCode}
-                      </p>
-                      <p>
-                        <span className="font-medium">Trạng thái:</span>{" "}
-                        {selectedEmployee.status}
-                      </p>
-                      <p>
-                        <span className="font-medium">Cập nhật lần cuối:</span>{" "}
-                        {formatLastUpdated(selectedEmployee.lastUpdated)}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-              {error && <p className="text-sm text-red-500">{error}</p>}
-            </div>
-
-            <div className="bg-blue-50 p-3 rounded-md">
-              <p className="text-sm text-blue-700">
-                <span className="font-medium">Lưu ý:</span> Sau khi bắt đầu,
-                trạng thái sẽ chuyển từ {currentStatus} sang {nextStatus}.
-              </p>
-            </div>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Nhân viên thực hiện</Label>
+            {isCompletingTask ? (
+              <div className="p-3 bg-gray-100 rounded-md">
+                <p className="text-sm font-medium">
+                  {employeeName || "Chưa xác định"}
+                </p>
+                {employeeId && (
+                  <div className="text-sm text-gray-600">
+                    <p>
+                      <span className="font-medium">Mã nhân viên:</span>{" "}
+                      {
+                        availableEmployees.find((emp) => emp.id === employeeId)
+                          ?.staffCode
+                      }
+                    </p>
+                    <p>
+                      <span className="font-medium">Trạng thái:</span>{" "}
+                      {
+                        availableEmployees.find((emp) => emp.id === employeeId)
+                          ?.status
+                      }
+                    </p>
+                    <p>
+                      <span className="font-medium">Cập nhật lần cuối:</span>{" "}
+                      {formatLastUpdated(
+                        availableEmployees.find((emp) => emp.id === employeeId)
+                          ?.lastUpdated || ""
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Select
+                value={selectedEmployeeId}
+                onValueChange={setSelectedEmployeeId}
+                disabled={processing || availableEmployees.length === 0}
+              >
+                <SelectTrigger id="employee" className="w-full">
+                  <SelectValue
+                    placeholder={
+                      availableEmployees.length === 0
+                        ? "Không có nhân viên Staff"
+                        : "Chọn nhân viên"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableEmployees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.staffName}{" "}
+                      {employee.id === currentUser?.id &&
+                        "(Người dùng hiện tại)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
-        )}
 
-        {isCompletingTask && (
+          <div className="bg-blue-50 p-3 rounded-md">
+            <p className="text-sm text-blue-700">
+              <span className="font-medium">Lưu ý:</span> Sau khi{" "}
+              {isFirstCheckout ? "bắt đầu" : "hoàn thành"}, trạng thái sẽ chuyển
+              từ {currentStatus} sang {nextStatus}.
+            </p>
+          </div>
+        </div>
+
+        {isCompletingTask && !isFirstCheckout && (
           <div className="flex items-center gap-3 p-3 rounded-md border border-yellow-200 bg-yellow-50">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +202,7 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
               strokeLinejoin="round"
               className="text-yellow-500"
             >
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>

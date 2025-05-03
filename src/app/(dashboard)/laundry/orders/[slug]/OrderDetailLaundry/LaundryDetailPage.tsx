@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -12,11 +13,18 @@ import { getAllUsers, getUserById } from "@/apis/vinwallet/user";
 import { OrderStatusEnum } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/TaskEnums";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
-import { AlertCircle, ShoppingBag, FileText, Clock, User, Calendar, Package } from "lucide-react";
+import {
+  AlertCircle,
+  ShoppingBag,
+  FileText,
+  Clock,
+  User,
+  Calendar,
+  Package,
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
 import { OrderItems } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
-import { getOrderById } from "@/apis/laudry/order";
 
 interface UserDetail {
   id: string;
@@ -57,6 +65,7 @@ export default function LaundryDetailPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [userError, setUserError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const userCookie = document.cookie
@@ -72,69 +81,74 @@ export default function LaundryDetailPage() {
       }
     }
 
-    const fetchOrderDetails = async () => {
-      try {
-        setLoading(true);
-        const orderResponse = await httpVinLaundry.get<TOrderLaundryResponse>(`/orders/${orderId}`);
-        setOrder(orderResponse.payload);
+    fetchOrderDetails();
+  }, [orderId]);
 
-        if (orderResponse?.payload?.userId) {
-          setUserLoading(true);
-          try {
-            const userResponse = await getUserById(orderResponse.payload.userId);
-            if (userResponse?.payload) {
-              setUser(userResponse.payload);
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      setRefreshing(true);
+      const orderResponse = await httpVinLaundry.get<TOrderLaundryResponse>(
+        `/orders/${orderId}`
+      );
+      setOrder(orderResponse.payload);
+
+      if (orderResponse?.payload?.userId) {
+        setUserLoading(true);
+        try {
+          const userResponse = await getUserById(orderResponse.payload.userId);
+          if (userResponse?.payload) {
+            setUser(userResponse.payload);
+            setUserError(null);
+          } else {
+            const usersResponse = await getAllUsers({
+              id: orderResponse.payload.userId,
+            });
+            const foundUser = usersResponse?.payload?.items?.find(
+              (u) => u.id === orderResponse.payload.userId
+            );
+            if (foundUser) {
+              setUser(foundUser);
               setUserError(null);
             } else {
-              const usersResponse = await getAllUsers({ id: orderResponse.payload.userId });
-              const foundUser = usersResponse?.payload?.items?.find(
-                (u) => u.id === orderResponse.payload.userId
-              );
-              if (foundUser) {
-                setUser(foundUser);
-                setUserError(null);
-              } else {
-                setUserError("Không thể tìm thấy thông tin người dùng");
-              }
+              setUserError("Không thể tìm thấy thông tin người dùng");
             }
-          } catch (error) {
-            console.error("Error fetching user details:", error);
-            setUserError("Lỗi khi tải thông tin người dùng");
-            toast({
-              title: "Lỗi",
-              description: "Không thể tải thông tin người dùng",
-              variant: "destructive",
-            });
-          } finally {
-            setUserLoading(false);
           }
-        } else {
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+          setUserError("Lỗi khi tải thông tin người dùng");
+          toast({
+            title: "Lỗi",
+            description: "Không thể tải thông tin người dùng",
+            variant: "destructive",
+          });
+        } finally {
           setUserLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching order details:", error);
-        toast({
-          title: "Lỗi",
-          description: "Không thể tải thông tin đơn hàng",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+      } else {
+        setUserLoading(false);
       }
-    };
-
-    if (orderId) {
-      fetchOrderDetails();
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải thông tin đơn hàng",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }, [orderId]);
+  };
 
   useEffect(() => {
     const handleOrderStatusChanged = (event: CustomEvent) => {
       const { orderId: changedOrderId, status } = event.detail;
       if (changedOrderId === orderId) {
-        setOrder((prevOrder) =>
-          prevOrder ? { ...prevOrder, status } : prevOrder
-        );
+        setOrder((prevOrder): TOrderLaundryResponse | null => {
+          if (!prevOrder) return null;
+          return { ...prevOrder, status };
+        });
         if (status === "Cancelled") {
           toast({
             variant: "destructive",
@@ -152,10 +166,16 @@ export default function LaundryDetailPage() {
       }
     };
 
-    window.addEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+    window.addEventListener(
+      "orderStatusChanged",
+      handleOrderStatusChanged as EventListener
+    );
 
     return () => {
-      window.removeEventListener("orderStatusChanged", handleOrderStatusChanged as EventListener);
+      window.removeEventListener(
+        "orderStatusChanged",
+        handleOrderStatusChanged as EventListener
+      );
     };
   }, [orderId]);
 
@@ -165,34 +185,29 @@ export default function LaundryDetailPage() {
     );
   };
 
-  const refreshOrderDetails = async () => {
-    try {
-      const orderResponse = await getOrderById(orderId as string);
-      setOrder(orderResponse);
-    } catch (error) {
-      console.error("Error refreshing order details:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể làm mới thông tin đơn hàng",
-        variant: "destructive",
-      });
-    }
-  };
-
   const calculateTotals = () => {
-    if (!order) return { itemsTotal: 0, additionalServicesTotal: 0, discount: 0, grandTotal: 0 };
+    if (!order)
+      return {
+        itemsTotal: 0,
+        additionalServicesTotal: 0,
+        discount: 0,
+        grandTotal: 0,
+      };
 
     const itemsByKgTotal = order.orderDetailsByKg.reduce((total, item) => {
       return total + (item.subtotal || 0);
     }, 0);
 
     const itemsByItemTotal = order.orderDetailsByItem.reduce((total, item) => {
-      return total + (item.quantity * item.unitPrice);
+      return total + item.quantity * item.unitPrice;
     }, 0);
 
-    const servicesTotal = order.orderAdditionalServicesResponse.reduce((total, service) => {
-      return total + service.price;
-    }, 0);
+    const servicesTotal = order.orderAdditionalServicesResponse.reduce(
+      (total, service) => {
+        return total + service.price;
+      },
+      0
+    );
 
     const discount = order.discountAmount || 0;
     const total = itemsByKgTotal + itemsByItemTotal + servicesTotal - discount;
@@ -269,7 +284,11 @@ export default function LaundryDetailPage() {
 
   return (
     <div className="container mx-auto py-4 px-1 sm:px-4 bg-gradient-to-b from-purple-50 via-white to-white min-h-screen">
-      <OrderHeader order={order} />
+      <OrderHeader
+        order={order}
+        onRefresh={fetchOrderDetails}
+        refreshing={refreshing}
+      />
       {userError && (
         <div className="mb-4 p-3 border rounded-lg border-amber-200 bg-amber-50 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
@@ -342,14 +361,24 @@ export default function LaundryDetailPage() {
             </TabsList>
           </div>
           <div className="p-6 bg-white flex-grow rounded-r-lg border-t border-r border-b border-gray-200">
-            <TabsContent value="overview" className="mt-0 animate-in fade-in-50 duration-300">
+            <TabsContent
+              value="overview"
+              className="mt-0 animate-in fade-in-50 duration-300"
+            >
               <div className="grid grid-cols-1 gap-6">
                 <div>
-                  <OrderInfo order={order} user={user} isLoading={userLoading} />
+                  <OrderInfo
+                    order={order}
+                    user={user}
+                    isLoading={userLoading}
+                  />
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="details" className="mt-0 animate-in fade-in-50 duration-300">
+            <TabsContent
+              value="details"
+              className="mt-0 animate-in fade-in-50 duration-300"
+            >
               <div className="grid grid-cols-1 gap-6">
                 <div>
                   <OrderItems
@@ -359,19 +388,24 @@ export default function LaundryDetailPage() {
                     status={order.status}
                     orderDetailsByItem={order.orderDetailsByItem}
                     orderDetailsByKg={order.orderDetailsByKg}
-                    orderAdditionalServicesResponse={order.orderAdditionalServicesResponse}
+                    orderAdditionalServicesResponse={
+                      order.orderAdditionalServicesResponse
+                    }
                     totalAmount={totals.grandTotal}
                   />
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="tasks" className="mt-0 animate-in fade-in-50 duration-300">
+            <TabsContent
+              value="tasks"
+              className="mt-0 animate-in fade-in-50 duration-300"
+            >
               <OrderTasks
                 orderId={order.id}
                 currentUser={currentUser}
                 orderStatusOverride={mapApiStatusToEnum(order.status)}
                 updateOrderStatus={updateOrderStatus}
-                onWeightSubmitted={refreshOrderDetails}
+                onRefresh={fetchOrderDetails}
               />
             </TabsContent>
           </div>

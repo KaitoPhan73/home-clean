@@ -86,7 +86,7 @@ const mapOrderDetailByItemToOrderItem = (
   quantity: detail.quantity,
   unitPrice: detail.unitPrice,
   subtotal: detail.subtotal,
-  weight: detail.weight,
+  weight: detail.actualWeight || detail.weight,
   pricePerItem: detail.itemTypeResponse.pricePerItem || detail.unitPrice,
   defaultPrice: detail.itemTypeResponse.defaultPrice,
   itemType: {
@@ -101,7 +101,7 @@ const mapOrderDetailByKgToOrderItem = (detail: OrderDetailByKg): OrderItem => ({
   quantity: detail.quantity || 1,
   unitPrice: detail.unitPrice,
   subtotal: detail.subtotal || 0,
-  weight: detail.weight,
+  weight: detail.actualWeight || detail.weight,
   pricePerKg: detail.itemTypeResponse?.pricePerKg || detail.unitPrice || 0,
   defaultPrice: detail.itemTypeResponse?.defaultPrice || 0,
   itemType: {
@@ -146,7 +146,7 @@ export function OrderItems({
     processedItems.push(...items);
   }
 
-  // Loại bỏ trùng lặp dựa trên id (để đảm bảo an toàn)
+  // Loại bỏ trùng lặp dựa trên id
   const uniqueItems = Array.from(
     new Map(processedItems.map((item) => [item.id, item])).values()
   );

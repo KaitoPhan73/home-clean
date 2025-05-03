@@ -50,25 +50,14 @@ const GroupTable = async () => {
 };
 
 const LoadingState = () => (
-  <div className="space-y-6">
-    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-      <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4].map((j) => (
-              <div key={j} className="flex justify-between">
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+  <div className="flex justify-center items-center h-64 bg-gradient-to-b from-blue-50 to-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col items-center">
+      <div className="relative w-16 h-16">
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-blue-200"></div>
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
+      </div>
+      <p className="mt-4 text-blue-600 font-medium">Đang tải thông tin...</p>
+      <p className="text-blue-400 text-sm mt-1">Vui lòng đợi trong giây lát</p>
     </div>
   </div>
 );

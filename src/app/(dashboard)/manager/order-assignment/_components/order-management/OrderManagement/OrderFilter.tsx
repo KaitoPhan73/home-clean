@@ -394,18 +394,6 @@ const useStaffAssignBoard = () => {
     setFilterMode("single");
 
     setIsRefreshing(true); // Start the refresh spinner
-
-    // Replace the content with loading spinner
-    const contentElement = document.querySelector(".task-board-container");
-    if (contentElement) {
-      contentElement.innerHTML = `
-        <div class="flex justify-center items-center h-64 bg-gray-50">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      `;
-    }
-
-    // Load the data
     loadData()
       .then(() => {
         setFilterApplied(true);
@@ -413,7 +401,7 @@ const useStaffAssignBoard = () => {
       .finally(() => {
         setTimeout(() => {
           setIsRefreshing(false);
-        }, 300);
+        }, 500);
       });
   }, [
     loadData,
@@ -447,6 +435,9 @@ const useStaffAssignBoard = () => {
     applyFilter,
     connectionStatus,
     isRefreshing,
+    isInitialLoad,
+    searchQuery,
+    handleSearchChange,
   };
 };
 
@@ -487,7 +478,7 @@ const DateFilter = ({
         </TabsList>
         <TabsContent value="single" className="mt-0">
           <div className="flex items-center">
-            <Calendar className="mr|mr-2 h-4 w-4" />
+            <Calendar className="mr-2 h-4 w-4" />
             <Input
               type="date"
               value={selectedDate}
@@ -536,6 +527,20 @@ const DateFilter = ({
   </div>
 );
 
+// Enhanced loading component
+const LoadingIndicator = () => (
+  <div className="flex justify-center items-center h-64 bg-gradient-to-b from-blue-50 to-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col items-center">
+      <div className="relative w-16 h-16">
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-blue-200"></div>
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-t-4 border-blue-600 animate-spin"></div>
+      </div>
+      <p className="mt-4 text-blue-600 font-medium">Đang tải thông tin...</p>
+      <p className="text-blue-400 text-sm mt-1">Vui lòng đợi trong giây lát</p>
+    </div>
+  </div>
+);
+
 const OrderFilter = () => {
   const {
     filteredOrders,
@@ -554,9 +559,13 @@ const OrderFilter = () => {
     handleToDateChange,
     loadMoreItems,
     applyFilter,
+    isRefreshing,
+    isInitialLoad,
+    searchQuery,
+    handleSearchChange,
   } = useStaffAssignBoard();
 
-  if (error)
+  if (error) {
     return (
       <div className="p-6 text-center">
         <div className="text-red-600 font-medium text-lg mb-2">{error}</div>
@@ -565,6 +574,7 @@ const OrderFilter = () => {
         </Button>
       </div>
     );
+  }
 
   let dateText = "Tất cả";
   if (filterMode === "single") {
@@ -589,6 +599,9 @@ const OrderFilter = () => {
           handleToDateChange={handleToDateChange}
           handleRefresh={handleRefresh}
           applyFilter={applyFilter}
+          searchQuery={searchQuery}
+          handleSearchChange={handleSearchChange}
+          isRefreshing={isRefreshing}
         />
         <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
           <div>
@@ -606,7 +619,9 @@ const OrderFilter = () => {
         </div>
       </div>
 
-      {filteredOrders.length === 0 ? (
+      {isInitialLoad || isRefreshing ? (
+        <LoadingIndicator />
+      ) : filteredOrders.length === 0 ? (
         <div className="bg-white p-8 rounded-lg border text-center">
           <div className="text-gray-500 mb-4">
             Không có đơn hàng nào trong khoảng thời gian này
@@ -618,7 +633,9 @@ const OrderFilter = () => {
       ) : (
         <>
           <DndProvider backend={HTML5Backend}>
-            <TaskBoard orders={displayedItems} groupId={groupId ?? undefined} />
+            <div className="task-board-container">
+              <TaskBoard orders={displayedItems} groupId={groupId ?? undefined} />
+            </div>
           </DndProvider>
 
           {displayedItems.length < filteredOrders.length && (

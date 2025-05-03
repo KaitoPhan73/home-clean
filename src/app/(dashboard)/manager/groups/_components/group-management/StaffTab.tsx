@@ -12,10 +12,12 @@ import {
   Phone,
   Package,
   User,
+  MessageCircle,
 } from "lucide-react";
 import { getAllStaffStatusReady } from "@/apis/staff";
 import StaffOrdersPopup from "@/app/(dashboard)/manager/groups/_components/group-management/Staff-Detail/StaffOrdersView";
 import StaffDetailPopup from "@/app/(dashboard)/manager/groups/_components/group-management/Staff-Detail/StaffDetailPopup";
+import StaffFeedBackPopup from "@/app/(dashboard)/manager/groups/_components/group-management/Staff-Detail/StaffFeedBackPopup";
 
 interface Staff {
   id: string;
@@ -36,6 +38,7 @@ interface StaffTabProps {
 const StaffCard = ({ staff }: { staff: Staff }) => {
   const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const date = new Date(staff.lastUpdated);
   const formattedDate = date.toLocaleString("vi-VN", {
     day: "2-digit",
@@ -113,6 +116,13 @@ const StaffCard = ({ staff }: { staff: Staff }) => {
               <Package size={10} className="mr-1" />
               Đơn Hàng
             </button>
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="flex items-center px-2 py-1 bg-indigo-500 text-white text-xs rounded-lg hover:bg-indigo-600 transition-colors"
+            >
+              <MessageCircle size={10} className="mr-1" />
+              Đánh Giá
+            </button>
           </div>
         </div>
       </div>
@@ -126,6 +136,12 @@ const StaffCard = ({ staff }: { staff: Staff }) => {
       <StaffDetailPopup
         isOpen={isDetailOpen}
         onOpenChange={setIsDetailOpen}
+        staffId={staff.id}
+        staffName={staff.fullName}
+      />
+      <StaffFeedBackPopup
+        isOpen={isFeedbackOpen}
+        onOpenChange={setIsFeedbackOpen}
         staffId={staff.id}
         staffName={staff.fullName}
       />

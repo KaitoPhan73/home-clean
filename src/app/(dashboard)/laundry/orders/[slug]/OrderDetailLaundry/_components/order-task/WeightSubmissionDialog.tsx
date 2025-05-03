@@ -56,7 +56,6 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
   const [isItemBasedOrder, setIsItemBasedOrder] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderDetailsByItem[]>([]);
 
-  // Hàm định dạng số theo kiểu 50.000
   const formatNumber = (value: number): string => {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
@@ -139,6 +138,10 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
         await submitOrderWeight(orderId, []);
       } else {
         const filteredWeights = itemWeights.filter((item) => item.weight > 0);
+        if (filteredWeights.length === 0) {
+          setError("Vui lòng nhập ít nhất một trọng lượng lớn hơn 0kg.");
+          return;
+        }
         await submitOrderWeight(orderId, filteredWeights);
       }
 
@@ -152,13 +155,11 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
   };
 
   const totalWeight = itemWeights.reduce((sum, item) => sum + item.weight, 0);
-  
-  // Calculate estimated cost based on weights
+
   const calculateEstimatedCost = () => {
     return itemWeights.reduce((sum, itemWeight) => {
       const itemType = itemTypes.find(item => item.id === itemWeight.itemTypeId);
       if (itemType && itemWeight.weight > 0) {
-        // Use pricePerKg or defaultPrice as fallback
         const price = itemType.pricePerKg || itemType.defaultPrice || 0;
         return sum + (price * itemWeight.weight);
       }
@@ -358,7 +359,7 @@ const WeightSubmissionDialog: React.FC<WeightSubmissionDialogProps> = ({
             type="button"
             onClick={handleSubmit}
             className="bg-blue-600 hover:bg-blue-700 px-6"
-            disabled={loading || submitting}
+            disabled={loading || submitting || (!isItemBasedOrder && totalWeight === 0)}
           >
             {submitting ? (
               <span className="flex items-center">
