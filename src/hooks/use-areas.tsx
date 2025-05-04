@@ -5,7 +5,7 @@ export const useAreas = () => {
   return useQuery({
     queryKey: ["areas"],
     queryFn: async () => {
-      const params = { page: 1, limit: 100 };
+      const params = { page: 1, size: 10000 };
       const response = await getAllAreas(params);
       return response.payload.items; // API trả về `data`
     },

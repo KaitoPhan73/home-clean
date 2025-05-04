@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { useUsers } from "@/hooks/use-users";
+import { useAreas } from "@/hooks/use-areas";
 import { ResponsiveComboBox } from "@/components/async-combobox";
 
-export function ResponsiveComboBoxUserAsync({
+export function ResponsiveComboBoxAreaAsync({
   value,
   onChange,
   className,
@@ -15,28 +15,25 @@ export function ResponsiveComboBoxUserAsync({
   className?: string;
   portal?: boolean;
 }) {
-  const { data, isLoading } = useUsers();
+  const { data, isLoading } = useAreas();
 
   const options =
-    data?.map((user) => ({
-      label: (
-        <div className="flex items-center justify-between w-full">
-          <div className="truncate flex-1 mr-2">{user.fullName}</div>
-          <div className="">{user.phoneNumber}</div>
-        </div>
-      ),
-      value: user.id,
+    data?.map((area) => ({
+      label: area.name,
+      value: area.id,
+      searchKey: `${area.name} ${area.code}`,
     })) ?? [];
 
   return (
     <ResponsiveComboBox
       options={options}
       isLoading={isLoading}
-      placeholder="Chọn người dùng"
+      placeholder="Chọn khu vực"
       defaultValue={options.find((o) => o.value === value) ?? null}
       onChange={(selected) => onChange(selected?.value || "")}
       className={className}
       portal={portal}
+      searchPlaceholder="Tìm kiếm khu vực..."
     />
   );
 }

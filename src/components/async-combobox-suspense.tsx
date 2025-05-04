@@ -17,7 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
@@ -29,9 +28,8 @@ type Option = {
   searchKey?: string;
 };
 
-interface ResponsiveComboBoxProps {
+interface SuspenseResponsiveComboBoxProps {
   options: Option[];
-  isLoading?: boolean;
   modal?: boolean;
   portal?: boolean;
   placeholder?: string;
@@ -44,10 +42,9 @@ interface ResponsiveComboBoxProps {
   isMulti?: boolean;
 }
 
-export function ResponsiveComboBox({
+export function SuspenseResponsiveComboBox({
   options,
   modal = true,
-  isLoading = false,
   placeholder = "+ Select option",
   defaultValue = null,
   defaultValues = [],
@@ -57,7 +54,7 @@ export function ResponsiveComboBox({
   onChangeMultiple,
   className,
   isMulti = false,
-}: ResponsiveComboBoxProps) {
+}: SuspenseResponsiveComboBoxProps) {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedOption, setSelectedOption] = React.useState<Option | null>(
@@ -107,7 +104,7 @@ export function ResponsiveComboBox({
           >
             <span className="text-sm">{option.label}</span>
             <X
-              className="h-4 w-4 "
+              className="h-4 w-4"
               onClick={(e) => {
                 e.stopPropagation();
                 removeOption(option);
@@ -147,7 +144,6 @@ export function ResponsiveComboBox({
             <OptionList
               options={options}
               onSelect={handleSelect}
-              isLoading={isLoading}
               searchPlaceholder={searchPlaceholder}
               isMulti={isMulti}
               selectedOptions={selectedOptions}
@@ -177,7 +173,6 @@ export function ResponsiveComboBox({
           <OptionList
             options={options}
             onSelect={handleSelect}
-            isLoading={isLoading}
             searchPlaceholder={searchPlaceholder}
             isMulti={isMulti}
             selectedOptions={selectedOptions}
@@ -191,14 +186,12 @@ export function ResponsiveComboBox({
 function OptionList({
   options,
   onSelect,
-  isLoading,
   searchPlaceholder,
   isMulti,
   selectedOptions = [],
 }: {
   options: Option[];
   onSelect: (value: string) => void;
-  isLoading?: boolean;
   searchPlaceholder?: string;
   isMulti?: boolean;
   selectedOptions?: Option[];
@@ -213,32 +206,26 @@ function OptionList({
         <CommandList className="w-full">
           <CommandEmpty>Không tìm thấy kết quả</CommandEmpty>
           <CommandGroup className="w-full">
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <CommandItem key={index} value="" disabled className="w-full">
-                    <Skeleton className="h-5 w-full" />
-                  </CommandItem>
-                ))
-              : options.map((option, index) => (
-                  <CommandItem
-                    key={index}
-                    value={option.searchKey || option.value}
-                    onSelect={() => onSelect(option.value)}
-                    className="w-full"
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      {isMulti && (
-                        <Checkbox
-                          checked={selectedOptions.some(
-                            (opt) => opt.value === option.value
-                          )}
-                          className="h-4 w-4"
-                        />
+            {options.map((option, index) => (
+              <CommandItem
+                key={index}
+                value={option.searchKey || option.value}
+                onSelect={() => onSelect(option.value)}
+                className="w-full"
+              >
+                <div className="flex items-center gap-2 w-full">
+                  {isMulti && (
+                    <Checkbox
+                      checked={selectedOptions.some(
+                        (opt) => opt.value === option.value
                       )}
-                      {option.label}
-                    </div>
-                  </CommandItem>
-                ))}
+                      className="h-4 w-4"
+                    />
+                  )}
+                  {option.label}
+                </div>
+              </CommandItem>
+            ))}
           </CommandGroup>
         </CommandList>
       </Command>

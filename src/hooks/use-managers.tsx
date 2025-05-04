@@ -1,12 +1,12 @@
-import { getAllUsers } from "@/apis/vinwallet/user";
+import { getAllManagers } from "@/apis/manager";
 import { useQuery } from "@tanstack/react-query";
 
-export const useUsers = () => {
+export const useManagers = () => {
   return useQuery({
-    queryKey: ["users"],
+    queryKey: ["managers"],
     queryFn: async () => {
       const params = { page: 1, size: 10000 };
-      const response = await getAllUsers(params);
+      const response = await getAllManagers(params);
       return response.payload.items; // API trả về `data`
     },
   });
