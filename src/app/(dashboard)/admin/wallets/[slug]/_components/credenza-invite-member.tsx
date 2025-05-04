@@ -29,7 +29,7 @@ import {
   refetchUserInWallet,
 } from "@/apis/vinwallet/wallet";
 import { UserPlus } from "lucide-react";
-import { ResponsiveComboBoxUserAsync } from "@/components/features/responsive-combobo-user-async";
+import { ResponsiveComboBoxUserAsync } from "@/components/features/responsive-combobox-user-async";
 import { handleErrorApi } from "@/lib/utils";
 
 // Tạo schema validation

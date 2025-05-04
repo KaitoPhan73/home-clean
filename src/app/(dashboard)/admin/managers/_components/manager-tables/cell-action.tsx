@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, MoreHorizontal } from "lucide-react";
+import { Edit, Eye, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { TManagerResponse } from "@/schema/manager.schema";
@@ -56,17 +56,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuItem onClick={() => setDetailModalOpen(true)}>
             <Eye className="mr-2 h-4 w-4" /> Xem chi tiết
           </DropdownMenuItem>
-          
-          {/* Uncomment when needed
+
           <DropdownMenuItem
             onClick={() => router.push(`/admin/managers/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Chỉnh sửa
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setAlertOpen(true)}>
-            <Trash className="mr-2 h-4 w-4" /> Xóa
-          </DropdownMenuItem>
-          */}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

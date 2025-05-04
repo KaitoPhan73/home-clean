@@ -10,7 +10,7 @@ export const ManagerSchema = BaseSchema.extend({
   code: z.string().max(255),
   groupName: z.string().max(255).nullable(),
   groupId: z.string().uuid().nullable(),
-  staffNames: z.array(z.string()),
+  staffNames: z.array(z.string()).nullable(),
 });
 
 export const ManagerCreateSchema = BaseSchema.extend({
@@ -21,6 +21,16 @@ export const ManagerCreateSchema = BaseSchema.extend({
   password: z.string().max(255),
 });
 
+export const ManagerUpdateSchema = z.object({
+  fullName: z.string().max(255),
+  phoneNumber: z.string().max(20),
+  email: z.string().email(),
+  code: z.string().max(255),
+  password: z.string().max(255).optional(),
+  status: z.enum(["Active", "Inactive"]).optional(),
+});
+
+export type TUpdateManagerRequest = z.TypeOf<typeof ManagerUpdateSchema>;
 export type TManagerRequest = z.TypeOf<typeof ManagerSchema>;
 export type TManagerResponse = z.infer<typeof ManagerSchema>;
 export type TManagerCreateRequest = z.infer<typeof ManagerCreateSchema>;

@@ -39,9 +39,12 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
     position: string | null;
     role: string;
   };
-  let employeePayload: { items: EmployeeType[], totalPages: number } = { items: [], totalPages: 0 };
+  let employeePayload: { items: EmployeeType[]; totalPages: number } = {
+    items: [],
+    totalPages: 0,
+  };
   if (staffType === "laundry" || staffType === "all") {
-    const employeeResponse = await getAllEmployees(filters, accessToken); // Pass the access token
+    const employeeResponse = await getAllEmployees(filters, accessToken);
     employeePayload = employeeResponse.payload;
   }
 

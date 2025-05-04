@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */ 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { httpHomePlus } from "@/lib/http";
-import { TGroupResponse } from "@/schema/group.schema";
+import { TGroupResponse, TUpdateGroupRequest } from "@/schema/group.schema";
 import { TOrderResponse } from "@/schema/order.schema";
 import { TTableResponse } from "@/types/Table";
 // import { getCookie } from "cookies-next";
@@ -47,11 +47,19 @@ export const getAllOrdersByGroupId = async (groupId: string) => {
 
 
 export const getGroupById = async (id: string) => {
-  const response = await httpHomePlus.get<{ payload: TGroupResponse; status: number; message: string }>(`/groups/${id}`);
+  const response = await httpHomePlus.get<TGroupResponse>(`/groups/${id}`);
   return response;
 };
 
 export const createGroup = async (data: Partial<TGroupResponse>) => {
   const response = await httpHomePlus.post(`/v2/groups`, data);
+  return response;
+};
+
+export const updateGroup = async (
+  id: string,
+  data: Partial<TUpdateGroupRequest>
+) => {
+  const response = await httpHomePlus.put(`/groups/${id}`, data);
   return response;
 };
