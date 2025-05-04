@@ -34,7 +34,7 @@ export const getAllOrdersByGroupId = async (groupId: string) => {
     }
 
     const response = await httpHomePlus.get<TTableResponse<TOrderResponse>>(
-      `/groups/${groupId}/order-v2?page=1&size=10000`
+      `/groups/${groupId}/order-v2?page=1&size=10000`,
     );
 
     return response;
@@ -43,6 +43,8 @@ export const getAllOrdersByGroupId = async (groupId: string) => {
     throw error;
   }
 };
+
+
 
 export const getGroupById = async (id: string) => {
   const response = await httpHomePlus.get<TGroupResponse>(`/groups/${id}`);

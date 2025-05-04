@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { getUserFromCookie } from "@/lib/user";
 import { z } from "zod";
 import { OrderSchema } from "@/schema/order.schema";
+import { useStaffAssignBoard } from "@/hooks/useStaffAssignBoard";
 
 type OrderType = z.infer<typeof OrderSchema>;
 
@@ -38,6 +39,7 @@ export const useOrderDetails = (
   const [cancelReason, setCancelReason] = useState("");
   const [refundMethod, setRefundMethod] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
+  const {handleRefresh} = useStaffAssignBoard()
 
   const user = getUserFromCookie();
   const effectiveGroupId = groupId || user?.groupId;
@@ -136,8 +138,10 @@ export const useOrderDetails = (
         ? { ...staffAssignment, orderId: order.id }
         : { staffId: selectedStaffId, orderId: order.id };
 
-      await assignStaffToOrder(order.id, assignmentData);
-
+      const response = await assignStaffToOrder(order.id, assignmentData);
+      if(response.status === 200){
+        handleRefresh();
+      }
       toast({
         title: "Thành công",
         description: "Đã phân công nhân viên thành công",

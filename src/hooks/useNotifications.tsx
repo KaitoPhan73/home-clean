@@ -52,7 +52,7 @@ export const useSignalR = () => {
       setConnectionStatus("connecting");
       const accessToken = localStorage.getItem("accessToken") || "";
       const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl("https://homeclean.vinhomesresident.com/homeCleanHub", {
+        .withUrl("https://vinlaundry.vinhomesresident.com/vinLaundryHub", {
           accessTokenFactory: () => accessToken,
           transport:
             signalR.HttpTransportType.WebSockets |

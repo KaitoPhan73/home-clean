@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarRange, Package2, User, Eye } from "lucide-react";
+import { CalendarRange, Package2, User, Eye, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TOrderLaundryResponse } from "@/schema/VinLaudry/laundry-order";
 import { formattedDateTime } from "@/lib/formatter";
@@ -85,12 +85,10 @@ export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
     fetchUserData();
   }, [order.userId]);
 
-  const formattedAmount = order.totalAmount
-    ? new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(order.totalAmount)
-    : "Chưa thanh toán";
+  // Thay đổi từ hiển thị tiền sang hiển thị điểm
+  const formattedPoints = order.totalAmount
+    ? new Intl.NumberFormat("vi-VN").format(order.totalAmount)
+    : "Chưa có điểm";
 
   const handleViewDetails = () => {
     router.push(`/laundry/orders/${order.id}`);
@@ -147,8 +145,9 @@ export const OrderCard = ({ order }: { order: TOrderLaundryResponse }) => {
           {statusData.icon}
           {statusData.label}
         </Badge>
-        <span className="text-sm font-semibold text-emerald-600">
-          {formattedAmount}
+        <span className="text-sm font-semibold text-amber-500 flex items-center">
+          {formattedPoints}
+          <Star className="h-4 w-4 mr-1 ml-1 fill-amber-400 text-amber-400" />
         </span>
       </div>
     </div>
