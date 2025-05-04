@@ -2,12 +2,25 @@
 "use server";
 
 import { httpHomePlus } from "@/lib/http";
-import { TManagerResponse } from "@/schema/manager.schema";
+import {
+  TManagerResponse,
+  TUpdateManagerRequest,
+} from "@/schema/manager.schema";
 import { TTableResponse } from "@/types/Table";
 
 export const getAllManagers = async (params?: any) => {
   const response = await httpHomePlus.get<TTableResponse<TManagerResponse>>(
     `/managers`,
+    {
+      params,
+    }
+  );
+  return response;
+};
+
+export const getAllManagersNoGroup = async (params?: any) => {
+  const response = await httpHomePlus.get<TManagerResponse[]>(
+    `/managers/no-group`,
     {
       params,
     }
@@ -23,13 +36,28 @@ export const getAllManagerInGroup = async (params?: any) => {
     }
   );
   return response;
-}
+};
 export const getManagerById = async (id: string) => {
   const response = await httpHomePlus.get<TManagerResponse>(`/managers/${id}`);
   return response;
 };
 
 export const createManager = async (data: Partial<TManagerResponse>) => {
-  const response = await httpHomePlus.post<TManagerResponse>(`/auth/register-manager`, data);
+  const response = await httpHomePlus.post<TManagerResponse>(
+    `/auth/register-manager`,
+    data
+  );
+  return response;
+};
+
+export const updateManager = async (
+  id: string,
+  data: Partial<TUpdateManagerRequest>
+) => {
+  const response = await httpHomePlus.put<TManagerResponse>(
+    `/managers/${id}`,
+    data
+  );
+
   return response;
 };

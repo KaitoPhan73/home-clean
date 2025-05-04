@@ -99,18 +99,24 @@ export default function SignInViewPage() {
               className="flex flex-col space-y-2"
             >
               <h1 className="text-2xl font-semibold tracking-tight text-gray-800">
-                {activeRole === "admin" ? "Đăng nhập Admin" : "Chào mừng đến HomePlus & Vinlaundry"}  
+                {activeRole === "admin"
+                  ? "Đăng nhập Admin"
+                  : "Chào mừng đến HomePlus & Vinlaundry"}
               </h1>
               <p className="text-sm text-gray-600">{getTabDescription()}</p>
             </motion.div>
 
             <div
-              onClick={() => toggleRole(activeRole === "user" ? "admin" : "user")}
+              onClick={() =>
+                toggleRole(activeRole === "user" ? "admin" : "user")
+              }
               className={`flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition-all duration-300 ${
                 activeRole === "admin"
                   ? "bg-red-100 text-red-500"
                   : "bg-blue-100 text-blue-500"
-              } hover:shadow-md ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+              } hover:shadow-md ${
+                isSubmitting ? "pointer-events-none opacity-50" : ""
+              }`}
             >
               <motion.div
                 animate={{ rotate: isAnimating ? 180 : 0 }}
@@ -150,7 +156,7 @@ export default function SignInViewPage() {
           </AnimatePresence>
 
           {/* Bottom links */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
               <span>
                 {activeRole === "user" ? "Chưa có tài khoản?" : "Đăng nhập thường?"}
@@ -187,7 +193,7 @@ export default function SignInViewPage() {
               Bảo mật
             </Link>
             .
-          </p>
+          </p> */}
         </motion.div>
       </div>
     </div>
