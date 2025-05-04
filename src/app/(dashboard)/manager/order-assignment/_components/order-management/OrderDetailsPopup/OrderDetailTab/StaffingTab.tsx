@@ -34,6 +34,7 @@ export const StaffingTab: React.FC<StaffingTabProps> = ({
   handleAssignStaff,
   onClose,
 }) => {
+
   // Fix for assigned staff display: Find by staffId that matches order.employeeId
   const assignedStaff = order.employeeId
     ? availableStaffs.find((s) => s.staffId === order.employeeId)
