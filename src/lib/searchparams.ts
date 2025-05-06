@@ -12,6 +12,7 @@ export const searchParams = {
   groupSearch:parseAsString.withDefault("all"),
   code: parseAsString,
   name: parseAsString,
+  tab: parseAsString,
   days: parseAsString,
   q: parseAsString,
   search: parseAsString,

@@ -11,7 +11,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface CustomOptions
   extends Omit<RequestInit, "method">,
-    NextFetchRequestConfig {
+  NextFetchRequestConfig {
   baseUrl?: string;
   params?: Record<string, string>;
 }

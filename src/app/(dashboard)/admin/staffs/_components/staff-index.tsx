@@ -5,7 +5,6 @@ import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
 import { Heading } from "@/components/ui/headling";
 import { Separator } from "@/components/ui/separator";
 import StaffTable from "@/app/(dashboard)/admin/staffs/_components/staff-table";
-import StaffTableAction from "@/app/(dashboard)/admin/staffs/_components/staff-tables/staff-table-action";
 import { cookies } from "next/headers";
 import StaffActionButtons from "@/app/(dashboard)/admin/staffs/_components/staff-create-dropdown";
 
@@ -21,14 +20,14 @@ const StaffIndex = async ({ keyProps }: Props) => {
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <Heading
-            title="Quản Lí"
-            description="Quản Lí Nhân Viên Dịch Vụ Và Giặt Sấy"
+            title="Quản Lí Nhân Viên"
+            description="Quản lí nhân viên dịch vụ và nhân viên giặt sấy"
           />
           <StaffActionButtons accessToken={accessToken} />
         </div>
         <Separator />
 
-        <StaffTableAction />
+        {/* <StaffTableFilter /> */}
         <Suspense
           key={keyProps}
           fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}

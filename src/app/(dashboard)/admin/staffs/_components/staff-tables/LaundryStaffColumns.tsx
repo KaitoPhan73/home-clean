@@ -8,6 +8,7 @@ import {
   Hash,
   Clock,
   Calendar,
+  Phone,
 } from "lucide-react";
 import React from "react";
 import { TEmployeeLaundryResponse } from "@/schema/VinLaudry/employee.schema";
@@ -25,7 +26,7 @@ export const LaundryStaffColumns: ColumnDef<TEmployeeLaundryResponse>[] = [
           </div>
           <div>
             <div
-              className="font-semibold text-gray-800 w-44 truncate cursor-pointer hover:text-blue-600 transition-colors"
+              className="font-semibold text-gray-800 w-48 truncate cursor-pointer hover:text-blue-600 transition-colors"
               title={fullName}
             >
               {fullName || 'Chưa cập nhật'}
@@ -45,6 +46,21 @@ export const LaundryStaffColumns: ColumnDef<TEmployeeLaundryResponse>[] = [
           <Hash className="text-gray-500 h-5 w-5" />
           <span className="text-gray-700 font-mono bg-gray-100 px-2 py-1 rounded-md">
             {employeeCode || 'Chưa có mã'}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "phone",
+    header: "Số Điện Thoại",
+    cell: ({ row }) => {
+      const phone = row.getValue("phone") as string;
+      return (
+        <div className="flex items-center space-x-2">
+          <Phone className="text-gray-500 h-5 w-5" />
+          <span className="text-gray-700 font-mono bg-gray-100 px-2 py-1 rounded-md">
+            {phone || 'Chưa có số điện thoại'}
           </span>
         </div>
       );
