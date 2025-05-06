@@ -629,7 +629,7 @@ const OrderFilter = () => {
             Không có đơn hàng nào trong khoảng thời gian này
           </div>
           <Button onClick={handleRefresh} variant="outline">
-            <RefreshCw className="mr-1 h-4 w-4" /> Xem tất cả đơn hàng
+            <RefreshCw className="mr-1 h-4 w-4" /> Làm mới
           </Button>
         </div>
       ) : (

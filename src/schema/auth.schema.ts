@@ -20,7 +20,7 @@ export const LoginAdminSchema = z
       message: "Mật khẩu không được trống.",
     }),
   })
-  .strict();
+  .strict(); 
 
 export const AuthResponseSchema = z.object({
   accessToken: z.string().min(1, { message: "Access token không được trống." }),

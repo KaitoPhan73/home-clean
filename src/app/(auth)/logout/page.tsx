@@ -19,7 +19,7 @@ function LogoutLogic() {
       try {
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
-
+        localStorage.clear();
         dispatch(setUser(null));
 
         await authClient.logoutFromNextClientToNextServer(true);

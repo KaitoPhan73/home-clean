@@ -113,6 +113,14 @@ export const useSignalR = () => {
       ]);
     });
 
+    connection.on("LaundryOrderToUser", (message: string) => {
+      console.log("[SignalR] Received LaundryOrderToUser:", message);
+      setNotifications((prev) => [
+        ...prev,
+        { message, type: "Manager", timestamp: new Date() },
+      ]);
+    });
+
     connection.on("OrderStatusChanged", (orderId: string, status: string) => {
       console.log(`Received order status change: Order ${orderId} -> ${status}`);
       const event = new CustomEvent("orderStatusChanged", {

@@ -1,3 +1,590 @@
+// /* eslint-disable @typescript-eslint/no-explicit-any */
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// /* eslint-disable react-hooks/exhaustive-deps */
+// import React, { useState, useEffect, useMemo } from "react";
+// import { useSignalR } from "@/hooks/useNotifications";
+// import {
+//   Bell,
+//   Check,
+//   X,
+//   ChevronLeft,
+//   ShoppingCart,
+//   AlertTriangle,
+//   MessageSquare,
+// } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from "@/components/ui/popover";
+// import { Avatar } from "@/components/ui/avatar";
+// import { ScrollArea } from "@/components/ui/scroll-area";
+// import { motion } from "framer-motion";
+// import { useSignalRContext } from "@/context/signalr-provider";
+
+// // Define the different notification types
+// interface BaseNotification {
+//   timestamp: Date;
+//   type: "all" | "Manager" | "Admin" | "User";
+//   isRead?: boolean;
+// }
+
+// interface OrderNotification extends BaseNotification {
+//   notificationType: "order";
+//   Type: string;
+//   Data: {
+//     OrderId: string;
+//     ServiceName: string;
+//     BuildingName: string;
+//     HouseNumber: string;
+//     RoomNumber: string | null;
+//   };
+// }
+
+// interface CancellationNotification extends BaseNotification {
+//   notificationType: "OrderCancelled";
+//   options: {
+//     body: {
+//       cancellationReason: string;
+//       refundMethod: string;
+//       cancelledBy: string;
+//     };
+//   };
+//   orderId?: string; // Optional field to link the cancellation to an order
+// }
+
+// interface TextNotification extends BaseNotification {
+//   notificationType: "text";
+//   message: string;
+// }
+
+// type Notification = OrderNotification | CancellationNotification | TextNotification;
+
+// const NotificationComponent = () => {
+//   const { notifications, connectionStatus, connectionId } = useSignalRContext();
+//   const [unreadCount, setUnreadCount] = useState(0);
+//   const [isOpen, setIsOpen] = useState(false);
+//   const [selectedNotification, setSelectedNotification] =
+//     useState<Notification | null>(null);
+//   const [isAnimating, setIsAnimating] = useState(false);
+
+//   // Parse notifications with proper types and handling plain text
+//   const parsedNotifications = useMemo(() => {
+//     return notifications
+//       .map((notif: { message: string; timestamp: any; type: any; }) => {
+//         try {
+//           // Check if the message is valid JSON
+//           if (notif.message.trim().startsWith('{') && notif.message.trim().endsWith('}')) {
+//             const parsed = JSON.parse(notif.message);
+
+//             // Determine notification type based on content
+//             if (
+//               parsed.options &&
+//               parsed.options.body &&
+//               parsed.options.body.cancellationReason
+//             ) {
+//               return {
+//                 notificationType: "OrderCancelled",
+//                 options: parsed.options,
+//                 timestamp: notif.timestamp,
+//                 type: notif.type,
+//                 isRead: false,
+//               } as CancellationNotification;
+//             } else if (parsed.Data && parsed.Data.OrderId) {
+//               return {
+//                 notificationType: "order",
+//                 ...parsed,
+//                 timestamp: notif.timestamp,
+//                 type: notif.type,
+//                 isRead: false,
+//               } as OrderNotification;
+//             }
+//           }
+
+//           // If not valid JSON or not recognized format, treat as text notification
+//           return {
+//             notificationType: "text",
+//             message: notif.message,
+//             timestamp: notif.timestamp,
+//             type: notif.type,
+//             isRead: false,
+//           } as TextNotification;
+//         } catch (e) {
+//           // If JSON parsing fails, create a text notification
+//           return {
+//             notificationType: "text",
+//             message: notif.message,
+//             timestamp: notif.timestamp,
+//             type: notif.type,
+//             isRead: false,
+//           } as TextNotification;
+//         }
+//       })
+//       .filter((notif): notif is Notification => notif !== undefined && notif !== null)
+//       .sort((a: { timestamp: string | number | Date; }, b: { timestamp: string | number | Date; }) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+//   }, [notifications]);
+
+//   const unreadNotifications = useMemo(
+//     () => parsedNotifications.filter((notif: Notification) => !notif.isRead),
+//     [parsedNotifications]
+//   );
+
+//   const playNotificationSound = () => {
+//     const audio = new Audio("/audios/mixkit-dog-barking-twice-1.wav");
+//     audio.play().catch((error) => console.log("Lỗi phát âm thanh:", error));
+//   };
+
+//   useEffect(() => {
+//     if (notifications.length > unreadCount) {
+//       playNotificationSound();
+//       setIsAnimating(true);
+//       setTimeout(() => setIsAnimating(false), 2000);
+//     }
+//     setUnreadCount(unreadNotifications.length);
+//   }, [notifications.length, unreadNotifications.length]);
+
+//   const markAllAsRead = () => {
+//     parsedNotifications.forEach((notif) => {
+//       notif.isRead = notif.isRead || false;
+//       notif.isRead = true;
+//     });
+//     setUnreadCount(0);
+//   };
+
+//   const markAsRead = (index: number) => {
+//     if (parsedNotifications[index]) {
+//       parsedNotifications[index].isRead = true;
+//       setUnreadCount((prev) => Math.max(0, prev - 1));
+//     } 
+//   };
+
+//   const handleNotificationClick = (
+//     notification: Notification,
+//     index: number
+//   ) => {
+//     setSelectedNotification(notification);
+//     markAsRead(index);
+//   };
+
+//   const handlePopoverOpenChange = (open: boolean) => {
+//     setIsOpen(open);
+//     if (!open) {
+//       setSelectedNotification(null);
+//     }
+//   };
+
+//   const backToList = () => {
+//     setSelectedNotification(null);
+//   };
+
+//   const renderNotificationContent = (notification: Notification) => {
+//     if (notification.notificationType === "order") {
+//       return (
+//         <div className="space-y-3 p-4">
+//           <div className="flex items-center space-x-2">
+//             <Avatar className="h-10 w-10 bg-blue-100">
+//               <ShoppingCart className="h-6 w-6 text-blue-600" />
+//             </Avatar>
+//             <div>
+//               <h3 className="font-semibold">Đơn hàng mới</h3>
+//               <p className="text-sm text-gray-500">
+//                 {formatTimeAgo(notification.timestamp)}
+//               </p>
+//             </div>
+//           </div>
+
+//           <div className="bg-blue-50 p-3 rounded-lg space-y-2">
+//             <div className="flex justify-between">
+//               <span className="font-medium">Dịch vụ:</span>
+//               <span>{notification.Data.ServiceName}</span>
+//             </div>
+//             <div className="flex justify-between">
+//               <span className="font-medium">Địa điểm:</span>
+//               <span>{notification.Data.BuildingName}</span>
+//             </div>
+//             <div className="flex justify-between">
+//               <span className="font-medium">Số nhà:</span>
+//               <span>{notification.Data.HouseNumber}</span>
+//             </div>
+//             {notification.Data.RoomNumber && (
+//               <div className="flex justify-between">
+//                 <span className="font-medium">Số phòng:</span>
+//                 <span>{notification.Data.RoomNumber}</span>
+//               </div>
+//             )}
+//             <div className="flex justify-between">
+//               <span className="font-normal">ID đơn hàng:</span>
+//               <span className="font-mono text-sm">
+//                 {notification.Data.OrderId}
+//               </span>
+//             </div>
+//           </div>
+//         </div>
+//       );
+//     } else if (notification.notificationType === "OrderCancelled") {
+//       return (
+//         <div className="space-y-3 p-4">
+//           <div className="flex items-center space-x-2">
+//             <Avatar className="h-10 w-10 bg-red-100">
+//               <X className="h-6 w-6 text-red-600" />
+//             </Avatar>
+//             <div>
+//               <h3 className="font-semibold">Hủy đơn hàng</h3>
+//               <p className="text-sm text-gray-500">
+//                 {formatTimeAgo(notification.timestamp)}
+//               </p>
+//             </div>
+//           </div>
+
+//           <div className="bg-red-50 p-3 rounded-lg space-y-2">
+//             <div className="flex justify-between">
+//               <span className="font-medium">Lý do hủy:</span>
+//               <span>{notification.options.body.cancellationReason}</span>
+//             </div>
+//             <div className="flex justify-between">
+//               <span className="font-medium">Phương thức hoàn tiền:</span>
+//               <span>{notification.options.body.refundMethod}</span>
+//             </div>
+//             <div className="flex justify-between">
+//               <span className="font-medium">ID người hủy:</span>
+//               <span className="font-mono text-sm truncate max-w-32">
+//                 {notification.options.body.cancelledBy}
+//               </span>
+//             </div>
+//           </div>
+
+//           <div className="flex space-x-2 pt-2">
+//             <Button className="w-full">Xem chi tiết</Button>
+//           </div>
+//         </div>
+//       );
+//     } else if (notification.notificationType === "text") {
+//       return (
+//         <div className="space-y-3 p-4">
+//           <div className="flex items-center space-x-2">
+//             <Avatar className="h-10 w-10 bg-green-100">
+//               <MessageSquare className="h-6 w-6 text-green-600" />
+//             </Avatar>
+//             <div>
+//               <h3 className="font-semibold">Thông báo</h3>
+//               <p className="text-sm text-gray-500">
+//                 {formatTimeAgo(notification.timestamp)}
+//               </p>
+//             </div>
+//           </div>
+
+//           <div className="bg-green-50 p-3 rounded-lg">
+//             <p className="text-gray-800">{notification.message}</p>
+//           </div>
+//         </div>
+//       );
+//     }
+//     return null;
+//   };
+
+//   const renderNotificationItem = (
+//     notification: Notification,
+//     index: number
+//   ) => {
+//     const isUnread = !notification.isRead;
+
+//     if (notification.notificationType === "order") {
+//       return (
+//         <div
+//           key={index}
+//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
+//             isUnread ? "bg-blue-50" : ""
+//           }`}
+//           onClick={() => handleNotificationClick(notification, index)}
+//         >
+//           <div className="flex items-start gap-3">
+//             <Avatar
+//               className={`h-10 w-10 ${
+//                 isUnread ? "bg-blue-100" : "bg-gray-100"
+//               }`}
+//             >
+//               <ShoppingCart
+//                 className={`h-6 w-6 ${
+//                   isUnread ? "text-blue-600" : "text-gray-500"
+//                 }`}
+//               />
+//             </Avatar>
+//             <div className="flex-1 min-w-0">
+//               <div className="flex justify-between items-start">
+//                 <p
+//                   className={`font-medium text-sm truncate ${
+//                     isUnread ? "text-blue-800" : ""
+//                   }`}
+//                 >
+//                   {notification.Data.ServiceName}
+//                 </p>
+//                 <span className="text-xs text-gray-500">
+//                   {formatTimeAgo(notification.timestamp)}
+//                 </span>
+//               </div>
+//               <p className="text-xs text-gray-600 truncate">
+//                 {notification.Data.BuildingName}, Nhà:{" "}
+//                 {notification.Data.HouseNumber}
+//                 {notification.Data.RoomNumber
+//                   ? `, Phòng: ${notification.Data.RoomNumber}`
+//                   : ""}
+//               </p>
+//               <p className="text-xs truncate">
+//                 <span className="text-gray-500">Order ID:</span>{" "}
+//                 {notification.Data.OrderId}
+//               </p>
+//             </div>
+//             {isUnread && (
+//               <div className="w-2 h-2 rounded-full bg-blue-600 mt-2"></div>
+//             )}
+//           </div>
+//         </div>
+//       );
+//     } else if (notification.notificationType === "OrderCancelled") {
+//       return (
+//         <div
+//           key={index}
+//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
+//             isUnread ? "bg-red-50" : ""
+//           }`}
+//           onClick={() => handleNotificationClick(notification, index)}
+//         >
+//           <div className="flex items-start gap-3">
+//             <Avatar
+//               className={`h-10 w-10 ${isUnread ? "bg-red-100" : "bg-gray-100"}`}
+//             >
+//               <AlertTriangle
+//                 className={`h-6 w-6 ${
+//                   isUnread ? "text-red-600" : "text-gray-500"
+//                 }`}
+//               />
+//             </Avatar>
+//             <div className="flex-1 min-w-0">
+//               <div className="flex justify-between items-start">
+//                 <p
+//                   className={`font-medium text-sm truncate ${
+//                     isUnread ? "text-red-800" : ""
+//                   }`}
+//                 >
+//                   Hủy đơn hàng
+//                 </p>
+//                 <span className="text-xs text-gray-500">
+//                   {formatTimeAgo(notification.timestamp)}
+//                 </span>
+//               </div>
+//               <p className="text-xs text-gray-600 truncate">
+//                 Lý do: {notification.options.body.cancellationReason}
+//               </p>
+//               <p className="text-xs truncate">
+//                 <span className="text-gray-500">Phương thức hoàn tiền:</span>{" "}
+//                 {notification.options.body.refundMethod}
+//               </p>
+//             </div>
+//             {isUnread && (
+//               <div className="w-2 h-2 rounded-full bg-red-600 mt-2"></div>
+//             )}
+//           </div>
+//         </div>
+//       );
+//     } else if (notification.notificationType === "text") {
+//       return (
+//         <div
+//           key={index}
+//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
+//             isUnread ? "bg-green-50" : ""
+//           }`}
+//           onClick={() => handleNotificationClick(notification, index)}
+//         >
+//           <div className="flex items-start gap-3">
+//             <Avatar
+//               className={`h-10 w-10 ${
+//                 isUnread ? "bg-green-100" : "bg-gray-100"
+//               }`}
+//             >
+//               <MessageSquare
+//                 className={`h-6 w-6 ${
+//                   isUnread ? "text-green-600" : "text-gray-500"
+//                 }`}
+//               />
+//             </Avatar>
+//             <div className="flex-1 min-w-0">
+//               <div className="flex justify-between items-start">
+//                 <p
+//                   className={`font-medium text-sm truncate ${
+//                     isUnread ? "text-green-800" : ""
+//                   }`}
+//                 >
+//                   Thông báo
+//                 </p>
+//                 <span className="text-xs text-gray-500">
+//                   {formatTimeAgo(notification.timestamp)}
+//                 </span>
+//               </div>
+//               <p className="text-xs text-gray-600 truncate">
+//                 {notification.message}
+//               </p>
+//             </div>
+//             {isUnread && (
+//               <div className="w-2 h-2 rounded-full bg-green-600 mt-2"></div>
+//             )}
+//           </div>
+//         </div>
+//       );
+//     }
+//     return null;
+//   };
+
+//   return (
+//     <Popover open={isOpen} onOpenChange={handlePopoverOpenChange}>
+//       <PopoverTrigger asChild>
+//         <div className="relative">
+//           <motion.div
+//             animate={
+//               isAnimating
+//                 ? {
+//                     rotate: [0, -10, 10, -10, 10, -5, 5, 0],
+//                   }
+//                 : {}
+//             }
+//             transition={{ duration: 0.5 }}
+//           >
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               className={`relative ${
+//                 unreadCount > 0
+//                   ? "text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+//                   : ""
+//               }`}
+//             >
+//               <Bell className="h-5 w-5" />
+//             </Button>
+//           </motion.div>
+
+//           {unreadCount > 0 && (
+//             <motion.div
+//               initial={{ scale: 0.5, opacity: 0 }}
+//               animate={{
+//                 scale: isAnimating ? [1, 1.2, 1] : 1,
+//                 opacity: 1,
+//               }}
+//               transition={{ duration: 0.3 }}
+//               className="absolute -right-1 -top-1"
+//             >
+//               <Badge className="h-5 min-w-5 p-0 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-md">
+//                 {unreadCount > 99 ? "99+" : unreadCount}
+//               </Badge>
+//             </motion.div>
+//           )}
+//         </div>
+//       </PopoverTrigger>
+//       <PopoverContent
+//         className="w-80 md:w-96 p-0 shadow-lg rounded-xl"
+//         align="end"
+//       >
+//         {selectedNotification ? (
+//           <div className="max-h-96">
+//             <div className="flex items-center p-3 border-b">
+//               <Button
+//                 variant="ghost"
+//                 size="icon"
+//                 onClick={backToList}
+//                 className="mr-2"
+//               >
+//                 <ChevronLeft className="h-5 w-5" />
+//               </Button>
+//               <h3 className="font-semibold text-lg">Chi tiết thông báo</h3>
+//             </div>
+//             <ScrollArea className="max-h-80">
+//               {renderNotificationContent(selectedNotification)}
+//             </ScrollArea>
+//           </div>
+//         ) : (
+//           <div className="max-h-96">
+//             <div className="flex justify-between items-center p-3 border-b">
+//               <h3 className="font-semibold text-lg">Thông báo</h3>
+//               <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 onClick={markAllAsRead}
+//                 className="text-xs"
+//               >
+//                 <Check className="h-3 w-3 mr-1" /> Đánh dấu đã đọc
+//               </Button>
+//             </div>
+
+//             {/* Luôn sử dụng ScrollArea với chiều cao cố định khi có từ 3 thông báo trở lên */}
+//             <div
+//               className={`${
+//                 parsedNotifications.length >= 3 ? "h-72" : "max-h-72"
+//               } overflow-auto`}
+//             >
+//               {parsedNotifications.length > 0 ? (
+//                 parsedNotifications.map((notification: Notification, index: number) =>
+//                   renderNotificationItem(notification, index)
+//                 )
+//               ) : (
+//                 <div className="text-center p-8 text-gray-500">
+//                   <p>Không có thông báo nào</p>
+//                 </div>
+//               )}
+//             </div>
+
+//             <div className="text-xs text-gray-500 p-2 border-t">
+//               <div className="flex items-center">
+//                 <span>Trạng thái: </span>
+//                 <span
+//                   className={`ml-1 px-2 py-0.5 rounded-full font-medium ${
+//                     connectionStatus === "connected"
+//                       ? "bg-green-100 text-green-800"
+//                       : connectionStatus === "connecting"
+//                       ? "bg-yellow-100 text-yellow-800"
+//                       : "bg-red-100 text-red-800"
+//                   }`}
+//                 >
+//                   {connectionStatus === "connected"
+//                     ? "Đã kết nối"
+//                     : connectionStatus === "connecting"
+//                     ? "Đang kết nối"
+//                     : "Ngắt kết nối"}
+//                 </span>
+//                 {connectionId && (
+//                   <div className="mt-1 ml-40">
+//                     ID:{" "}
+//                     <span className="font-mono">
+//                       {connectionId.slice(0, 2)}...
+//                     </span>
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+//         )}
+//       </PopoverContent>
+//     </Popover>
+//   );
+// };
+
+// const formatTimeAgo = (date: Date) => {
+//   const now = new Date();
+//   const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+
+//   if (diffInSeconds < 60) return "vừa xong";
+//   const diffInMinutes = Math.floor(diffInSeconds / 60);
+//   if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+//   const diffInHours = Math.floor(diffInMinutes / 60);
+//   if (diffInHours < 24) return `${diffInHours} giờ trước`;
+//   const diffInDays = Math.floor(diffInHours / 24);
+//   if (diffInDays < 30) return `${diffInDays} ngày trước`;
+//   return new Date(date).toLocaleDateString();
+// };
+
+// export default NotificationComponent;
+
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -132,7 +719,7 @@ const NotificationComponent = () => {
   );
 
   const playNotificationSound = () => {
-    const audio = new Audio("/audios/mixkit-dog-barking-twice-1.wav");
+    const audio = new Audio("/audios/messenger-sound.mp3");
     audio.play().catch((error) => console.log("Lỗi phát âm thanh:", error));
   };
 
@@ -581,554 +1168,3 @@ const formatTimeAgo = (date: Date) => {
 };
 
 export default NotificationComponent;
-
-// "use client";
-
-// import React, { useState, useEffect, useMemo } from "react";
-// import {
-//   Bell,
-//   Check,
-//   X,
-//   ChevronLeft,
-//   ShoppingCart,
-//   AlertTriangle,
-//   MessageSquare,
-// } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
-// import {
-//   Popover,
-//   PopoverContent,
-//   PopoverTrigger,
-// } from "@/components/ui/popover";
-// import { Avatar } from "@/components/ui/avatar";
-// import { ScrollArea } from "@/components/ui/scroll-area";
-// import { motion } from "framer-motion";
-// import { useSignalRContext } from "@/context/signalr-provider";
-
-// // Define the different notification types
-// interface BaseNotification {
-//   id?: string;
-//   timestamp: Date;
-//   type: "all" | "Manager" | "Admin" | "User";
-//   isRead?: boolean;
-// }
-
-// interface OrderNotification extends BaseNotification {
-//   notificationType: "order";
-//   Type: string;
-//   Data: {
-//     OrderId: string;
-//     ServiceName: string;
-//     BuildingName: string;
-//     HouseNumber: string;
-//     RoomNumber: string | null;
-//   };
-// }
-
-// interface CancellationNotification extends BaseNotification {
-//   notificationType: "cancellation";
-//   options: {
-//     body: {
-//       cancellationReason: string;
-//       refundMethod: string;
-//       cancelledBy: string;
-//     };
-//   };
-//   orderId?: string;
-// }
-
-// interface TextNotification extends BaseNotification {
-//   notificationType: "text";
-//   message: string;
-// }
-
-// type NotificationType = OrderNotification | CancellationNotification | TextNotification;
-
-// // Helper function to generate unique IDs
-// const generateId = () => `notif_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-// const NotificationComponent: React.FC = () => {
-//   const { notifications, connectionIds, connectionStatuses } = useSignalRContext();
-//   const [unreadCount, setUnreadCount] = useState<number>(0);
-//   const [isOpen, setIsOpen] = useState<boolean>(false);
-//   const [selectedNotification, setSelectedNotification] = useState<NotificationType | null>(null);
-//   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-//   const [parsedNotifications, setParsedNotifications] = useState<NotificationType[]>([]);
-
-//   // Process raw notifications into properly typed notification objects
-//   useEffect(() => {
-//     const processed = notifications.map((notif) => {
-//       try {
-//         // Check if the message is valid JSON
-//         if (notif.message.trim().startsWith('{') && notif.message.trim().endsWith('}')) {
-//           const parsed = JSON.parse(notif.message);
-
-//           // Determine notification type based on content
-//           if (parsed.options && parsed.options.body && parsed.options.body.cancellationReason) {
-//             return {
-//               id: generateId(),
-//               notificationType: "cancellation",
-//               options: parsed.options,
-//               timestamp: new Date(notif.timestamp),
-//               type: notif.type,
-//               isRead: false,
-//             } as CancellationNotification;
-//           } else if (parsed.Data && parsed.Data.OrderId) {
-//             return {
-//               id: generateId(),
-//               notificationType: "order",
-//               ...parsed,
-//               timestamp: new Date(notif.timestamp),
-//               type: notif.type,
-//               isRead: false,
-//             } as OrderNotification;
-//           }
-//         }
-
-//         // If not valid JSON or not recognized format, treat as text notification
-//         return {
-//           id: generateId(),
-//           notificationType: "text",
-//           message: notif.message,
-//           timestamp: new Date(notif.timestamp),
-//           type: notif.type,
-//           isRead: false,
-//         } as TextNotification;
-//       } catch (e) {
-//         // If JSON parsing fails, create a text notification
-//         return {
-//           id: generateId(),
-//           notificationType: "text",
-//           message: notif.message,
-//           timestamp: new Date(notif.timestamp),
-//           type: notif.type,
-//           isRead: false,
-//         } as TextNotification;
-//       }
-//     });
-    
-//     // Sort by timestamp, newest first
-//     processed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-//     setParsedNotifications(processed);
-//   }, [notifications]);
-
-//   // Count unread notifications
-//   const unreadNotifications = useMemo(
-//     () => parsedNotifications.filter((notif) => !notif.isRead),
-//     [parsedNotifications]
-//   );
-
-//   // Play notification sound effect
-//   const playNotificationSound = () => {
-//     const audio = new Audio("/audios/mixkit-dog-barking-twice-1.wav");
-//     audio.play().catch((error) => console.log("Lỗi phát âm thanh:", error));
-//   };
-
-//   // Handle new notifications
-//   useEffect(() => {
-//     if (unreadNotifications.length > unreadCount) {
-//       playNotificationSound();
-//       setIsAnimating(true);
-//       setTimeout(() => setIsAnimating(false), 2000);
-//     }
-//     setUnreadCount(unreadNotifications.length);
-//   }, [unreadNotifications.length, unreadCount]);
-
-//   // Mark all notifications as read
-//   const markAllAsRead = () => {
-//     setParsedNotifications(prev => 
-//       prev.map(notif => ({ ...notif, isRead: true }))
-//     );
-//     setUnreadCount(0);
-//   };
-
-//   // Mark a single notification as read
-//   const markAsRead = (id: string) => {
-//     setParsedNotifications(prev => 
-//       prev.map(notif => 
-//         notif.id === id ? { ...notif, isRead: true } : notif
-//       )
-//     );
-//     setUnreadCount(prev => Math.max(0, prev - 1));
-//   };
-
-//   // Handle notification click
-//   const handleNotificationClick = (notification: NotificationType) => {
-//     setSelectedNotification(notification);
-//     if (notification.id && !notification.isRead) {
-//       markAsRead(notification.id);
-//     }
-//   };
-
-//   // Handle popover state change
-//   const handlePopoverOpenChange = (open: boolean) => {
-//     setIsOpen(open);
-//     if (!open) {
-//       setSelectedNotification(null);
-//     }
-//   };
-
-//   // Return to notification list
-//   const backToList = () => {
-//     setSelectedNotification(null);
-//   };
-
-//   // Format time ago for timestamps
-//   const formatTimeAgo = (date: Date) => {
-//     const now = new Date();
-//     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-//     if (diffInSeconds < 60) return "vừa xong";
-//     const diffInMinutes = Math.floor(diffInSeconds / 60);
-//     if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-//     const diffInHours = Math.floor(diffInMinutes / 60);
-//     if (diffInHours < 24) return `${diffInHours} giờ trước`;
-//     const diffInDays = Math.floor(diffInHours / 24);
-//     if (diffInDays < 30) return `${diffInDays} ngày trước`;
-//     return date.toLocaleDateString();
-//   };
-
-//   // Render notification detail content
-//   const renderNotificationContent = (notification: NotificationType) => {
-//     if (notification.notificationType === "order") {
-//       return (
-//         <div className="space-y-3 p-4">
-//           <div className="flex items-center space-x-2">
-//             <Avatar className="h-10 w-10 bg-blue-100">
-//               <ShoppingCart className="h-6 w-6 text-blue-600" />
-//             </Avatar>
-//             <div>
-//               <h3 className="font-semibold">Đơn hàng mới</h3>
-//               <p className="text-sm text-gray-500">
-//                 {formatTimeAgo(notification.timestamp)}
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="bg-blue-50 p-3 rounded-lg space-y-2">
-//             <div className="flex justify-between">
-//               <span className="font-medium">Dịch vụ:</span>
-//               <span>{notification.Data.ServiceName}</span>
-//             </div>
-//             <div className="flex justify-between">
-//               <span className="font-medium">Địa điểm:</span>
-//               <span>{notification.Data.BuildingName}</span>
-//             </div>
-//             <div className="flex justify-between">
-//               <span className="font-medium">Số nhà:</span>
-//               <span>{notification.Data.HouseNumber}</span>
-//             </div>
-//             {notification.Data.RoomNumber && (
-//               <div className="flex justify-between">
-//                 <span className="font-medium">Số phòng:</span>
-//                 <span>{notification.Data.RoomNumber}</span>
-//               </div>
-//             )}
-//             <div className="flex justify-between">
-//               <span className="font-normal">ID đơn hàng:</span>
-//               <span className="font-mono text-sm">
-//                 {notification.Data.OrderId}
-//               </span>
-//             </div>
-//           </div>
-//         </div>
-//       );
-//     } else if (notification.notificationType === "cancellation") {
-//       return (
-//         <div className="space-y-3 p-4">
-//           <div className="flex items-center space-x-2">
-//             <Avatar className="h-10 w-10 bg-red-100">
-//               <X className="h-6 w-6 text-red-600" />
-//             </Avatar>
-//             <div>
-//               <h3 className="font-semibold">Hủy đơn hàng</h3>
-//               <p className="text-sm text-gray-500">
-//                 {formatTimeAgo(notification.timestamp)}
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="bg-red-50 p-3 rounded-lg space-y-2">
-//             <div className="flex justify-between">
-//               <span className="font-medium">Lý do hủy:</span>
-//               <span>{notification.options.body.cancellationReason}</span>
-//             </div>
-//             <div className="flex justify-between">
-//               <span className="font-medium">Phương thức hoàn tiền:</span>
-//               <span>{notification.options.body.refundMethod}</span>
-//             </div>
-//             <div className="flex justify-between">
-//               <span className="font-medium">ID người hủy:</span>
-//               <span className="font-mono text-sm truncate max-w-32">
-//                 {notification.options.body.cancelledBy}
-//               </span>
-//             </div>
-//           </div>
-
-//           <div className="flex space-x-2 pt-2">
-//             <Button className="w-full">Xem chi tiết</Button>
-//           </div>
-//         </div>
-//       );
-//     } else if (notification.notificationType === "text") {
-//       return (
-//         <div className="space-y-3 p-4">
-//           <div className="flex items-center space-x-2">
-//             <Avatar className="h-10 w-10 bg-green-100">
-//               <MessageSquare className="h-6 w-6 text-green-600" />
-//             </Avatar>
-//             <div>
-//               <h3 className="font-semibold">Thông báo</h3>
-//               <p className="text-sm text-gray-500">
-//                 {formatTimeAgo(notification.timestamp)}
-//               </p>
-//             </div>
-//           </div>
-
-//           <div className="bg-green-50 p-3 rounded-lg">
-//             <p className="text-gray-800">{notification.message}</p>
-//           </div>
-//         </div>
-//       );
-//     }
-//     return null;
-//   };
-
-//   // Render notification list item
-//   const renderNotificationItem = (notification: NotificationType) => {
-//     const isUnread = !notification.isRead;
-
-//     if (notification.notificationType === "order") {
-//       return (
-//         <div
-//           key={notification.id}
-//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-//             isUnread ? "bg-blue-50" : ""
-//           }`}
-//           onClick={() => handleNotificationClick(notification)}
-//         >
-//           <div className="flex items-start gap-3">
-//             <Avatar
-//               className={`h-10 w-10 ${
-//                 isUnread ? "bg-blue-100" : "bg-gray-100"
-//               }`}
-//             >
-//               <ShoppingCart
-//                 className={`h-6 w-6 ${
-//                   isUnread ? "text-blue-600" : "text-gray-500"
-//                 }`}
-//               />
-//             </Avatar>
-//             <div className="flex-1 min-w-0">
-//               <div className="flex justify-between items-start">
-//                 <p
-//                   className={`font-medium text-sm truncate ${
-//                     isUnread ? "text-blue-800" : ""
-//                   }`}
-//                 >
-//                   {notification.Data.ServiceName}
-//                 </p>
-//                 <span className="text-xs text-gray-500">
-//                   {formatTimeAgo(notification.timestamp)}
-//                 </span>
-//               </div>
-//               <p className="text-xs text-gray-600 truncate">
-//                 {notification.Data.BuildingName}, Nhà:{" "}
-//                 {notification.Data.HouseNumber}
-//                 {notification.Data.RoomNumber
-//                   ? `, Phòng: ${notification.Data.RoomNumber}`
-//                   : ""}
-//               </p>
-//               <p className="text-xs truncate">
-//                 <span className="text-gray-500">Order ID:</span>{" "}
-//                 {notification.Data.OrderId.substring(0, 8)}...
-//               </p>
-//             </div>
-//             {isUnread && (
-//               <div className="w-2 h-2 rounded-full bg-blue-600 mt-2"></div>
-//             )}
-//           </div>
-//         </div>
-//       );
-//     } else if (notification.notificationType === "cancellation") {
-//       return (
-//         <div
-//           key={notification.id}
-//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-//             isUnread ? "bg-red-50" : ""
-//           }`}
-//           onClick={() => handleNotificationClick(notification)}
-//         >
-//           <div className="flex items-start gap-3">
-//             <Avatar
-//               className={`h-10 w-10 ${isUnread ? "bg-red-100" : "bg-gray-100"}`}
-//             >
-//               <AlertTriangle
-//                 className={`h-6 w-6 ${
-//                   isUnread ? "text-red-600" : "text-gray-500"
-//                 }`}
-//               />
-//             </Avatar>
-//             <div className="flex-1 min-w-0">
-//               <div className="flex justify-between items-start">
-//                 <p
-//                   className={`font-medium text-sm truncate ${
-//                     isUnread ? "text-red-800" : ""
-//                   }`}
-//                 >
-//                   Hủy đơn hàng
-//                 </p>
-//                 <span className="text-xs text-gray-500">
-//                   {formatTimeAgo(notification.timestamp)}
-//                 </span>
-//               </div>
-//               <p className="text-xs text-gray-600 truncate">
-//                 Lý do: {notification.options.body.cancellationReason}
-//               </p>
-//               <p className="text-xs truncate">
-//                 <span className="text-gray-500">Phương thức hoàn tiền:</span>{" "}
-//                 {notification.options.body.refundMethod}
-//               </p>
-//             </div>
-//             {isUnread && (
-//               <div className="w-2 h-2 rounded-full bg-red-600 mt-2"></div>
-//             )}
-//           </div>
-//         </div>
-//       );
-//     } else if (notification.notificationType === "text") {
-//       return (
-//         <div
-//           key={notification.id}
-//           className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-//             isUnread ? "bg-green-50" : ""
-//           }`}
-//           onClick={() => handleNotificationClick(notification)}
-//         >
-//           <div className="flex items-start gap-3">
-//             <Avatar
-//               className={`h-10 w-10 ${
-//                 isUnread ? "bg-green-100" : "bg-gray-100"
-//               }`}
-//             >
-//               <MessageSquare
-//                 className={`h-6 w-6 ${
-//                   isUnread ? "text-green-600" : "text-gray-500"
-//                 }`}
-//               />
-//             </Avatar>
-//             <div className="flex-1 min-w-0">
-//               <div className="flex justify-between items-start">
-//                 <p
-//                   className={`font-medium text-sm truncate ${
-//                     isUnread ? "text-green-800" : ""
-//                   }`}
-//                 >
-//                   Thông báo
-//                 </p>
-//                 <span className="text-xs text-gray-500">
-//                   {formatTimeAgo(notification.timestamp)}
-//                 </span>
-//               </div>
-//               <p className="text-xs text-gray-600 truncate">{notification.message}</p>
-//             </div>
-//             {isUnread && (
-//               <div className="w-2 h-2 rounded-full bg-green-600 mt-2"></div>
-//             )}
-//           </div>
-//         </div>
-//       );
-//     }
-//     return null;
-//   };
-
-//   // Check if any hub is connected
-//   const isAnyHubConnected = Object.values(connectionStatuses).some(
-//     status => status === "connected"
-//   );
-
-//   return (
-//     <Popover open={isOpen} onOpenChange={handlePopoverOpenChange}>
-//       <PopoverTrigger asChild>
-//         <Button
-//           variant="ghost"
-//           size="sm"
-//           className="relative h-9 w-9 rounded-full p-0"
-//         >
-//           <motion.div
-//             animate={isAnimating ? { scale: [1, 1.2, 1] } : {}}
-//             transition={{ duration: 0.5 }}
-//           >
-//             <Bell className="h-5 w-5" />
-//             {unreadCount > 0 && (
-//               <Badge
-//                 variant="destructive"
-//                 className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-//               >
-//                 {unreadCount > 9 ? "9+" : unreadCount}
-//               </Badge>
-//             )}
-//           </motion.div>
-//         </Button>
-//       </PopoverTrigger>
-//       <PopoverContent className="w-80 p-0">
-//         {selectedNotification ? (
-//           <div>
-//             <div className="flex items-center justify-between border-b p-3">
-//               <Button
-//                 variant="ghost"
-//                 size="sm"
-//                 className="h-8 w-8 p-0"
-//                 onClick={backToList}
-//               >
-//                 <ChevronLeft className="h-4 w-4" />
-//               </Button>
-//               <h3 className="text-sm font-medium">Chi tiết thông báo</h3>
-//               <div className="w-8"></div>
-//             </div>
-//             {renderNotificationContent(selectedNotification)}
-//           </div>
-//         ) : (
-//           <>
-//             <div className="flex items-center justify-between border-b p-3">
-//               <h3 className="text-sm font-medium">Thông báo</h3>
-//               <div className="flex items-center gap-2">
-//                 {unreadCount > 0 && (
-//                   <Button
-//                     variant="ghost"
-//                     size="sm"
-//                     className="h-8 w-8 p-0"
-//                     onClick={markAllAsRead}
-//                   >
-//                     <Check className="h-4 w-4" />
-//                   </Button>
-//                 )}
-//                 <div className="h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
-//                   <div
-//                     className={`h-2 w-2 rounded-full ${
-//                       isAnyHubConnected ? "bg-white" : "bg-red-500"
-//                     }`}
-//                   ></div>
-//                 </div>
-//               </div>
-//             </div>
-//             <ScrollArea className="h-80">
-//               {parsedNotifications.length > 0 ? (
-//                 parsedNotifications.map((notification) =>
-//                   renderNotificationItem(notification)
-//                 )
-//               ) : (
-//                 <div className="flex h-full items-center justify-center p-4">
-//                   <p className="text-sm text-gray-500">Không có thông báo</p>
-//                 </div>
-//               )}
-//             </ScrollArea>
-//           </>
-//         )}
-//       </PopoverContent>
-//     </Popover>
-//   );
-// };
-
-// export default NotificationComponent;
