@@ -27,7 +27,7 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
   // Fetch both data sources in parallel for better performance
   const [staffResponse, employeeResponse] = await Promise.all([
     getAllStaffs(filters),
-    getAllEmployees(filters, accessToken)
+    getAllEmployees(filters, accessToken),
   ]);
 
   const serviceStaff = staffResponse.payload || { items: [], totalPages: 0 };
@@ -38,13 +38,19 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
       <Tabs defaultValue={tabParam} className="w-full">
         <div className="p-4 border-b">
           <TabsList className="grid grid-cols-2 w-72">
-            <TabsTrigger value="service" className="flex items-center font-medium">
+            <TabsTrigger
+              value="service"
+              className="flex items-center font-medium"
+            >
               Dịch vụ
               <Badge className="ml-2 bg-blue-100 text-blue-800 border-blue-200">
                 {serviceStaff.items.length}
               </Badge>
             </TabsTrigger>
-            <TabsTrigger value="laundry" className="flex items-center font-medium">
+            <TabsTrigger
+              value="laundry"
+              className="flex items-center font-medium"
+            >
               Giặt sấy
               <Badge className="ml-2 bg-purple-100 text-purple-800 border-purple-200">
                 {laundryStaff.items.length}
@@ -58,7 +64,7 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
             <DataTable
               data={serviceStaff.items}
               columns={StaffServiceColumns}
-              totalItems={serviceStaff.totalPages}
+              totalItems={serviceStaff.total}
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
@@ -66,13 +72,13 @@ const StaffTable = async ({ accessToken }: StaffTableProps) => {
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="laundry" className="p-4 pt-2">
           {laundryStaff.items.length > 0 ? (
             <DataTable
               data={laundryStaff.items}
               columns={LaundryStaffColumns}
-              totalItems={laundryStaff.totalPages}
+              totalItems={laundryStaff.total}
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">

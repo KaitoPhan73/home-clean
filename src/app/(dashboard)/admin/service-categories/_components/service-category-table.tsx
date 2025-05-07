@@ -20,7 +20,7 @@ const ServiceCategoryTable = async () => {
       <DataTable
         data={storePayload.items}
         columns={columns}
-        totalItems={storePayload.totalPages}
+        totalItems={storePayload.total}
       />
     </div>
   );

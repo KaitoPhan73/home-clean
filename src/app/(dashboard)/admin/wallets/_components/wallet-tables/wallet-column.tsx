@@ -83,8 +83,13 @@ export const WalletColumn: ColumnDef<TWalletResponse>[] = [
     header: "Loại ví",
     cell: ({ row }) => {
       const type = row.getValue("type");
-      const validType = typeof type === "string" && type in WALLET_TYPE_CONFIG ? type as keyof typeof WALLET_TYPE_CONFIG : null;
-      const config = validType ? WALLET_TYPE_CONFIG[validType] : FALLBACK_TYPE_CONFIG;
+      const validType =
+        typeof type === "string" && type in WALLET_TYPE_CONFIG
+          ? (type as keyof typeof WALLET_TYPE_CONFIG)
+          : null;
+      const config = validType
+        ? WALLET_TYPE_CONFIG[validType]
+        : FALLBACK_TYPE_CONFIG;
 
       // Log unexpected type for debugging
       if (!validType) {

@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 
 import { DataTableSkeleton } from "@/components/table/data-table-skeleton";
 import { Heading } from "@/components/ui/headling";
-import ManagerTableAction from "@/app/(dashboard)/admin/service-categories/_components/service-category-tables/service-category-table-action";
+// import ManagerTableAction from "@/app/(dashboard)/admin/service-categories/_components/service-category-tables/service-category-table-action";
 import ManagerTable from "@/app/(dashboard)/admin/managers/_components/manager-table";
 import { CredenzaCreateManager } from "@/app/(dashboard)/admin/managers/_components/credenza-create-manager";
 type Props = {
@@ -19,7 +19,7 @@ const ManagerIndex = ({ keyProps }: Props) => {
         </div>
         {/* <Separator /> */}
 
-        <ManagerTableAction />
+        {/* <ManagerTableAction /> */}
         <Suspense
           key={keyProps}
           fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}

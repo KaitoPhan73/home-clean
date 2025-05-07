@@ -20,7 +20,7 @@ const UserTable = async () => {
       <DataTable
         data={userPayload.items}
         columns={UserColumns}
-        totalItems={userPayload.totalPages}
+        totalItems={userPayload.total}
       />
     </div>
   );

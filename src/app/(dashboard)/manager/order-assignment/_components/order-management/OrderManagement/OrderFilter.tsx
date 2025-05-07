@@ -34,8 +34,8 @@ const INITIAL_LOAD_LIMIT = 20;
 const LAZY_LOAD_BATCH = 10;
 
 const useStaffAssignBoard = () => {
-    const { notifications, connectionId } = useSignalRContext();
-  
+  const { notifications, connectionId } = useSignalRContext();
+
   const [ordersData, setOrdersData] = useState<EnhancedOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -351,10 +351,16 @@ const useStaffAssignBoard = () => {
   ]);
 
   useEffect(() => {
+    if (groupId) {
+      loadData();
+    }
+  }, [groupId, loadData]);
+
+  useEffect(() => {
     if (notifications.length > 0) {
       loadData();
     }
-  }, [notifications.length,loadData]);
+  }, [notifications.length, loadData]);
 
   useEffect(() => {
     const userRaw = getCookie("user");
@@ -636,7 +642,10 @@ const OrderFilter = () => {
         <>
           <DndProvider backend={HTML5Backend}>
             <div className="task-board-container">
-              <TaskBoard orders={displayedItems} groupId={groupId ?? undefined} />
+              <TaskBoard
+                orders={displayedItems}
+                groupId={groupId ?? undefined}
+              />
             </div>
           </DndProvider>
 

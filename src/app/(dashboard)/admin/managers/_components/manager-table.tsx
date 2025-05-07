@@ -20,7 +20,7 @@ const ManagerTable = async () => {
       <DataTable
         data={managerPayload.items}
         columns={columns}
-        totalItems={managerPayload.totalPages}
+        totalItems={managerPayload.total}
       />
     </div>
   );

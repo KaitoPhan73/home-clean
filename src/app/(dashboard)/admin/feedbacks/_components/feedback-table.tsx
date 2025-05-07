@@ -20,7 +20,7 @@ const FeedbackTable = async () => {
       <DataTable
         data={feedbackPayload.items}
         columns={columns}
-        totalItems={feedbackPayload.totalPages}
+        totalItems={feedbackPayload.total}
       />
     </div>
   );

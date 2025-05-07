@@ -47,7 +47,7 @@ const TaskClientTable = ({ initialData }: TaskTableProps) => {
       <DataTable
         data={data}
         columns={taskColumns}
-        totalItems={initialData.totalPages}
+        totalItems={initialData.items.length}
       />
     </div>
   );
