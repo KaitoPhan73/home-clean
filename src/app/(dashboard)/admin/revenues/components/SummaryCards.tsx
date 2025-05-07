@@ -73,6 +73,8 @@ export function SummaryCards({ summaryData, isLoading }: SummaryCardsProps) {
           ? "Đang xử lý"
           : item.status === "Completed"
           ? "Hoàn thành"
+          : item.status === "Draft"
+          ? "Đơn mới"
           : item.status === "Cancelled"
           ? "Đã hủy"
           : item.status === "Pending"
