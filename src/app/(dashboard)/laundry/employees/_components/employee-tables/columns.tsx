@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./cell-action";
-import { CheckCircle, XCircle, User, Clock, Loader, Calendar, Hash } from "lucide-react";
+import { CheckCircle, XCircle, User, Clock, Calendar, Hash } from "lucide-react";
 import { EmployeRealTimeStatus } from "@/apis/laudry/employee";
 
 export const EmployeeColumns: ColumnDef<EmployeRealTimeStatus>[] = [
@@ -61,7 +61,7 @@ export const EmployeeColumns: ColumnDef<EmployeRealTimeStatus>[] = [
           break;
         case "Working":
           statusDisplay = "Đang làm việc";
-          statusIcon = <Loader className="text-blue-600 h-5 w-5 animate-spin" />;
+          statusIcon = <Clock className="h-4 w-4 text-blue-600 animate-spin" /> 
           statusColorClass = "bg-blue-100 text-blue-800";
           break;
         case "Unavailable":

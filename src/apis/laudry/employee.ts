@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { httpVinLaundry } from "@/lib/http";
-import { TEmployeeLaundryResponse } from "@/schema/VinLaudry/employee.schema";
+import { TEmployeeLaundryResponse, TProgressEmployeeResponse, TUpdateEmployeeRequest } from "@/schema/VinLaudry/employee.schema";
 import { TTableResponse } from "@/types/Table";
 
 export interface EmployeRealTimeStatus {
@@ -23,6 +24,10 @@ export const getAllEmployees = async (params?: any, accessToken?: string) => {
     return { payload: response.payload };
 };
 
+export const getProgressEmployeeById = async (id: string) => {
+    const response = await httpVinLaundry.get<TProgressEmployeeResponse>(`/employees/${id}/task-in-progress`);
+    return response;
+};
 
 export async function getEmployeesRealTimeStatus(params?: any): Promise<EmployeRealTimeStatus[]> {
     try {
@@ -38,7 +43,7 @@ export async function getEmployeesRealTimeStatus(params?: any): Promise<EmployeR
             fetchedEmployees = response.payload?.items || [];
         }
 
-        console.log("Processed employees:", fetchedEmployees);
+        // console.log("Processed employees:", fetchedEmployees);
         return fetchedEmployees;
     } catch (error) {
         console.error("Error fetching employees:", error);
@@ -64,7 +69,6 @@ export async function updateEmployeesRealTimeStatus(params?: any, token?: string
     }
 }
 
-
 export async function getEmployeeById(employeeId: string): Promise<EmployeRealTimeStatus | null> {
     try {
         if (!employeeId) return null;
@@ -79,6 +83,21 @@ export async function getEmployeeById(employeeId: string): Promise<EmployeRealTi
     }
 }
 
+export const getEmployeeProfileById = async (
+    id: string,
+    accessToken?: string
+) => {
+    const response = await httpVinLaundry.get<TEmployeeLaundryResponse>(
+        `/employees/${id}`,
+        {
+            headers: accessToken ? {
+                Authorization: `Bearer ${accessToken}`
+            } : undefined
+        }
+    );
+    return response;
+};
+
 export const createEmployee = async (data: Partial<TEmployeeLaundryResponse> & { _token?: string }) => {
     const { _token, ...requestData } = data;
     const accessToken = _token;
@@ -91,6 +110,14 @@ export const createEmployee = async (data: Partial<TEmployeeLaundryResponse> & {
                 Authorization: `Bearer ${accessToken}`,
             }
         }
+    );
+    return response;
+};
+
+export const updateEmployee = async (id: string, data: TUpdateEmployeeRequest, accessToken?: string | undefined) => {
+    const response = await httpVinLaundry.put<TEmployeeLaundryResponse>(
+        `/employees/${id}`,
+        data
     );
     return response;
 };

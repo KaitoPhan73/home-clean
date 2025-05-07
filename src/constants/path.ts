@@ -46,6 +46,7 @@ export const PATHS = {
   laundry: {
     orders: `${RootPath.manageLaundry}/orders`,
     employees: `${RootPath.manageLaundry}/employees`,
+    profile: `${RootPath.manageLaundry}/profile`,
   },
 
   staff: {

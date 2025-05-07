@@ -5,14 +5,14 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Clipboard, Clock, CheckCircle, XCircle, Loader, ChevronDown, RefreshCw, Play } from "lucide-react";
+import { Clipboard, Clock, CheckCircle, XCircle, Loader, ChevronDown, RefreshCw, Play, Clock10Icon, Clock11Icon, ClockIcon, HourglassIcon, Loader2Icon, CheckCircle2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "./TaskCard";
 import { TOrderResponse } from "@/schema/order.schema";
 import { useSignalRContext } from "@/context/signalr-provider";
 
-export type BoardStatus = "Draft" | "Pending" | "Accepted" | "InProgress" | "Completed" | "Cancelled";
+export type BoardStatus = "Draft" | "Pending" | "Accepted" | "InProgress" | "Completed" | "Cancelled" | "Scheduled";
 
 const userCache = new Map();
 const houseCache = new Map();
@@ -25,6 +25,7 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
     InProgress: [],
     Completed: [],
     Cancelled: [],
+    Scheduled: [],
   });
   const [isLoading, setIsLoading] = useState(false);
   
@@ -37,6 +38,7 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
         InProgress: [],
         Completed: [],
         Cancelled: [],
+        Scheduled: [],
       });
       return;
     }
@@ -50,6 +52,7 @@ export const useTaskBoard = (orders: TOrderResponse[]) => {
       InProgress: [],
       Completed: [],
       Cancelled: [],
+      Scheduled: [],
     };
     
     orders.forEach((order) => {
@@ -93,19 +96,25 @@ const statusConfig: Record<
   },
   Pending: { 
     label: "Chờ xử lý", 
-    icon: <Clock size={18} />, 
+    icon: <HourglassIcon size={18} />, 
     color: "text-yellow-600",
     borderColor: "border-yellow-500"
   },
+  Scheduled: { 
+    label: "Đơn đặt lịch", 
+    icon: <Clock size={18} />, 
+    color: "text-yellow-600",
+    borderColor: "border-yellow-200"
+  },
   Accepted: { 
     label: "Đã chấp nhận", 
-    icon: <Loader size={18} />, 
+    icon: <CheckCircle2Icon size={18} />, 
     color: "text-blue-600",
     borderColor: "border-blue-500"
   },
   InProgress: { 
     label: "Đang thực hiện", 
-    icon: <Play size={18} />, 
+    icon: <Loader size={18}/>, 
     color: "text-purple-600",
     borderColor: "border-purple-500"
   },
@@ -133,7 +142,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ orders, groupId }) => {
   const [activeStatus, setActiveStatus] = useState<BoardStatus>("Draft");
   const [displayCount, setDisplayCount] = useState<number>(9);
   
-  const allStatuses: BoardStatus[] = ["Draft", "Pending", "Accepted", "InProgress", "Completed", "Cancelled"];
+  const allStatuses: BoardStatus[] = ["Draft", "Scheduled", "Pending", "Accepted", "InProgress", "Completed", "Cancelled"];
   
   const handleLoadMore = () => {
     setDisplayCount(prev => prev + 9);
