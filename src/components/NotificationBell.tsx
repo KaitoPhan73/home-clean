@@ -158,7 +158,7 @@
 //     if (parsedNotifications[index]) {
 //       parsedNotifications[index].isRead = true;
 //       setUnreadCount((prev) => Math.max(0, prev - 1));
-//     } 
+//     }
 //   };
 
 //   const handleNotificationClick = (
@@ -584,7 +584,6 @@
 
 // export default NotificationComponent;
 
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -632,14 +631,10 @@ interface OrderNotification extends BaseNotification {
 
 interface CancellationNotification extends BaseNotification {
   notificationType: "OrderCancelled";
-  options: {
-    body: {
-      cancellationReason: string;
-      refundMethod: string;
-      cancelledBy: string;
-    };
+  Data: {
+    Code: string;
+    CancelledAt: string;
   };
-  orderId?: string; // Optional field to link the cancellation to an order
 }
 
 interface TextNotification extends BaseNotification {
@@ -647,7 +642,10 @@ interface TextNotification extends BaseNotification {
   message: string;
 }
 
-type Notification = OrderNotification | CancellationNotification | TextNotification;
+type Notification =
+  | OrderNotification
+  | CancellationNotification
+  | TextNotification;
 
 const NotificationComponent = () => {
   const { notifications, connectionStatus, connectionId } = useSignalRContext();
@@ -663,18 +661,20 @@ const NotificationComponent = () => {
       .map((notif) => {
         try {
           // Check if the message is valid JSON
-          if (notif.message.trim().startsWith('{') && notif.message.trim().endsWith('}')) {
+          if (
+            notif.message.trim().startsWith("{") &&
+            notif.message.trim().endsWith("}")
+          ) {
             const parsed = JSON.parse(notif.message);
 
-            // Determine notification type based on content
-            if (
-              parsed.options &&
-              parsed.options.body &&
-              parsed.options.body.cancellationReason
-            ) {
+            if (parsed.Type === "OrderCancelled" && parsed.Data) {
               return {
                 notificationType: "OrderCancelled",
-                options: parsed.options,
+                Data: {
+                  Code: parsed.Data.Code || "Không có mã",
+                  CancelledAt:
+                    parsed.Data.CancelledAt || new Date().toISOString(),
+                },
                 timestamp: notif.timestamp,
                 type: notif.type,
                 isRead: false,
@@ -710,7 +710,10 @@ const NotificationComponent = () => {
         }
       })
       .filter((notif): notif is Notification => notif !== null)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
   }, [notifications]);
 
   const unreadNotifications = useMemo(
@@ -817,32 +820,24 @@ const NotificationComponent = () => {
               <X className="h-6 w-6 text-red-600" />
             </Avatar>
             <div>
-              <h3 className="font-semibold">Hủy đơn hàng</h3>
+              <h3 className="font-semibold">Đơn hàng đã hủy</h3>
               <p className="text-sm text-gray-500">
-                {formatTimeAgo(notification.timestamp)}
+                {formatTimeAgo(new Date(notification.Data.CancelledAt))}
               </p>
             </div>
           </div>
 
           <div className="bg-red-50 p-3 rounded-lg space-y-2">
             <div className="flex justify-between">
-              <span className="font-medium">Lý do hủy:</span>
-              <span>{notification.options.body.cancellationReason}</span>
+              <span className="font-medium">Mã đơn hàng:</span>
+              <span className="font-mono">{notification.Data.Code}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium">Phương thức hoàn tiền:</span>
-              <span>{notification.options.body.refundMethod}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">ID người hủy:</span>
-              <span className="font-mono text-sm truncate max-w-32">
-                {notification.options.body.cancelledBy}
+              <span className="font-medium">Thời gian hủy:</span>
+              <span>
+                {new Date(notification.Data.CancelledAt).toLocaleString()}
               </span>
             </div>
-          </div>
-
-          <div className="flex space-x-2 pt-2">
-            <Button className="w-full">Xem chi tiết</Button>
           </div>
         </div>
       );
@@ -941,7 +936,7 @@ const NotificationComponent = () => {
             <Avatar
               className={`h-10 w-10 ${isUnread ? "bg-red-100" : "bg-gray-100"}`}
             >
-              <AlertTriangle
+              <X
                 className={`h-6 w-6 ${
                   isUnread ? "text-red-600" : "text-gray-500"
                 }`}
@@ -954,18 +949,14 @@ const NotificationComponent = () => {
                     isUnread ? "text-red-800" : ""
                   }`}
                 >
-                  Hủy đơn hàng
+                  Đơn hàng bị hủy
                 </p>
                 <span className="text-xs text-gray-500">
-                  {formatTimeAgo(notification.timestamp)}
+                  {formatTimeAgo(new Date(notification.Data.CancelledAt))}
                 </span>
               </div>
               <p className="text-xs text-gray-600 truncate">
-                Lý do: {notification.options.body.cancellationReason}
-              </p>
-              <p className="text-xs truncate">
-                <span className="text-gray-500">Phương thức hoàn tiền:</span>{" "}
-                {notification.options.body.refundMethod}
+                Mã đơn: {notification.Data.Code}
               </p>
             </div>
             {isUnread && (
@@ -1101,7 +1092,6 @@ const NotificationComponent = () => {
               </Button>
             </div>
 
-            {/* Luôn sử dụng ScrollArea với chiều cao cố định khi có từ 3 thông báo trở lên */}
             <div
               className={`${
                 parsedNotifications.length >= 3 ? "h-72" : "max-h-72"
@@ -1155,7 +1145,9 @@ const NotificationComponent = () => {
 
 const formatTimeAgo = (date: Date) => {
   const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+  const diffInSeconds = Math.floor(
+    (now.getTime() - new Date(date).getTime()) / 1000
+  );
 
   if (diffInSeconds < 60) return "vừa xong";
   const diffInMinutes = Math.floor(diffInSeconds / 60);

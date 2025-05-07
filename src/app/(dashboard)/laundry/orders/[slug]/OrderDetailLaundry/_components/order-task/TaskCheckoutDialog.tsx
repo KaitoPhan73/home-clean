@@ -20,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { TaskStatusEnum } from "./TaskEnums";
 import { getNextTaskStatus } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/taskService";
+import { handleErrorApi } from "@/lib/utils";
 
 interface TaskCheckoutDialogProps {
   open: boolean;
@@ -61,18 +62,24 @@ const TaskCheckoutDialog: React.FC<TaskCheckoutDialogProps> = ({
   }, [open, isCompletingTask, employeeId, isFirstCheckout]);
 
   const handleConfirm = () => {
-    if (isCompletingTask && employeeId && employeeName) {
-      onConfirm(employeeId, employeeName);
-    } else if (isFirstCheckout && selectedEmployeeId) {
-      const selectedEmployee = availableEmployees.find(
-        (emp) => emp.id === selectedEmployeeId
-      );
-      onConfirm(
-        selectedEmployeeId,
-        selectedEmployee?.staffName || "Chưa xác định"
-      );
-    } else {
-      setError("Vui lòng chọn nhân viên trước khi tiếp tục.");
+    try {
+      if (isCompletingTask && employeeId && employeeName) {
+        onConfirm(employeeId, employeeName);
+      } else if (isFirstCheckout && selectedEmployeeId) {
+        const selectedEmployee = availableEmployees.find(
+          (emp) => emp.id === selectedEmployeeId
+        );
+        onConfirm(
+          selectedEmployeeId,
+          selectedEmployee?.staffName || "Chưa xác định"
+        );
+      } else {
+        setError("Vui lòng chọn nhân viên trước khi tiếp tục.");
+      }
+    } catch (error: any) {
+      handleErrorApi({
+        error,
+      });
     }
   };
 

@@ -205,6 +205,28 @@ export const adminNavItems: TNavItem[] = [
     ],
   },
   {
+    title: "Quản Lí Dọn Dẹp",
+    url: "#",
+    icon: "store",
+    isActive: false,
+    items: [
+      {
+        title: "Quản Lí Đơn Hàng",
+        url: PATHS.admin.serviceOrders,
+        icon: "cart",
+        shortcut: ["r", "a"],
+      },
+      {
+        title: "Quản Lí Nhóm",
+        url: PATHS.admin.groups,
+        icon: "users",
+        shortcut: ["s", "h"],
+        isActive: false,
+        items: [],
+      },
+    ],
+  },
+  {
     title: "Quản Lí Giặt Sấy",
     url: "#",
     icon: "store",
@@ -233,28 +255,6 @@ export const adminNavItems: TNavItem[] = [
         url: PATHS.admin.additionalServices,
         icon: "plusBox",
         shortcut: ["r", "s"],
-      },
-    ],
-  },
-  {
-    title: "Quản Lí Dọn Dẹp",
-    url: "#",
-    icon: "store",
-    isActive: false,
-    items: [
-      {
-        title: "Quản Lí Đơn Hàng",
-        url: PATHS.admin.serviceOrders,
-        icon: "cart",
-        shortcut: ["r", "a"],
-      },
-      {
-        title: "Quản Lí Nhóm",
-        url: PATHS.admin.groups,
-        icon: "users",
-        shortcut: ["s", "h"],
-        isActive: false,
-        items: [],
       },
     ],
   },

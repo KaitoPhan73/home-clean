@@ -5,7 +5,7 @@ export enum OrderStatusEnum {
     Completed = 3,
     Cancelled = 4,
     Paid = 5,
-  }
+  } 
   
   export enum TaskStatusEnum {
     Pending = "Pending",

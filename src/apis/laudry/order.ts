@@ -17,20 +17,24 @@ export const getOrderById = async (id: string): Promise<TOrderLaundryResponse> =
   return response.payload;
 };
 
-// export async function cancelOrderByOrderId(params?: any, token?: string): Promise<EmployeRealTimeStatus[]> {
-//     try {
-//         const response = await httpVinLaundry.put<TTableResponse<EmployeRealTimeStatus>>(
-//             `/employees/real-time-status`,
-//             {
-//                 params,
-//                 headers: token ? {
-//                     Authorization: `Bearer ${token}`
-//                 } : undefined
-//             }
-//         );
-//         return response.payload.items || [];
-//     } catch (error) {
-//         console.error("Error fetching employees real-time status:", error);
-//         throw error;
-//     }
-// }
+export const cancelOrder = async (orderId: string, accessToken: string) => {
+  try {
+    // Truyền headers đúng cách - không trong object body
+    const response = await httpVinLaundry.put(`/orders/${orderId}/cancel`, null, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return { 
+      success: true, 
+      payload: response.payload 
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Không thể hủy đơn hàng. Vui lòng kiểm tra lại."
+    };
+  }
+};

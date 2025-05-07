@@ -24,6 +24,7 @@ import PaymentStatusNotification from "@/app/(dashboard)/laundry/orders/[slug]/O
 import WeightSubmissionDialog from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/order-task/WeightSubmissionDialog";
 import { getEmployeeById, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
 import { Skeleton } from "@/components/ui/skeleton";
+import { handleErrorApi } from "@/lib/utils";
 
 interface OrderTasksProps {
   orderId: string;
@@ -338,16 +339,26 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
     }
   };
 
-  const handleWeightSubmit = () => {
-    setWeightSubmitted(true);
-    setShowWeightDialog(false);
-    setOrderStatus(OrderStatusEnum.PendingPayment);
-    updateOrderStatus("PendingPayment");
-    toast({
-      title: "Đã cập nhật trọng lượng",
-      description: "Trọng lượng đã được cập nhật thành công.",
-      duration: 5000,
-    });
+  const handleWeightSubmit = async () => {
+    try {
+      setWeightSubmitted(true);
+      setShowWeightDialog(false);
+      setOrderStatus(OrderStatusEnum.PendingPayment);
+      await updateOrderStatus("PendingPayment");
+      toast({
+        title: "Đã cập nhật trọng lượng",
+        description: "Trọng lượng đã được cập nhật thành công.",
+        duration: 5000,
+      });
+    } catch (error: any) {
+      console.error("Error updating weight:", error);
+      const apiError = error.response?.data;
+      handleErrorApi({
+        error: apiError?.description ? new Error(apiError.description) : error,
+      });
+    } finally {
+      setProcessingTask(null);
+    }
   };
 
   const handleWeightEdit = () => {
@@ -449,6 +460,11 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
   }
 
   if (error) {
+    // Use handleErrorApi to properly handle and display the error
+    handleErrorApi({
+      error: typeof error === "string" ? new Error(error) : error
+    });
+    
     return (
       <div className="p-6 bg-red-50 rounded-lg border border-red-200">
         <div className="flex items-center text-red-600 mb-3">
@@ -466,21 +482,7 @@ const OrderTasks: React.FC<OrderTasksProps> = ({
         </Button>
       </div>
     );
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <div className="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
-        <p className="text-gray-600">
-          Không có công việc nào cho đơn hàng này.
-        </p>
-        <Button onClick={handleRefreshTasks} variant="outline" className="mt-4">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Làm mới
-        </Button>
-      </div>
-    );
-  }
+}
 
   return (
     <ToastProvider>
