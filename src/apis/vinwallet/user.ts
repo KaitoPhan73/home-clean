@@ -3,6 +3,7 @@
 "use server";
 
 import { httpVinWallet } from "@/lib/http";
+import { TTransactionResponse } from "@/schema/transaction.schema";
 import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
 import { TWalletResponse } from "@/schema/wallet.schema";
 import { TTableResponse } from "@/types/Table";
@@ -20,6 +21,16 @@ export const getAllUsers = async (params?: any) => {
 export const getWalletsInUser = async (id: string, params?: any) => {
   const response = await httpVinWallet.get<TTableResponse<TWalletResponse>>(
     `/users/${id}/wallets`,
+    {
+      params,
+    }
+  );
+  return response;
+};
+
+export const getTransactionsInUser = async (id: string, params?: any) => {
+  const response = await httpVinWallet.get<TTableResponse<TTransactionResponse>>(
+    `/users/${id}/transactions`,
     {
       params,
     }

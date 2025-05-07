@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { httpVinLaundry } from "@/lib/http";
+import { handleErrorApi } from "@/lib/utils";
 import { TTaskResponse } from "@/schema/VinLaudry/task.schema";
 import { TTableResponse } from "@/types/Table";
 
@@ -59,15 +60,22 @@ export const taskAssign = async (taskId: string, employeeId: string, action: "st
 
     const response = await httpVinLaundry.put(endpoint, requestBody);
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error ${action}ing task:`, error);
-    throw error;
+    const apiError = error.response?.data;
+    if (apiError?.description) {
+      handleErrorApi({
+        error: new Error(apiError.description), 
+      });
+    } else {
+      handleErrorApi({ error });
+    }
+    throw error; 
   }
 };
 
 export const getEmployeesRealTimeStatus = async (params?: any, token?: string) => {
   try {
-    // Configure headers with token if provided
     const config: any = {};
     if (token) {
       config.headers = {

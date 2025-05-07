@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { MoreHorizontal, Eye, Pencil, Check, Wallet } from "lucide-react";
+import { toast } from "sonner";
+
+import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
 import { updateVerifyUser } from "@/apis/vinwallet/user";
-import { UserDetailPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-detail";
-import { UserEditPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-edit";
+import { handleErrorApi } from "@/lib/utils";
 import { AlertModal } from "@/components/modal/alert-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +16,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { handleErrorApi } from "@/lib/utils";
-import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
-import { Check, Eye, MoreHorizontal, Pencil } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
+import { UserDetailPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-detail";
+import { UserEditPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/user-edit";
+import { WalletTransactionPopup } from "@/app/(dashboard)/admin/users/_components/user-tables/WalletTransactionPopup";
 
 interface CellActionProps {
   data: TUserResponse;
@@ -30,10 +30,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const router = useRouter();
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
-
-  const onDelete = () => {
-    console.log("Deleting", data);
-  };
+  const [isWalletTransactionPopupOpen, setIsWalletTransactionPopupOpen] = useState(false);
 
   const onConfirm = async () => {};
 
@@ -92,6 +89,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
           </DropdownMenuItem>
 
+          <DropdownMenuItem
+            onClick={() => setIsWalletTransactionPopupOpen(true)}
+            className="cursor-pointer"
+          >
+            <Wallet className="mr-2 h-4 w-4" /> Ví & Giao Dịch
+          </DropdownMenuItem>
+
           {data.status !== "Active" && (
             <DropdownMenuItem
               onClick={confirmResident}
@@ -110,12 +114,19 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           onClose={() => setIsDetailPopupOpen(false)}
         />
       )}
+      
       {isEditPopupOpen && (
         <UserEditPopup
           user={data}
           onClose={() => setIsEditPopupOpen(false)}
         />
       )}
+
+      <WalletTransactionPopup 
+        user={data}
+        isOpen={isWalletTransactionPopupOpen}
+        onClose={() => setIsWalletTransactionPopupOpen(false)}
+      />
     </>
   );
 };

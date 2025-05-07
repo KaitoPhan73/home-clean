@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EmployeRealTimeStatus, getEmployeesRealTimeStatus } from "@/apis/laudry/employee";
-import { TaskStatusEnum } from "./TaskEnums";
-import { taskAssign } from "@/apis/laudry/task";
+import { TaskStatusEnum, OrderStatusEnum } from "./TaskEnums";
+import { httpVinLaundry } from "@/lib/http";
+import { handleErrorApi } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 /**
  * Converts a string status to TaskStatusEnum
@@ -41,16 +43,67 @@ export const getNextTaskStatus = (currentStatus: TaskStatusEnum): TaskStatusEnum
 };
 
 /**
+ * Checks if task can be processed based on order status
+ * @param orderStatus Current order status
+ * @param taskIndex Task index in the workflow
+ * @returns Object containing validation result and error message if applicable
+ */
+export const validateTaskAction = (
+  orderStatus: OrderStatusEnum, 
+  taskIndex: number,
+  taskStatus: TaskStatusEnum
+): { valid: boolean; message?: string } => {
+  // Order is cancelled - all tasks are locked
+  if (orderStatus === OrderStatusEnum.Cancelled) {
+    return { 
+      valid: false, 
+      message: "Không thể thực hiện hành động này. Đơn hàng đã bị hủy."
+    };
+  }
+  
+  // Task is not first and order is not paid
+  if (taskIndex > 0 && orderStatus !== OrderStatusEnum.Paid && orderStatus !== OrderStatusEnum.Completed) {
+    return { 
+      valid: false, 
+      message: "Đơn hàng chưa thanh toán. Vui lòng thanh toán trước khi tiếp tục."
+    };
+  }
+
+  // Task is already completed
+  if (taskStatus === TaskStatusEnum.Completed) {
+    return {
+      valid: false,
+      message: "Công việc này đã hoàn thành."
+    };
+  }
+
+  // Task is cancelled
+  if (taskStatus === TaskStatusEnum.Canceled) {
+    return {
+      valid: false,
+      message: "Công việc này đã bị hủy."
+    };
+  }
+
+  return { valid: true };
+};
+
+/**
  * Assigns or completes a task
  * @param taskId The ID of the task to update
  * @param employeeId The ID of the employee to assign
  * @param action Either "start" to assign or "complete" to finish the task
+ * @param orderStatus Current order status for validation
+ * @param taskIndex Task index in the workflow
  * @returns The API response
  */
 export const assignTask = async (
   taskId: string,
   employeeId: string,
-  action: "start" | "complete"
+  action: "start" | "complete",
+  orderStatus?: OrderStatusEnum,
+  taskIndex?: number,
+  taskStatus?: TaskStatusEnum
 ): Promise<any> => {
   try {
     if (!taskId) {
@@ -61,17 +114,75 @@ export const assignTask = async (
       throw new Error("Employee ID is required to start a task");
     }
 
+    // Validate task action if orderStatus and taskIndex are provided
+    if (orderStatus !== undefined && taskIndex !== undefined && taskStatus !== undefined) {
+      const validation = validateTaskAction(orderStatus, taskIndex, taskStatus);
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+    }
+
     return await taskAssign(taskId, employeeId, action);
   } catch (error: any) {
     console.error(`Error ${action === "start" ? "starting" : "completing"} task:`, error);
+    if (error.message) {
+      // Show error message directly if we have a custom message
+      toast({
+        title: "Không thể thực hiện",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      // Let handleErrorApi handle API errors
+      handleErrorApi({
+        error,
+      });
+    }
     throw error;
+  }
+};
+
+/**
+ * Makes API call to assign or complete a task
+ * @param taskId Task ID
+ * @param employeeId Employee ID
+ * @param action Action to perform (start or complete)
+ * @returns API response
+ */
+export const taskAssign = async (taskId: string, employeeId: string, action: "start" | "complete") => {
+  try {
+    const endpoint = action === "start"
+      ? `/tasks/assign`
+      : `/tasks/${taskId}/check-out`;
+
+    const requestBody = {
+      taskId: taskId,
+      employeeId: employeeId
+    };
+
+    const response = await httpVinLaundry.put(endpoint, requestBody);
+    return response;
+  } catch (error: any) {
+    console.error(`Error ${action}ing task:`, error);
+    
+    // Handle specific error message for unpaid orders
+    if (error.response?.data?.description === "Đơn hàng chưa thanh toán") {
+      throw new Error("Đơn hàng chưa thanh toán. Vui lòng thanh toán trước khi tiếp tục.");
+    }
+    
+    // Handle other API errors
+    const apiError = error.response?.data;
+    if (apiError?.description) {
+      throw new Error(apiError.description);
+    } else {
+      throw error;
+    }
   }
 };
 
 /**
  * Fetches employees real-time status from the API
  * @param params Optional query parameters
- * @param token Authentication token
  * @returns Array of employees (EmployeRealTimeStatus)
  */
 export const getEmployeesService = async (

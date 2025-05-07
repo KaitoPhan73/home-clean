@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { httpVinLaundry } from "@/lib/http";
 import LoadingSkeleton from "@/app/(dashboard)/laundry/orders/Loading";
 import NotFoundMessage from "@/app/(dashboard)/laundry/orders/NotFound";
@@ -25,6 +27,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
 import { OrderItems } from "@/app/(dashboard)/laundry/orders/[slug]/OrderDetailLaundry/_components/OrderItems";
+import { getOrderTasks } from "@/apis/laudry/task";
 
 interface UserDetail {
   id: string;
@@ -56,6 +59,7 @@ const mapApiStatusToEnum = (apiStatus: string): OrderStatusEnum => {
 
 export default function LaundryDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const orderId = params.slug;
 
   const [loading, setLoading] = useState(true);
@@ -66,6 +70,7 @@ export default function LaundryDetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [userError, setUserError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     const userCookie = document.cookie
@@ -84,50 +89,27 @@ export default function LaundryDetailPage() {
     fetchOrderDetails();
   }, [orderId]);
 
+  const fetchTasks = async () => {
+    try {
+      const response = await getOrderTasks(orderId as string);
+      if (response?.payload?.items && Array.isArray(response.payload.items)) {
+        setTasks(response.payload.items);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
       setRefreshing(true);
-      const orderResponse = await httpVinLaundry.get<TOrderLaundryResponse>(
-        `/orders/${orderId}`
-      );
-      setOrder(orderResponse.payload);
-
-      if (orderResponse?.payload?.userId) {
-        setUserLoading(true);
-        try {
-          const userResponse = await getUserById(orderResponse.payload.userId);
-          if (userResponse?.payload) {
-            setUser(userResponse.payload);
-            setUserError(null);
-          } else {
-            const usersResponse = await getAllUsers({
-              id: orderResponse.payload.userId,
-            });
-            const foundUser = usersResponse?.payload?.items?.find(
-              (u) => u.id === orderResponse.payload.userId
-            );
-            if (foundUser) {
-              setUser(foundUser);
-              setUserError(null);
-            } else {
-              setUserError("Không thể tìm thấy thông tin người dùng");
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching user details:", error);
-          setUserError("Lỗi khi tải thông tin người dùng");
-          toast({
-            title: "Lỗi",
-            description: "Không thể tải thông tin người dùng",
-            variant: "destructive",
-          });
-        } finally {
-          setUserLoading(false);
-        }
-      } else {
-        setUserLoading(false);
-      }
+      
+      await Promise.all([
+        fetchOrderData(),
+        fetchTasks()
+      ]);
+      
     } catch (error) {
       console.error("Error fetching order details:", error);
       toast({
@@ -138,6 +120,49 @@ export default function LaundryDetailPage() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const fetchOrderData = async () => {
+    const orderResponse = await httpVinLaundry.get<TOrderLaundryResponse>(
+      `/orders/${orderId}`
+    );
+    setOrder(orderResponse.payload);
+
+    if (orderResponse?.payload?.userId) {
+      setUserLoading(true);
+      try {
+        const userResponse = await getUserById(orderResponse.payload.userId);
+        if (userResponse?.payload) {
+          setUser(userResponse.payload);
+          setUserError(null);
+        } else {
+          const usersResponse = await getAllUsers({
+            id: orderResponse.payload.userId,
+          });
+          const foundUser = usersResponse?.payload?.items?.find(
+            (u) => u.id === orderResponse.payload.userId
+          );
+          if (foundUser) {
+            setUser(foundUser);
+            setUserError(null);
+          } else {
+            setUserError("Không thể tìm thấy thông tin người dùng");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        setUserError("Lỗi khi tải thông tin người dùng");
+        toast({
+          title: "Lỗi",
+          description: "Không thể tải thông tin người dùng",
+          variant: "destructive",
+        });
+      } finally {
+        setUserLoading(false);
+      }
+    } else {
+      setUserLoading(false);
     }
   };
 
@@ -288,6 +313,7 @@ export default function LaundryDetailPage() {
         order={order}
         onRefresh={fetchOrderDetails}
         refreshing={refreshing}
+        tasks={tasks}
       />
       {userError && (
         <div className="mb-4 p-3 border rounded-lg border-amber-200 bg-amber-50 flex items-center gap-2">

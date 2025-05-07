@@ -88,7 +88,7 @@ const FilterBar = ({
   };
 
   return (
-    <div className="p-6 border-b border-gray-200 bg-white rounded-t-lg">
+    <div className="p-8 border-b border-gray-200 bg-white rounded-t-lg">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
         <div className="flex flex-row items-center">
           <h2 className="text-xl font-bold text-gray-800">Quản Lí Các Đơn Hàng Giặt Sấy</h2>
