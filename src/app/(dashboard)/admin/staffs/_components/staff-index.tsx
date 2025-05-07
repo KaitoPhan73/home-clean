@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import StaffTable from "@/app/(dashboard)/admin/staffs/_components/staff-table";
 import { cookies } from "next/headers";
 import StaffActionButtons from "@/app/(dashboard)/admin/staffs/_components/staff-create-dropdown";
+import { Loader2 } from "lucide-react";
+import UpdateEmployeePage from "@/app/(dashboard)/laundry/employees/[slug]/_components/update/UpdateEmployeePage ";
 
 type Props = {
   keyProps: string;
@@ -25,9 +27,15 @@ const StaffIndex = async ({ keyProps }: Props) => {
           />
           <StaffActionButtons accessToken={accessToken} />
         </div>
+        <Suspense fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }>
+        <UpdateEmployeePage accessToken={accessToken} slug={""} />
+      </Suspense>
         <Separator />
 
-        {/* <StaffTableFilter /> */}
         <Suspense
           key={keyProps}
           fallback={<DataTableSkeleton columnCount={5} rowCount={10} />}

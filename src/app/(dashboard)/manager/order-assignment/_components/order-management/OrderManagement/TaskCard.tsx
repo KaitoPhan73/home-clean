@@ -5,7 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { useDrag } from "react-dnd";
 import { TOrderResponse } from "@/schema/order.schema";
 import OrderDetailsPopup from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/OrderDetailsPopup";
-import { User, MapPin, Clock, DollarSign, Tag, Coins, Hash, RefreshCw, Star } from "lucide-react";
+import {
+  User,
+  MapPin,
+  Clock,
+  DollarSign,
+  Tag,
+  Coins,
+  Hash,
+  RefreshCw,
+  Star,
+  Clock10,
+  Package,
+} from "lucide-react";
 import { formatDateTime } from "@/app/(dashboard)/manager/order-assignment/_components/order-management/OrderDetailsPopup/utils";
 import { useSignalRContext } from "@/context/signalr-provider";
 import { toast } from "sonner";
@@ -16,6 +28,8 @@ const getStatusColor = (status: string): string => {
       return "bg-gray-100 border-gray-300";
     case "Pending":
       return "bg-yellow-50 border-yellow-300";
+    case "Scheduled":
+      return "bg-orange-50 border-orange-300";
     case "Accepted":
       return "bg-blue-50 border-blue-300";
     case "InProgress":
@@ -46,12 +60,12 @@ const formatOrderCode = (code: string): string => {
   if (code.startsWith("RE")) {
     return code;
   }
-  
+
   if (code.length > 12) {
     const shortCode = code.slice(-12);
     return shortCode;
   }
-  
+
   return code;
 };
 
@@ -59,8 +73,24 @@ const isReorderCode = (code: string): boolean => {
   return code.startsWith("RE");
 };
 
+// Helper function for priority icon
+const getPriorityIcon = (emergencyRequest?: boolean): React.ReactNode => {
+  return emergencyRequest ? <Clock10 size={14} className="mr-1" /> : <Package size={14} className="mr-1" />;
+};
+
+// Helper function for priority class
+const getPriorityClass = (emergencyRequest?: boolean): string => {
+  return emergencyRequest
+    ? "bg-red-50 border-red-300 text-red-700"
+    : "bg-blue-50 border-blue-300 text-blue-700";
+};
+
 interface TaskCardProps {
-  order: TOrderResponse & { userFullName?: string; houseNo?: string };
+  order: TOrderResponse & { 
+    userFullName?: string;
+    houseNo?: string;
+    emergencyRequest?: boolean;
+  };
   onRefresh?: () => void;
   groupId?: string;
 }
@@ -75,7 +105,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [isUpdated, setIsUpdated] = useState(false);
   const { connection } = useSignalRContext();
   const isReorder = order.code ? isReorderCode(order.code) : false;
-
+  
+  const priorityClass = getPriorityClass(order.emergencyRequest);
+  const priorityText = order.emergencyRequest ? "Đặt nhanh" : "Đơn thường";
+  const priorityIcon = getPriorityIcon(order.emergencyRequest);
+  
   const [{ isDragging }, drag] = useDrag({
     type: "ORDER",
     item: order,
@@ -93,8 +127,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   drag(ref);
 
   const statusClass = getStatusColor(order.status);
-  const priorityClass = getPriorityColor(order.priorityLevel || "medium");
-  
+
   // Generate the formatted code
   const displayCode = order.code ? formatOrderCode(order.code) : "N/A";
 
@@ -111,16 +144,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const handleOrderStatusChanged = (event: CustomEvent) => {
       const { orderId, status } = event.detail;
       if (orderId === order.id && status !== order.status) {
-        toast.success(`Đơn hàng ${order.id} đã được cập nhật sang trạng thái ${status}`);
+        toast.success(
+          `Đơn hàng ${order.id} đã được cập nhật sang trạng thái ${status}`
+        );
         setIsUpdated(true);
         if (onRefresh) onRefresh();
       }
     };
-  
-    window.addEventListener('orderStatusChanged', handleOrderStatusChanged as EventListener);
-    
+
+    window.addEventListener(
+      "orderStatusChanged",
+      handleOrderStatusChanged as EventListener
+    );
+
     return () => {
-      window.removeEventListener('orderStatusChanged', handleOrderStatusChanged as EventListener);
+      window.removeEventListener(
+        "orderStatusChanged",
+        handleOrderStatusChanged as EventListener
+      );
     };
   }, [order.id, order.status, onRefresh]);
 
@@ -128,9 +169,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     <div
       ref={ref}
       onClick={handleClick}
-      className={`p-4 border rounded-lg ${statusClass} hover:shadow-lg transition-shadow cursor-pointer flex flex-col min-h-[200px] w-full ${isUpdated ? 'ring-2 ring-blue-400 animate-pulse' : ''} ${
-        isReorder ? 'reorder-card relative overflow-hidden' : ''
-      }`}
+      className={`p-4 border rounded-lg ${statusClass} hover:shadow-lg transition-shadow cursor-pointer flex flex-col min-h-[200px] w-full ${
+        isUpdated ? "ring-2 ring-blue-400 animate-pulse" : ""
+      } ${isReorder ? "reorder-card relative overflow-hidden" : ""}`}
       style={{ opacity: isDragging ? 0.5 : 1 }}
     >
       {/* Add the glowing animation elements for reorder items */}
@@ -142,7 +183,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-blue-300 to-transparent reorder-glow-left"></div>
         </>
       )}
-      
+
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
           {isReorder ? (
@@ -150,14 +191,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           ) : (
             <Hash className="h-4 w-4 text-gray-500" />
           )}
-          <span className={`font-bold ${isReorder ? 'text-blue-600' : 'text-gray-700'}`}>
+          <span
+            className={`font-bold ${
+              isReorder ? "text-blue-600" : "text-gray-700"
+            }`}
+          >
             {displayCode}
           </span>
         </div>
-        <div
-          className={`text-xs font-semibold px-2 py-1 rounded-full ${priorityClass}`}
-        >
-          {order.priorityLevel || "Trung bình"}
+        <div className={`inline-flex items-center text-xs font-semibold px-2 py-1 rounded-full ${priorityClass}`}>
+          {priorityIcon}
+          {priorityText}
         </div>
       </div>
 
@@ -166,7 +210,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       <div className="flex-1 space-y-2.5 text-sm text-gray-800">
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
-          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Khách hàng:</span>
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">
+            Khách hàng:
+          </span>
           <span className="font-medium truncate">
             {order.userFullName || "Không xác định"}
           </span>
@@ -174,7 +220,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Địa chỉ:</span>
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">
+            Địa chỉ:
+          </span>
           <span className="font-medium truncate">
             {order.houseNo || order.address || "Không có địa chỉ"}
           </span>
@@ -182,14 +230,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
-          <span className="text-gray-500 min-w-[80px] flex-shrink-0">Thời gian:</span>
-          <span className="font-medium truncate">{formatDateTime(order.createdAt)}</span>
+          <span className="text-gray-500 min-w-[80px] flex-shrink-0">
+            Thời gian:
+          </span>
+          <span className="font-medium truncate">
+            {formatDateTime(order.createdAt)}
+          </span>
         </div>
 
         {order.serviceType && (
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-gray-500 flex-shrink-0" />
-            <span className="text-gray-500 min-w-[80px] flex-shrink-0">Dịch vụ:</span>
+            <span className="text-gray-500 min-w-[80px] flex-shrink-0">
+              Dịch vụ:
+            </span>
             <span className="font-medium truncate">{order.serviceType}</span>
           </div>
         )}
@@ -203,7 +257,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </span>
         {order.totalAmount && (
           <div className="flex items-center text-green-600 text-sm font-semibold">
-            {order.totalAmount.toLocaleString("vi-VN")} <Star className="h-4 w-4 mr-1 ml-1" />
+            {order.totalAmount.toLocaleString("vi-VN")}{" "}
+            <Star className="h-4 w-4 mr-1 ml-1" />
           </div>
         )}
       </div>
@@ -220,22 +275,38 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
       <style jsx>{`
         @keyframes glowTop {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
         }
         @keyframes glowRight {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
+          0% {
+            transform: translateY(-100%);
+          }
+          100% {
+            transform: translateY(100%);
+          }
         }
         @keyframes glowBottom {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
+          0% {
+            transform: translateX(100%);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
         }
         @keyframes glowLeft {
-          0% { transform: translateY(100%); }
-          100% { transform: translateY(-100%); }
+          0% {
+            transform: translateY(100%);
+          }
+          100% {
+            transform: translateY(-100%);
+          }
         }
-        
+
         .reorder-glow-top {
           animation: glowTop 3s infinite;
         }

@@ -296,13 +296,20 @@ export const laundryNavItems: TNavItem[] = [
   {
     title: "Giặt Sấy",
     url: PATHS.laundry.orders,
-    icon: "tasks",
+    icon: "package",
     isActive: false,
     items: [],
   },
   {
     title: "Nhân Viên",
     url: PATHS.laundry.employees,
+    icon: "users",
+    isActive: false,
+    items: [],
+  },
+  {
+    title: "Hồ Sơ",
+    url: PATHS.laundry.profile,
     icon: "user",
     isActive: false,
     items: [],
