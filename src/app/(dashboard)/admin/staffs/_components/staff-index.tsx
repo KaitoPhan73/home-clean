@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import StaffTable from "@/app/(dashboard)/admin/staffs/_components/staff-table";
 import { cookies } from "next/headers";
 import StaffActionButtons from "@/app/(dashboard)/admin/staffs/_components/staff-create-dropdown";
+// import { Loader2 } from "lucide-react";
+// import UpdateEmployeePage from "@/app/(dashboard)/laundry/employees/[slug]/_components/update/UpdateEmployeePage ";
 
 type Props = {
   keyProps: string;
@@ -14,7 +16,7 @@ type Props = {
 
 const StaffIndex = async ({ keyProps }: Props) => {
   const accessToken = (await cookies()).get("accessToken")?.value;
-  
+
   return (
     <PageContainer>
       <div className="space-y-4">

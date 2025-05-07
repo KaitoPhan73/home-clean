@@ -20,7 +20,7 @@ const AdditionalServiceTable = async () => {
       <DataTable
         data={additionalServicePayload.items}
         columns={additionalServicecolumns}
-        totalItems={additionalServicePayload.totalPages}
+        totalItems={additionalServicePayload.total}
       />
     </div>
   );

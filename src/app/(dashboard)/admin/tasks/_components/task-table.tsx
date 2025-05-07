@@ -22,7 +22,7 @@ const TaskTable = async () => {
       <DataTable
         data={taskPayload.items}
         columns={taskColumns}
-        totalItems={taskPayload.totalPages}
+        totalItems={taskPayload.total}
       />
     </div>
   );

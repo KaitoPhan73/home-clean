@@ -157,7 +157,7 @@ export function DataTable<TData, TValue>({
                   (paginationState.pageIndex + 1) * paginationState.pageSize,
                   totalItems
                 )}{" "}
-                của {totalItems} cột
+                của {totalItems} kết quả
               </>
             ) : (
               "No entries found"

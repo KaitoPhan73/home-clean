@@ -13,12 +13,12 @@ import { Package2, Weight } from "lucide-react";
 const ItemTypeTable = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const [itemTypes, setItemTypes] = useState<TItemTypeResponse[]>([]);
   const [perItemTypes, setPerItemTypes] = useState<TItemTypeResponse[]>([]);
   const [perKgTypes, setPerKgTypes] = useState<TItemTypeResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [total, setTotal] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<string>("all");
 
   useEffect(() => {
@@ -38,11 +38,11 @@ const ItemTypeTable = () => {
         const response = await getAllItemTypes(filters);
         const data = response.payload.items;
         setItemTypes(data);
-        setTotalPages(response.payload.totalPages);
-        
+        setTotal(response.payload.total);
+
         // Filter by service type
-        setPerItemTypes(data.filter(item => item.serviceType === "PerItem"));
-        setPerKgTypes(data.filter(item => item.serviceType === "PerKg"));
+        setPerItemTypes(data.filter((item) => item.serviceType === "PerItem"));
+        setPerKgTypes(data.filter((item) => item.serviceType === "PerKg"));
       } catch (error) {
         console.error("Error fetching item types:", error);
       } finally {
@@ -54,7 +54,7 @@ const ItemTypeTable = () => {
   }, [searchParams]);
 
   const getActiveData = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case "perItem":
         return perItemTypes;
       case "perKg":
@@ -66,8 +66,8 @@ const ItemTypeTable = () => {
 
   return (
     <div className="space-y-4">
-      <Tabs 
-        defaultValue="all" 
+      <Tabs
+        defaultValue="all"
         className="w-full"
         onValueChange={(value) => setActiveTab(value)}
       >
@@ -93,30 +93,30 @@ const ItemTypeTable = () => {
             </span>
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="all" className="mt-0">
           <DataTable
             data={itemTypes}
             columns={ItemTypeColumns}
-            totalItems={totalPages}
+            totalItems={total}
             isLoading={isLoading}
           />
         </TabsContent>
-        
+
         <TabsContent value="perItem" className="mt-0">
           <DataTable
             data={perItemTypes}
             columns={ItemTypeColumns}
-            totalItems={totalPages}
+            totalItems={total}
             isLoading={isLoading}
           />
         </TabsContent>
-        
+
         <TabsContent value="perKg" className="mt-0">
           <DataTable
             data={perKgTypes}
             columns={ItemTypeColumns}
-            totalItems={totalPages}
+            totalItems={total}
             isLoading={isLoading}
           />
         </TabsContent>
