@@ -20,7 +20,7 @@ const GroupTable = async () => {
       <DataTable
         data={groupPayload.items}
         columns={columns}
-        totalItems={groupPayload.totalPages}
+        totalItems={groupPayload.total}
       />
     </div>
   );

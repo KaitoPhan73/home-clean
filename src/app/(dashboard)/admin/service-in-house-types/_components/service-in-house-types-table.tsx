@@ -20,7 +20,7 @@ const ServiceInHouseTypesTable = async () => {
       <DataTable
         data={serviceInHouseTypesPayload.items}
         columns={ServiceInHouseTypesColumns}
-        totalItems={serviceInHouseTypesPayload.totalPages}
+        totalItems={serviceInHouseTypesPayload.total}
       />
     </div>
   );

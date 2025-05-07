@@ -205,48 +205,48 @@ export const adminNavItems: TNavItem[] = [
     ],
   },
   {
-    "title": "Quản Lí Giặt Sấy",
-    "url": "#",
-    "icon": "store",
-    "isActive": false,
-    "items": [
+    title: "Quản Lí Giặt Sấy",
+    url: "#",
+    icon: "store",
+    isActive: false,
+    items: [
       {
-        "title": "Các Đơn Hàng",
-        "url": PATHS.admin.laundryOrders,
-        "icon": "cart",
-        "shortcut": ["r", "a"]
+        title: "Các Đơn Hàng",
+        url: PATHS.admin.laundryOrders,
+        icon: "cart",
+        shortcut: ["r", "a"],
       },
       {
-        "title": "Loại Đồ Dùng",
-        "url": PATHS.admin.itemTypes,
-        "icon": "product",
-        "shortcut": ["r", "s"]
+        title: "Loại Đồ Dùng",
+        url: PATHS.admin.itemTypes,
+        icon: "product",
+        shortcut: ["r", "s"],
       },
       {
-        "title": "Loại Dịch Vụ",
-        "url": PATHS.admin.serviceTypes,
-        "icon": "package",
-        "shortcut": ["r", "s"]
+        title: "Loại Dịch Vụ",
+        url: PATHS.admin.serviceTypes,
+        icon: "package",
+        shortcut: ["r", "s"],
       },
       {
-        "title": "Các Dịch Vụ Bổ Sung",
-        "url": PATHS.admin.additionalServices,
-        "icon": "plusBox",
-        "shortcut": ["r", "s"]
-      }
-    ]
+        title: "Các Dịch Vụ Bổ Sung",
+        url: PATHS.admin.additionalServices,
+        icon: "plusBox",
+        shortcut: ["r", "s"],
+      },
+    ],
   },
   {
-    "title": "Quản Lí Dọn Dẹp",
-    "url": "#",
-    "icon": "store",
-    "isActive": false,
-    "items": [
+    title: "Quản Lí Dọn Dẹp",
+    url: "#",
+    icon: "store",
+    isActive: false,
+    items: [
       {
-        "title": "Quản Lí Đơn Hàng",
-        "url": PATHS.admin.serviceOrders,
-        "icon": "cart",
-        "shortcut": ["r", "a"]
+        title: "Quản Lí Đơn Hàng",
+        url: PATHS.admin.serviceOrders,
+        icon: "cart",
+        shortcut: ["r", "a"],
       },
       {
         title: "Quản Lí Nhóm",
@@ -256,7 +256,7 @@ export const adminNavItems: TNavItem[] = [
         isActive: false,
         items: [],
       },
-    ]
+    ],
   },
 ];
 
@@ -350,10 +350,9 @@ export const staffNavItems: TNavItem[] = [
   },
 ];
 
-
 export const settingAdminItems: TSettingItem[] = [
   {
-    name: "Ca làm việc",
+    name: "Thời gian khả dụng",
     url: "/admin/time-slots",
     icon: "calendarLock",
   },

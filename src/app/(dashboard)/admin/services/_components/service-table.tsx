@@ -1,9 +1,9 @@
 import { DataTable } from "@/components/table/data-table";
 import { columns } from "./service-tables/columns";
-    import { searchParamsCache } from "@/lib/searchparams";
+import { searchParamsCache } from "@/lib/searchparams";
 import { getAllServices } from "@/apis/service";
 
-const ServiceTable  = async () => {
+const ServiceTable = async () => {
   const page = searchParamsCache.get("page");
   const search = searchParamsCache.get("search");
   const size = searchParamsCache.get("size");
@@ -20,7 +20,7 @@ const ServiceTable  = async () => {
       <DataTable
         data={storePayload.items}
         columns={columns}
-        totalItems={storePayload.totalPages}
+        totalItems={storePayload.total}
       />
     </div>
   );

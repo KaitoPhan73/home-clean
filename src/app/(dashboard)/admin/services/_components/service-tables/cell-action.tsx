@@ -18,7 +18,7 @@ interface CellActionProps {
   data: any;
 }
 
-export const CellAction: React.FC<CellActionProps> = ({data}) => {
+export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -47,9 +47,6 @@ export const CellAction: React.FC<CellActionProps> = ({data}) => {
             onClick={() => router.push(`/admin/services/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Xem chi tiết
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            {/* <Trash className="mr-2 h-4 w-4" /> Xóa */}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

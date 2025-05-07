@@ -38,7 +38,7 @@ export function WalletView({ wallet }: WalletViewProps) {
               <div className="text-sm text-muted-foreground">Loại ví</div>
               <div className="mt-1">
                 <Badge variant="outline" className="font-medium">
-                  {wallet.type === "Personal" ? "Cá nhân" : "Chia sẻ"}
+                  {wallet.type === "Personal" ? "Cá nhân" : "Chung"}
                 </Badge>
               </div>
             </div>
@@ -56,7 +56,7 @@ export function WalletView({ wallet }: WalletViewProps) {
             <div>
               <div className="text-sm text-muted-foreground">Số dư</div>
               <div className="mt-1 font-medium text-lg">
-                {Number(wallet.balance).toLocaleString()} {wallet.currency}
+                {Number(wallet.balance).toLocaleString()}
               </div>
             </div>
             <div>
