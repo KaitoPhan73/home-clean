@@ -42,13 +42,12 @@ export default async function RootLayout({
         <IndexProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
             <AppProvider initialSessionToken={accessToken?.value}>
-              <div className="fixed top-4 right-52 z-50">
-              </div>
+              <div className="fixed top-4 right-52 z-50"></div>
               {children}
             </AppProvider>
           </ThemeProvider>
