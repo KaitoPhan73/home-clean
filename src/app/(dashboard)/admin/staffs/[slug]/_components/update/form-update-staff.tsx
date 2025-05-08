@@ -35,7 +35,15 @@ import { handleErrorApi } from "@/lib/utils";
 type Props = {
   initialData: TStaffResponse;
 };
-
+const formatDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  } catch (error: any) {
+    console.log("Error formatting date:", error);
+    return dateString;
+  }
+};
 export function FormUpdateStaff({ initialData }: Props) {
   const { toast } = useToast();
   const router = useRouter();
@@ -44,7 +52,7 @@ export function FormUpdateStaff({ initialData }: Props) {
     phoneNumber: initialData.phoneNumber,
     email: initialData.email,
     gender: initialData.gender as "Male" | "Female" | "Other",
-    dateOfBirth: initialData.dateOfBirth.split("T")[0],
+    dateOfBirth: formatDate(initialData.dateOfBirth), // Format date here
     address: initialData.address,
     status: initialData.status as "Active" | "Inactive",
     groupId: initialData.groupId,
