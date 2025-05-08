@@ -72,8 +72,9 @@ export const SignalRProvider = ({ children }: { children: ReactNode }) => {
         .withUrl("https://homeclean.vinhomesresident.com/homeCleanHub", {
           accessTokenFactory: () => accessToken,
           transport:
-            signalR.HttpTransportType.WebSockets |
-            signalR.HttpTransportType.LongPolling,
+            signalR.HttpTransportType.WebSockets ,
+            // signalR.HttpTransportType.LongPolling,
+            skipNegotiation:true
         })
         .configureLogging(signalR.LogLevel.Debug)
         .withAutomaticReconnect([0, 2, 1, 3])
@@ -204,7 +205,7 @@ export const SignalRProvider = ({ children }: { children: ReactNode }) => {
 export const useSignalRContext = () => {
   const context = useContext(SignalRContext);
   if (context === undefined) {
-    throw new Error("useSignalRContext must be used within a SignalRProvider");
+    console.error("useSignalRContext must be used within a SignalRProvider");
   }
   return context;
 };
