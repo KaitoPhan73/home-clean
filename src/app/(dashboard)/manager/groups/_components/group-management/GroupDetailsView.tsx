@@ -7,7 +7,6 @@ import { getClusterById } from "@/apis/cluster";
 import { getServiceById } from "@/apis/service";
 import {
   getAllStaffStatus,
-  getAllStaffStatusReady,
   reloadAllStaffStatus,
 } from "@/apis/staff";
 import { TGroupResponse } from "@/schema/group.schema";
@@ -110,7 +109,7 @@ const GroupDetailsView = ({ data }: GroupDetailsViewProps) => {
     setStaffLoading(true);
     try {
       await reloadAllStaffStatus(group.id);
-      const staffResponse = await getAllStaffStatusReady(group.id);
+      const staffResponse = await getAllStaffStatus(group.id);
       const normalizedStaff = Array.isArray(staffResponse) ? staffResponse : [];
       setStaffData(normalizedStaff as Staff[]);
       setReloadMessage("Tải lại trạng thái nhân viên thành công!");
