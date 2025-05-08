@@ -66,9 +66,7 @@ export const StaffUpdateSchema = z.object({
   gender: z.enum(["Male", "Female", "Other"], {
     errorMap: () => ({ message: "Giới tính không hợp lệ" }),
   }),
-  dateOfBirth: z.string().datetime({
-    message: "Ngày sinh không hợp lệ",
-  }),
+  dateOfBirth: z.string(),
   address: z
     .string()
     .min(1, "Địa chỉ không được để trống")

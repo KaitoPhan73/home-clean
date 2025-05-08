@@ -19,6 +19,7 @@ function LogoutLogic() {
       try {
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("notifications");
         localStorage.clear();
         dispatch(setUser(null));
 
