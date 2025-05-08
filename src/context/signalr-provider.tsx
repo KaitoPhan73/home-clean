@@ -205,7 +205,7 @@ export const SignalRProvider = ({ children }: { children: ReactNode }) => {
 export const useSignalRContext = () => {
   const context = useContext(SignalRContext);
   if (context === undefined) {
-    console.error("useSignalRContext must be used within a SignalRProvider");
+    throw Error("useSignalRContext must be used within a SignalRProvider");
   }
   return context;
 };
