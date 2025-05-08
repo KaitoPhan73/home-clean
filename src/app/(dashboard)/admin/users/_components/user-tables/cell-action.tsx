@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Eye, Pencil, Check, Wallet } from "lucide-react";
+import { MoreHorizontal, Eye, Pencil, Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { TUpdateUserRequest, TUserResponse } from "@/schema/user.schema";
@@ -89,12 +89,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <Pencil className="mr-2 h-4 w-4" /> Chỉnh Sửa
           </DropdownMenuItem>
 
-          <DropdownMenuItem
+          {/* <DropdownMenuItem
             onClick={() => setIsWalletTransactionPopupOpen(true)}
             className="cursor-pointer"
           >
             <Wallet className="mr-2 h-4 w-4" /> Ví & Giao Dịch
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
           {data.status !== "Active" && (
             <DropdownMenuItem

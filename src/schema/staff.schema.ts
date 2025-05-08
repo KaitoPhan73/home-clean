@@ -19,7 +19,6 @@ export const StaffSchema = BaseSchema.extend({
   code: z.string().max(255),
 });
 
-
 export const StaffStatusSchema = BaseSchema.extend({
   id: z.string().uuid(),
   status: z.string().max(255),
@@ -51,7 +50,40 @@ export const StaffCreateSchema = z.object({
   code: z.string().max(255),
 });
 
+export const StaffUpdateSchema = z.object({
+  fullName: z
+    .string()
+    .min(1, "Họ tên không được để trống")
+    .max(255, "Họ tên không được quá 255 ký tự"),
+  phoneNumber: z
+    .string()
+    .min(1, "Số điện thoại không được để trống")
+    .max(20, "Số điện thoại không được quá 20 ký tự"),
+  email: z
+    .string()
+    .email("Email không hợp lệ")
+    .max(255, "Email không được quá 255 ký tự"),
+  gender: z.enum(["Male", "Female", "Other"], {
+    errorMap: () => ({ message: "Giới tính không hợp lệ" }),
+  }),
+  dateOfBirth: z.string(),
+  address: z
+    .string()
+    .min(1, "Địa chỉ không được để trống")
+    .max(500, "Địa chỉ không được quá 500 ký tự"),
+  status: z.enum(["Active", "Inactive"], {
+    errorMap: () => ({ message: "Trạng thái không hợp lệ" }),
+  }),
+  groupId: z.string().uuid("ID nhóm không hợp lệ"),
+  password: z
+    .string()
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+    .max(50, "Mật khẩu không được quá 50 ký tự")
+    .optional(),
+});
 
+// Type for the update request
+export type TStaffUpdateRequest = z.TypeOf<typeof StaffUpdateSchema>;
 export type TStaffRequest = z.TypeOf<typeof StaffSchema>;
 export type TStaffResponse = z.TypeOf<typeof StaffSchema>;
 

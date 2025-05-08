@@ -31,7 +31,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   };
 
   const onEdit = () => {
-    console.log("Editing", data);
+    router.push(`/admin/staffs/${data.id}`);
   };
 
   const onConfirm = async () => {};
